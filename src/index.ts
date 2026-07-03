@@ -9,12 +9,58 @@ import pLimit from "p-limit";
 interface Mp3MetadataRow {
   album: string;
   artist: string;
-  bitrate: number | string;
-  duration: number | string;
+  bitrate: string;
+  duration: string;
   filename: string;
-  sampleRate: number | string;
+  sampleRate: string;
   title: string;
   year: number | string;
+}
+
+function formatMp3Duration(durationInSeconds: number | undefined): string {
+  if (durationInSeconds === undefined) {
+    return "";
+  }
+
+  const totalSeconds = Math.round(durationInSeconds);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const formattedMinutes = minutes.toString();
+  const paddedSeconds = seconds.toString().padStart(2, "0");
+
+  if (hours > 0) {
+    const formattedHours = hours.toString();
+    const paddedMinutes = minutes.toString().padStart(2, "0");
+
+    return `${formattedHours}:${paddedMinutes}:${paddedSeconds}`;
+  }
+
+  return `${formattedMinutes}:${paddedSeconds}`;
+}
+
+function formatMp3Bitrate(bitrateInBitsPerSecond: number | undefined): string {
+  if (bitrateInBitsPerSecond === undefined) {
+    return "";
+  }
+
+  const bitrateInKilobitsPerSecond = bitrateInBitsPerSecond / 1000;
+
+  return `${new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 1,
+  }).format(bitrateInKilobitsPerSecond)} kbps`;
+}
+
+function formatMp3SampleRate(sampleRateInHertz: number | undefined): string {
+  if (sampleRateInHertz === undefined) {
+    return "";
+  }
+
+  const sampleRateInKilohertz = sampleRateInHertz / 1000;
+
+  return `${new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 1,
+  }).format(sampleRateInKilohertz)} kHz`;
 }
 
 program
@@ -62,10 +108,10 @@ const summarizeSourceDirCommand = program
         return {
           album: metadata.common.album ?? "",
           artist: metadata.common.artist ?? "",
-          bitrate: metadata.format.bitrate ?? "",
-          duration: metadata.format.duration ?? "",
+          bitrate: formatMp3Bitrate(metadata.format.bitrate),
+          duration: formatMp3Duration(metadata.format.duration),
           filename: file.name,
-          sampleRate: metadata.format.sampleRate ?? "",
+          sampleRate: formatMp3SampleRate(metadata.format.sampleRate),
           title: metadata.common.title ?? "",
           year: metadata.common.year ?? "",
         };
