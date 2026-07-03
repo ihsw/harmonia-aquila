@@ -7,22 +7,20 @@ import { resolve } from "node:path";
 program
   .name("harmonia-aquila")
   .description("List files in a directory")
-  .argument("[directory]", "directory to list", ".")
-  .action(async (directory: string) => {
-    const targetDirectory = resolve(directory);
+  .requiredOption("--dir-name <dirName>", "directory to list")
+  .action(async (options: { dirName: string }) => {
+    const targetDirectory = resolve(options.dirName);
     const directoryStats = await stat(targetDirectory);
 
     if (!directoryStats.isDirectory()) {
-      program.error(`"${directory}" is not a directory`);
+      program.error(`"${options.dirName}" is not a directory`);
     }
 
     const files = await readdir(targetDirectory);
 
     for (const file of files) {
-      console.log(file);
+      console.info(file);
     }
   });
 
 await program.parseAsync();
-
-
