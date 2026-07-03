@@ -4,6 +4,7 @@ import { program } from "commander";
 import { parseFile } from "music-metadata";
 import { readdir, stat } from "node:fs/promises";
 import { resolve } from "node:path";
+import pLimit from "p-limit";
 
 interface Mp3MetadataRow {
   album: string;
@@ -24,7 +25,8 @@ const summarizeSourceDirCommand = program
   .command("summarize-source-dir")
   .description("List MP3 files and metadata in a source directory")
   .requiredOption("--dir-name <dirName>", "directory to list")
-  .action(async (options: { dirName: string }) => {
+  .option("--limit <count>", "maximum number of files to list")
+  .action(async (options: { dirName: string; limit?: string }) => {
     const targetDirectory = resolve(options.dirName);
     const directoryStats = await stat(targetDirectory);
 
@@ -45,8 +47,16 @@ const summarizeSourceDirCommand = program
       );
     }
 
+    const limit = options.limit === undefined ? undefined : Number(options.limit);
+
+    if (limit !== undefined && (!Number.isInteger(limit) || limit < 0)) {
+      summarizeSourceDirCommand.error("--limit must be a non-negative integer");
+    }
+
+    const filesToSummarize = limit === undefined ? files : files.slice(0, limit);
+    const parseMetadata = pLimit(16);
     const metadataRows = await Promise.all(
-      files.map(async (file): Promise<Mp3MetadataRow> => {
+      filesToSummarize.map(file => parseMetadata(async (): Promise<Mp3MetadataRow> => {
         const metadata = await parseFile(resolve(targetDirectory, file.name));
 
         return {
@@ -59,7 +69,7 @@ const summarizeSourceDirCommand = program
           title: metadata.common.title ?? "",
           year: metadata.common.year ?? "",
         };
-      }),
+      })),
     );
 
     console.table(metadataRows);
