@@ -2,10 +2,15 @@
   "name": "harmonia-aquila",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
+  "main": "./build/dist/index.js",
+  "bin": {
+    "harmonia-aquila": "./build/dist/index.js"
+  },
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ./src"
   },
   "repository": {
     "type": "git",
@@ -18,7 +23,15 @@
   },
   "homepage": "https://github.com/ihsw/harmonia-aquila#readme",
   "devDependencies": {
+    "@blueprintjs/eslint-config": "^6.1.2",
+    "@eslint/js": "^9.39.4",
     "@types/node": "^26.1.0",
-    "typescript": "^6.0.3"
+    "eslint": "^9.39.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.62.1"
+  },
+  "dependencies": {
+    "commander": "^15.0.0",
+    "music-metadata": "^11.13.0"
   }
 }
