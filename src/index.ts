@@ -1,8 +1,20 @@
 #!/usr/bin/env node
 
 import { program } from "commander";
+import { parseFile } from "music-metadata";
 import { readdir, stat } from "node:fs/promises";
 import { resolve } from "node:path";
+
+interface Mp3MetadataRow {
+  album: string;
+  artist: string;
+  bitrate: number | string;
+  duration: number | string;
+  filename: string;
+  sampleRate: number | string;
+  title: string;
+  year: number | string;
+}
 
 program
   .name("harmonia-aquila")
@@ -29,9 +41,24 @@ program
       );
     }
 
-    for (const file of files) {
-      console.info(file.name);
-    }
+    const metadataRows = await Promise.all(
+      files.map(async (file): Promise<Mp3MetadataRow> => {
+        const metadata = await parseFile(resolve(targetDirectory, file.name));
+
+        return {
+          album: metadata.common.album ?? "",
+          artist: metadata.common.artist ?? "",
+          bitrate: metadata.format.bitrate ?? "",
+          duration: metadata.format.duration ?? "",
+          filename: file.name,
+          sampleRate: metadata.format.sampleRate ?? "",
+          title: metadata.common.title ?? "",
+          year: metadata.common.year ?? "",
+        };
+      }),
+    );
+
+    console.table(metadataRows);
   });
 
 await program.parseAsync();

@@ -11,7 +11,10 @@ export default defineConfig(
     bpEslintConfig,
     {
         "rules": {
-            "header/header": [0]
+            "header/header": [0],
+            "no-console": ["error", {
+                "allow": ["warn", "assert", "debug", "info", "error", "table"]
+            }]
         }
     }
 );
