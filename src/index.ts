@@ -18,14 +18,18 @@ interface Mp3MetadataRow {
 
 program
   .name("harmonia-aquila")
-  .description("List files in a directory")
+  .description("Analyze local music files");
+
+const summarizeSourceDirCommand = program
+  .command("summarize-source-dir")
+  .description("List MP3 files and metadata in a source directory")
   .requiredOption("--dir-name <dirName>", "directory to list")
   .action(async (options: { dirName: string }) => {
     const targetDirectory = resolve(options.dirName);
     const directoryStats = await stat(targetDirectory);
 
     if (!directoryStats.isDirectory()) {
-      program.error(`"${options.dirName}" is not a directory`);
+      summarizeSourceDirCommand.error(`"${options.dirName}" is not a directory`);
     }
 
     const files = await readdir(targetDirectory, { withFileTypes: true });
@@ -34,7 +38,7 @@ program
     );
 
     if (invalidFiles.length > 0) {
-      program.error(
+      summarizeSourceDirCommand.error(
         `"${options.dirName}" must contain only MP3 files. Invalid entries: ${invalidFiles
           .map(file => file.name)
           .join(", ")}`,
