@@ -10,13 +10,10 @@ import { writeMp3TagFix } from '../id3-tags.js'
 interface FixTagsRow {
   action: string
   album: string
-  albumartist: string
-  artist: string
   destination: string
   filename: string
   grouping: string
   newAlbum: string
-  newAlbumartist: string
   newTitle: string
   subtitle: string
   title: string
@@ -68,7 +65,7 @@ function getAction(destinationStrategy: DestinationStrategy, destinationExists: 
 export function registerFixTagsCommand(program: Command): void {
   const fixTagsCommand = program
     .command('fix-tags')
-    .description('Replace MP3 album metadata with grouping, albumartist metadata with artist, and title metadata with subtitle')
+    .description('Replace MP3 album metadata with grouping and title metadata with subtitle')
     .requiredOption('--source-dir <sourceDir>', 'directory containing source MP3 files to copy and fix')
     .requiredOption('--dest-dir <destDir>', 'directory to copy fixed MP3 files into')
     .option('--limit <count>', 'maximum number of files to inspect')
@@ -98,12 +95,10 @@ export function registerFixTagsCommand(program: Command): void {
           }
 
           const album = metadata.common.album ?? ''
-          const albumartist = metadata.common.albumartist ?? ''
-          const artist = metadata.common.artist ?? ''
           const grouping = metadata.common.grouping ?? ''
           const subtitle = metadata.common.subtitle?.[0] ?? ''
           const title = metadata.common.title ?? ''
-          const hasChanges = album !== grouping || albumartist !== artist || title !== subtitle
+          const hasChanges = album !== grouping || title !== subtitle
           const destinationExists = await pathExists(destinationPath)
           const action = getAction(destinationStrategy, destinationExists, options.execute === true, hasChanges)
 
@@ -114,13 +109,10 @@ export function registerFixTagsCommand(program: Command): void {
             row: {
               action,
               album,
-              albumartist,
-              artist,
               destination: relative(destinationDirectory, destinationPath),
               filename: file.name,
               grouping,
               newAlbum: grouping,
-              newAlbumartist: artist,
               newTitle: subtitle,
               subtitle,
               title,
