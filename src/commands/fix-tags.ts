@@ -32,7 +32,6 @@ interface PlannedTagFix {
   sourcePath: string
   tagFix: {
     album: string
-    albumartist: string
     title: string
   }
 }
@@ -130,7 +129,6 @@ export function registerFixTagsCommand(program: Command): void {
             sourcePath,
             tagFix: {
               album: grouping,
-              albumartist: artist,
               title: subtitle,
             },
           }
