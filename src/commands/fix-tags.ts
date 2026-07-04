@@ -22,7 +22,10 @@ interface FixTagsRow {
   title: string
 }
 
+type DestinationStrategy = 'error' | 'ignore' | 'overwrite'
+
 interface PlannedTagFix {
+  destinationExists: boolean
   destinationPath: string
   hasChanges: boolean
   row: FixTagsRow
@@ -38,6 +41,32 @@ function createFixTagsError(message: string, cause: unknown): Error {
   return new Error(message, { cause })
 }
 
+function parseDestinationStrategy(command: Command, value: string | undefined): DestinationStrategy {
+  const destinationStrategy = value ?? 'error'
+
+  if (destinationStrategy !== 'error' && destinationStrategy !== 'ignore' && destinationStrategy !== 'overwrite') {
+    command.error('--destination-strategy must be one of: error, ignore, overwrite')
+  }
+
+  return destinationStrategy
+}
+
+function getAction(destinationStrategy: DestinationStrategy, destinationExists: boolean, execute: boolean, hasChanges: boolean): string {
+  if (destinationExists && destinationStrategy === 'ignore') {
+    return execute ? 'ignored' : 'would ignore'
+  }
+
+  if (destinationExists && destinationStrategy === 'overwrite') {
+    return execute
+      ? hasChanges ? 'overwritten and updated' : 'overwritten'
+      : hasChanges ? 'would overwrite and update' : 'would overwrite'
+  }
+
+  return execute
+    ? hasChanges ? 'copied and updated' : 'copied'
+    : hasChanges ? 'would copy and update' : 'would copy'
+}
+
 export function registerFixTagsCommand(program: Command): void {
   const fixTagsCommand = program
     .command('fix-tags')
@@ -45,11 +74,13 @@ export function registerFixTagsCommand(program: Command): void {
     .requiredOption('--source-dir <sourceDir>', 'directory containing source MP3 files to copy and fix')
     .requiredOption('--dest-dir <destDir>', 'directory to copy fixed MP3 files into')
     .option('--limit <count>', 'maximum number of files to inspect')
+    .option('--destination-strategy <strategy>', 'what to do when a destination file exists: error, ignore, overwrite', 'error')
     .option('--execute', 'copy files and write tag changes to destination files')
-    .action(async (options: { destDir: string, execute?: boolean, limit?: string, sourceDir: string }) => {
+    .action(async (options: { destDir: string, destinationStrategy?: string, execute?: boolean, limit?: string, sourceDir: string }) => {
       const { files, targetDirectory: sourceDirectory } = await getMp3Files(fixTagsCommand, options.sourceDir)
       const destinationDirectory = resolve(options.destDir)
       const limit = parseLimit(fixTagsCommand, options.limit)
+      const destinationStrategy = parseDestinationStrategy(fixTagsCommand, options.destinationStrategy)
       const filesToFix = limit === undefined ? files : files.slice(0, limit)
       const processMetadata = pLimit(16)
       const plannedTagFixes = await Promise.all(
@@ -75,11 +106,11 @@ export function registerFixTagsCommand(program: Command): void {
           const subtitle = metadata.common.subtitle?.[0] ?? ''
           const title = metadata.common.title ?? ''
           const hasChanges = album !== grouping || albumartist !== artist || title !== subtitle
-          const action = options.execute === true
-            ? hasChanges ? 'copied and updated' : 'copied'
-            : hasChanges ? 'would copy and update' : 'would copy'
+          const destinationExists = await pathExists(destinationPath)
+          const action = getAction(destinationStrategy, destinationExists, options.execute === true, hasChanges)
 
           return {
+            destinationExists,
             destinationPath,
             hasChanges,
             row: {
@@ -105,22 +136,20 @@ export function registerFixTagsCommand(program: Command): void {
           }
         })),
       )
-      const existingDestinations = await Promise.all(
-        plannedTagFixes.map(async plannedTagFix => ({
-          exists: await pathExists(plannedTagFix.destinationPath),
-          plannedTagFix,
-        })),
-      )
-      const conflictingDestinations = existingDestinations.filter(destination => destination.exists)
+      const conflictingDestinations = plannedTagFixes.filter(plannedTagFix => plannedTagFix.destinationExists)
 
-      if (conflictingDestinations.length > 0) {
+      if (destinationStrategy === 'error' && conflictingDestinations.length > 0) {
         fixTagsCommand.error(`Destination files already exist: ${conflictingDestinations
-          .map(destination => relative(destinationDirectory, destination.plannedTagFix.destinationPath))
+          .map(plannedTagFix => relative(destinationDirectory, plannedTagFix.destinationPath))
           .join(', ')}`)
       }
 
       if (options.execute === true) {
         for (const plannedTagFix of plannedTagFixes) {
+          if (plannedTagFix.destinationExists && destinationStrategy === 'ignore') {
+            continue
+          }
+
           try {
             await mkdir(dirname(plannedTagFix.destinationPath), { recursive: true })
             await copyFile(plannedTagFix.sourcePath, plannedTagFix.destinationPath)
