@@ -45,6 +45,21 @@ export function parseLimit(command: Command, limitOption: string | undefined): n
   return limit
 }
 
+export async function pathExists(path: string): Promise<boolean> {
+  try {
+    await stat(path)
+
+    return true
+  }
+  catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      return false
+    }
+
+    throw error
+  }
+}
+
 export function formatMp3Duration(durationInSeconds: number | undefined): string {
   if (durationInSeconds === undefined) {
     return ''

@@ -1,10 +1,10 @@
 import type { Command } from 'commander'
 import { parseFile } from 'music-metadata'
-import { mkdir, rename, stat } from 'node:fs/promises'
+import { mkdir, rename } from 'node:fs/promises'
 import { dirname, extname, join, relative, resolve } from 'node:path'
 import pLimit from 'p-limit'
 
-import { getMp3Files, parseLimit } from '../command-utils.js'
+import { getMp3Files, parseLimit, pathExists } from '../command-utils.js'
 
 interface OrganizeFilesRow {
   action: string
@@ -39,21 +39,6 @@ function sanitizePathSegment(value: string): string {
 
 function formatTrackNumber(trackNumber: number): string {
   return trackNumber.toString().padStart(2, '0')
-}
-
-async function pathExists(path: string): Promise<boolean> {
-  try {
-    await stat(path)
-
-    return true
-  }
-  catch (error) {
-    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-      return false
-    }
-
-    throw error
-  }
 }
 
 export function registerOrganizeFilesCommand(program: Command): void {
