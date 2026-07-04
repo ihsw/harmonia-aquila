@@ -34,6 +34,10 @@ interface PlannedTagFix {
   }
 }
 
+function createFixTagsError(message: string, cause: unknown): Error {
+  return new Error(message, { cause })
+}
+
 export function registerFixTagsCommand(program: Command): void {
   const fixTagsCommand = program
     .command('fix-tags')
@@ -47,12 +51,23 @@ export function registerFixTagsCommand(program: Command): void {
       const destinationDirectory = resolve(options.destDir)
       const limit = parseLimit(fixTagsCommand, options.limit)
       const filesToFix = limit === undefined ? files : files.slice(0, limit)
-      const processMetadata = pLimit(8)
+      const processMetadata = pLimit(16)
       const plannedTagFixes = await Promise.all(
         filesToFix.map(file => processMetadata(async (): Promise<PlannedTagFix> => {
           const sourcePath = resolve(sourceDirectory, file.name)
           const destinationPath = resolve(destinationDirectory, file.name)
-          const metadata = await parseFile(sourcePath)
+          let metadata
+
+          try {
+            metadata = await parseFile(sourcePath)
+          }
+          catch (error) {
+            throw createFixTagsError(
+              `Failed to read metadata for fix-tags source "${sourcePath}" with destination "${destinationPath}"`,
+              error,
+            )
+          }
+
           const album = metadata.common.album ?? ''
           const albumartist = metadata.common.albumartist ?? ''
           const artist = metadata.common.artist ?? ''
@@ -106,11 +121,19 @@ export function registerFixTagsCommand(program: Command): void {
 
       if (options.execute === true) {
         for (const plannedTagFix of plannedTagFixes) {
-          await mkdir(dirname(plannedTagFix.destinationPath), { recursive: true })
-          await copyFile(plannedTagFix.sourcePath, plannedTagFix.destinationPath)
+          try {
+            await mkdir(dirname(plannedTagFix.destinationPath), { recursive: true })
+            await copyFile(plannedTagFix.sourcePath, plannedTagFix.destinationPath)
 
-          if (plannedTagFix.hasChanges) {
-            writeMp3TagFix(plannedTagFix.destinationPath, plannedTagFix.tagFix)
+            if (plannedTagFix.hasChanges) {
+              writeMp3TagFix(plannedTagFix.destinationPath, plannedTagFix.tagFix)
+            }
+          }
+          catch (error) {
+            throw createFixTagsError(
+              `Failed to copy/fix tags for source "${plannedTagFix.sourcePath}" to destination "${plannedTagFix.destinationPath}" with metadata ${JSON.stringify(plannedTagFix.tagFix)}`,
+              error,
+            )
           }
         }
       }
