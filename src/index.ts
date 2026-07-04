@@ -8,7 +8,9 @@ import pLimit from 'p-limit'
 
 interface Mp3MetadataRow {
   album: string
+  grouping: string
   artist: string
+  albumartist: string
   bitrate: string
   duration: string
   filename: string
@@ -107,10 +109,12 @@ const summarizeSourceDirCommand = program
 
         return {
           album: metadata.common.album ?? '',
+          albumartist: metadata.common.albumartist ?? '',
           artist: metadata.common.artist ?? '',
           bitrate: formatMp3Bitrate(metadata.format.bitrate),
           duration: formatMp3Duration(metadata.format.duration),
           filename: file.name,
+          grouping: metadata.common.grouping ?? '',
           sampleRate: formatMp3SampleRate(metadata.format.sampleRate),
           title: metadata.common.title ?? '',
           year: metadata.common.year ?? '',
