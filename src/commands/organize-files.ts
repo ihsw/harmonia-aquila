@@ -7,6 +7,7 @@ import pLimit from 'p-limit'
 import { getMp3Files, parseLimit } from '../command-utils.js'
 
 interface OrganizeFilesRow {
+  action: string
   album: string
   artist: string
   destination: string
@@ -62,7 +63,8 @@ export function registerOrganizeFilesCommand(program: Command): void {
     .requiredOption('--source-dir <sourceDir>', 'directory containing MP3 files to organize')
     .requiredOption('--dest-dir <destDir>', 'directory to move organized files into')
     .option('--limit <count>', 'maximum number of files to move')
-    .action(async (options: { destDir: string, limit?: string, sourceDir: string }) => {
+    .option('--execute', 'move files')
+    .action(async (options: { destDir: string, execute?: boolean, limit?: string, sourceDir: string }) => {
       const { files, targetDirectory: sourceDirectory } = await getMp3Files(organizeFilesCommand, options.sourceDir)
       const destinationDirectory = resolve(options.destDir)
       const limit = parseLimit(organizeFilesCommand, options.limit)
@@ -103,6 +105,7 @@ export function registerOrganizeFilesCommand(program: Command): void {
           return {
             destinationPath,
             row: {
+              action: options.execute === true ? 'moved' : 'would move',
               album,
               artist,
               destination: relative(destinationDirectory, destinationPath),
@@ -145,9 +148,14 @@ export function registerOrganizeFilesCommand(program: Command): void {
           .join(', ')}`)
       }
 
-      for (const plannedMove of plannedMoves) {
-        await mkdir(dirname(plannedMove.destinationPath), { recursive: true })
-        await rename(plannedMove.sourcePath, plannedMove.destinationPath)
+      if (options.execute === true) {
+        for (const plannedMove of plannedMoves) {
+          await mkdir(dirname(plannedMove.destinationPath), { recursive: true })
+          await rename(plannedMove.sourcePath, plannedMove.destinationPath)
+        }
+      }
+      else {
+        console.info('Dry run: no files were moved. Pass --execute to move files.')
       }
 
       console.table(plannedMoves.map(plannedMove => plannedMove.row))
