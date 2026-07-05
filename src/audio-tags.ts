@@ -2,7 +2,7 @@ import { File } from 'node-taglib-sharp'
 
 export interface AudioTagFix {
   album: string
-  albumArtists: string[]
+  albumArtists?: string[]
 }
 
 export function writeAudioTagFix(filePath: string, tagFix: AudioTagFix): void {
@@ -10,7 +10,11 @@ export function writeAudioTagFix(filePath: string, tagFix: AudioTagFix): void {
 
   try {
     audioFile.tag.album = tagFix.album
-    audioFile.tag.albumArtists = tagFix.albumArtists
+
+    if (tagFix.albumArtists !== undefined) {
+      audioFile.tag.albumArtists = tagFix.albumArtists
+    }
+
     audioFile.save()
   }
   finally {
