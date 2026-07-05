@@ -1,6 +1,6 @@
 import type { Command } from 'commander'
 import { parseFile } from 'music-metadata'
-import { mkdir, rename } from 'node:fs/promises'
+import { copyFile, mkdir } from 'node:fs/promises'
 import { dirname, extname, join, relative, resolve } from 'node:path'
 import pLimit from 'p-limit'
 
@@ -16,7 +16,7 @@ interface OrganizeFilesRow {
   trackNumber: string
 }
 
-interface PlannedMove {
+interface PlannedCopy {
   destinationPath: string
   row: OrganizeFilesRow
   sourcePath: string
@@ -44,23 +44,23 @@ function formatTrackNumber(trackNumber: number): string {
 export function registerOrganizeFilesCommand(program: Command): void {
   const organizeFilesCommand = program
     .command('organize-files')
-    .description('Move MP3 files into ArtistName/AlbumName/TrackNumber - TrackName.ext')
+    .description('Copy MP3 files into ArtistName/AlbumName/TrackNumber - TrackName.ext')
     .requiredOption('--source-dir <sourceDir>', 'directory containing MP3 files to organize')
-    .requiredOption('--dest-dir <destDir>', 'directory to move organized files into')
-    .option('--limit <count>', 'maximum number of files to move')
-    .option('--execute', 'move files')
+    .requiredOption('--dest-dir <destDir>', 'directory to copy organized files into')
+    .option('--limit <count>', 'maximum number of files to copy')
+    .option('--execute', 'copy files')
     .action(async (options: { destDir: string, execute?: boolean, limit?: string, sourceDir: string }) => {
       const { files, targetDirectory: sourceDirectory } = await getMp3Files(organizeFilesCommand, options.sourceDir)
       const destinationDirectory = resolve(options.destDir)
       const limit = parseLimit(organizeFilesCommand, options.limit)
       const filesToOrganize = limit === undefined ? files : files.slice(0, limit)
       const parseMetadata = pLimit(8)
-      const plannedMoves = await Promise.all(
-        filesToOrganize.map(file => parseMetadata(async (): Promise<PlannedMove> => {
+      const plannedCopies = await Promise.all(
+        filesToOrganize.map(file => parseMetadata(async (): Promise<PlannedCopy> => {
           const sourcePath = resolve(sourceDirectory, file.name)
           const metadata = await parseFile(sourcePath)
           const album = metadata.common.album ?? ''
-          const artist = metadata.common.artist ?? ''
+          const artist = metadata.common.albumartist ?? metadata.common.artist ?? ''
           const title = metadata.common.title ?? ''
           const trackNumber = metadata.common.track.no
           const missingFields = [
@@ -90,7 +90,7 @@ export function registerOrganizeFilesCommand(program: Command): void {
           return {
             destinationPath,
             row: {
-              action: options.execute === true ? 'moved' : 'would move',
+              action: options.execute === true ? 'copied' : 'would copy',
               album,
               artist,
               destination: relative(destinationDirectory, destinationPath),
@@ -104,11 +104,11 @@ export function registerOrganizeFilesCommand(program: Command): void {
       )
       const duplicateDestinations = new Map<string, string[]>()
 
-      for (const plannedMove of plannedMoves) {
-        const matchingFiles = duplicateDestinations.get(plannedMove.destinationPath) ?? []
+      for (const plannedCopy of plannedCopies) {
+        const matchingFiles = duplicateDestinations.get(plannedCopy.destinationPath) ?? []
 
-        matchingFiles.push(plannedMove.row.filename)
-        duplicateDestinations.set(plannedMove.destinationPath, matchingFiles)
+        matchingFiles.push(plannedCopy.row.filename)
+        duplicateDestinations.set(plannedCopy.destinationPath, matchingFiles)
       }
 
       const duplicateDestinationEntries = [...duplicateDestinations.entries()].filter(([, filenames]) => filenames.length > 1)
@@ -120,29 +120,29 @@ export function registerOrganizeFilesCommand(program: Command): void {
       }
 
       const existingDestinations = await Promise.all(
-        plannedMoves.map(async plannedMove => ({
-          exists: await pathExists(plannedMove.destinationPath),
-          plannedMove,
+        plannedCopies.map(async plannedCopy => ({
+          exists: await pathExists(plannedCopy.destinationPath),
+          plannedCopy,
         })),
       )
       const conflictingDestinations = existingDestinations.filter(destination => destination.exists)
 
       if (conflictingDestinations.length > 0) {
         organizeFilesCommand.error(`Destination files already exist: ${conflictingDestinations
-          .map(destination => relative(destinationDirectory, destination.plannedMove.destinationPath))
+          .map(destination => relative(destinationDirectory, destination.plannedCopy.destinationPath))
           .join(', ')}`)
       }
 
       if (options.execute === true) {
-        for (const plannedMove of plannedMoves) {
-          await mkdir(dirname(plannedMove.destinationPath), { recursive: true })
-          await rename(plannedMove.sourcePath, plannedMove.destinationPath)
+        for (const plannedCopy of plannedCopies) {
+          await mkdir(dirname(plannedCopy.destinationPath), { recursive: true })
+          await copyFile(plannedCopy.sourcePath, plannedCopy.destinationPath)
         }
       }
       else {
-        console.info('Dry run: no files were moved. Pass --execute to move files.')
+        console.info('Dry run: no files were copied. Pass --execute to copy files.')
       }
 
-      console.table(plannedMoves.map(plannedMove => plannedMove.row))
+      console.table(plannedCopies.map(plannedCopy => plannedCopy.row))
     })
 }
