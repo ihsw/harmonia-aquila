@@ -99,7 +99,7 @@ export function registerOrganizeFilesCommand(program: Command): void {
       const { files, targetDirectory: sourceDirectory } = await getAudioFiles(organizeFilesCommand, options.sourceDir)
       const destinationDirectory = resolve(options.destDir)
       const filesToOrganize = limit === undefined ? files : files.slice(0, limit)
-      const parseMetadata = pLimit(8)
+      const parseMetadata = pLimit(16)
       const plannedCopies = await Promise.all(
         filesToOrganize.map(file => parseMetadata(async (): Promise<PlannedCopy> => {
           const sourcePath = resolve(sourceDirectory, file.name)
