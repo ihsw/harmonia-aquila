@@ -12,9 +12,12 @@ interface OrganizeFilesRow {
   artist: string
   destination: string
   filename: string
-  title: string
+  titleFilename: string
+  titleFilenameStrategy: TitleFilenameStrategy
   trackNumber: string
 }
+
+type TitleFilenameStrategy = 'subtitle' | 'title'
 
 interface PlannedCopy {
   destinationPath: string
@@ -41,18 +44,30 @@ function formatTrackNumber(trackNumber: number): string {
   return trackNumber.toString().padStart(2, '0')
 }
 
+function parseTitleFilenameStrategy(command: Command, value: string | undefined): TitleFilenameStrategy {
+  const titleFilenameStrategy = value ?? 'title'
+
+  if (titleFilenameStrategy !== 'subtitle' && titleFilenameStrategy !== 'title') {
+    command.error('--title-filename-strategy must be one of: subtitle, title')
+  }
+
+  return titleFilenameStrategy
+}
+
 export function registerOrganizeFilesCommand(program: Command): void {
   const organizeFilesCommand = program
     .command('organize-files')
-    .description('Copy FLAC and MP3 files into ArtistName/AlbumName/TrackNumber - TrackName.ext')
+    .description('Copy FLAC and MP3 files into ArtistName/AlbumName/TrackNumber - Title.ext')
     .requiredOption('--source-dir <sourceDir>', 'directory containing FLAC and MP3 files to organize')
     .requiredOption('--dest-dir <destDir>', 'directory to copy organized files into')
     .option('--limit <count>', 'maximum number of files to copy')
+    .option('--title-filename-strategy <strategy>', 'metadata field to use for the title portion of the filename: subtitle, title', 'title')
     .option('--execute', 'copy files')
-    .action(async (options: { destDir: string, execute?: boolean, limit?: string, sourceDir: string }) => {
+    .action(async (options: { destDir: string, execute?: boolean, limit?: string, sourceDir: string, titleFilenameStrategy?: string }) => {
+      const limit = parseLimit(organizeFilesCommand, options.limit)
+      const titleFilenameStrategy = parseTitleFilenameStrategy(organizeFilesCommand, options.titleFilenameStrategy)
       const { files, targetDirectory: sourceDirectory } = await getAudioFiles(organizeFilesCommand, options.sourceDir)
       const destinationDirectory = resolve(options.destDir)
-      const limit = parseLimit(organizeFilesCommand, options.limit)
       const filesToOrganize = limit === undefined ? files : files.slice(0, limit)
       const parseMetadata = pLimit(8)
       const plannedCopies = await Promise.all(
@@ -62,12 +77,14 @@ export function registerOrganizeFilesCommand(program: Command): void {
           const album = metadata.common.album ?? ''
           const artist = metadata.common.albumartist ?? metadata.common.artist ?? ''
           const title = metadata.common.title ?? ''
+          const subtitle = metadata.common.subtitle?.[0] ?? ''
+          const titleFilename = titleFilenameStrategy === 'subtitle' ? subtitle : title
           const trackNumber = metadata.common.track.no
           const missingFields = [
             album === '' ? 'album' : undefined,
             artist === '' ? 'artist' : undefined,
             trackNumber === null ? 'track number' : undefined,
-            title === '' ? 'title' : undefined,
+            titleFilename === '' ? titleFilenameStrategy : undefined,
           ].filter((field): field is string => field !== undefined)
 
           if (missingFields.length > 0) {
@@ -84,7 +101,7 @@ export function registerOrganizeFilesCommand(program: Command): void {
             destinationDirectory,
             sanitizePathSegment(artist),
             sanitizePathSegment(album),
-            `${formattedTrackNumber} - ${sanitizePathSegment(title)}${extname(file.name)}`,
+            `${formattedTrackNumber} - ${sanitizePathSegment(titleFilename)}${extname(file.name)}`,
           )
 
           return {
@@ -95,7 +112,8 @@ export function registerOrganizeFilesCommand(program: Command): void {
               artist,
               destination: relative(destinationDirectory, destinationPath),
               filename: file.name,
-              title,
+              titleFilename,
+              titleFilenameStrategy,
               trackNumber: formattedTrackNumber,
             },
             sourcePath,
