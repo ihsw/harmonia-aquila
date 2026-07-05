@@ -34,7 +34,7 @@
   "dependencies": {
     "commander": "^15.0.0",
     "music-metadata": "^11.13.0",
-    "node-id3": "^0.2.9",
+    "node-taglib-sharp": "^6.0.3",
     "p-limit": "^7.3.0"
   }
 }

@@ -1,14 +1,22 @@
 import type { Command } from 'commander'
 import type { Dirent } from 'node:fs'
 import { readdir, stat } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { extname, resolve } from 'node:path'
 
-export interface Mp3FilesResult {
+const SUPPORTED_AUDIO_EXTENSIONS = ['.flac', '.mp3'] as const
+const SUPPORTED_AUDIO_EXTENSION_SET = new Set<string>(SUPPORTED_AUDIO_EXTENSIONS)
+const SUPPORTED_AUDIO_EXTENSIONS_DISPLAY = SUPPORTED_AUDIO_EXTENSIONS.join(', ')
+
+export interface AudioFilesResult {
   files: Dirent[]
   targetDirectory: string
 }
 
-export async function getMp3Files(command: Command, dirName: string): Promise<Mp3FilesResult> {
+function isSupportedAudioFile(file: Dirent): boolean {
+  return file.isFile() && SUPPORTED_AUDIO_EXTENSION_SET.has(extname(file.name).toLowerCase())
+}
+
+export async function getAudioFiles(command: Command, dirName: string): Promise<AudioFilesResult> {
   const targetDirectory = resolve(dirName)
   const directoryStats = await stat(targetDirectory)
 
@@ -18,12 +26,12 @@ export async function getMp3Files(command: Command, dirName: string): Promise<Mp
 
   const files = await readdir(targetDirectory, { withFileTypes: true })
   const invalidFiles = files.filter(
-    file => !file.isFile() || !file.name.toLowerCase().endsWith('.mp3'),
+    file => !isSupportedAudioFile(file),
   )
 
   if (invalidFiles.length > 0) {
     command.error(
-      `"${dirName}" must contain only MP3 files. Invalid entries: ${invalidFiles
+      `"${dirName}" must contain only supported audio files (${SUPPORTED_AUDIO_EXTENSIONS_DISPLAY}). Invalid entries: ${invalidFiles
         .map(file => file.name)
         .join(', ')}`,
     )
@@ -60,7 +68,7 @@ export async function pathExists(path: string): Promise<boolean> {
   }
 }
 
-export function formatMp3Duration(durationInSeconds: number | undefined): string {
+export function formatAudioDuration(durationInSeconds: number | undefined): string {
   if (durationInSeconds === undefined) {
     return ''
   }
@@ -82,7 +90,7 @@ export function formatMp3Duration(durationInSeconds: number | undefined): string
   return `${formattedMinutes}:${paddedSeconds}`
 }
 
-export function formatMp3Bitrate(bitrateInBitsPerSecond: number | undefined): string {
+export function formatAudioBitrate(bitrateInBitsPerSecond: number | undefined): string {
   if (bitrateInBitsPerSecond === undefined) {
     return ''
   }
@@ -94,7 +102,7 @@ export function formatMp3Bitrate(bitrateInBitsPerSecond: number | undefined): st
   }).format(bitrateInKilobitsPerSecond)} kbps`
 }
 
-export function formatMp3SampleRate(sampleRateInHertz: number | undefined): string {
+export function formatAudioSampleRate(sampleRateInHertz: number | undefined): string {
   if (sampleRateInHertz === undefined) {
     return ''
   }

@@ -4,8 +4,8 @@ import { copyFile, mkdir } from 'node:fs/promises'
 import { dirname, relative, resolve } from 'node:path'
 import pLimit from 'p-limit'
 
-import { getMp3Files, parseLimit, pathExists } from '../command-utils.js'
-import { writeMp3TagFix } from '../id3-tags.js'
+import { writeAudioTagFix } from '../audio-tags.js'
+import { getAudioFiles, parseLimit, pathExists } from '../command-utils.js'
 
 interface FixTagsRow {
   action: string
@@ -66,14 +66,14 @@ function getAction(destinationStrategy: DestinationStrategy, destinationExists: 
 export function registerFixTagsCommand(program: Command): void {
   const fixTagsCommand = program
     .command('fix-tags')
-    .description('Replace MP3 album metadata with grouping and title metadata with subtitle')
-    .requiredOption('--source-dir <sourceDir>', 'directory containing source MP3 files to copy and fix')
-    .requiredOption('--dest-dir <destDir>', 'directory to copy fixed MP3 files into')
+    .description('Replace FLAC and MP3 album metadata with grouping and title metadata with subtitle')
+    .requiredOption('--source-dir <sourceDir>', 'directory containing source FLAC and MP3 files to copy and fix')
+    .requiredOption('--dest-dir <destDir>', 'directory to copy fixed FLAC and MP3 files into')
     .option('--limit <count>', 'maximum number of files to inspect')
     .option('--destination-strategy <strategy>', 'what to do when a destination file exists: error, ignore, overwrite', 'error')
     .option('--execute', 'copy files and write tag changes to destination files')
     .action(async (options: { destDir: string, destinationStrategy?: string, execute?: boolean, limit?: string, sourceDir: string }) => {
-      const { files, targetDirectory: sourceDirectory } = await getMp3Files(fixTagsCommand, options.sourceDir)
+      const { files, targetDirectory: sourceDirectory } = await getAudioFiles(fixTagsCommand, options.sourceDir)
       const destinationDirectory = resolve(options.destDir)
       const limit = parseLimit(fixTagsCommand, options.limit)
       const destinationStrategy = parseDestinationStrategy(fixTagsCommand, options.destinationStrategy)
@@ -145,7 +145,7 @@ export function registerFixTagsCommand(program: Command): void {
             await copyFile(plannedTagFix.sourcePath, plannedTagFix.destinationPath)
 
             if (plannedTagFix.hasChanges) {
-              writeMp3TagFix(plannedTagFix.destinationPath, plannedTagFix.tagFix)
+              writeAudioTagFix(plannedTagFix.destinationPath, plannedTagFix.tagFix)
             }
           }
           catch (error) {

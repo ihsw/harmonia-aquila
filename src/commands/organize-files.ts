@@ -4,7 +4,7 @@ import { copyFile, mkdir } from 'node:fs/promises'
 import { dirname, extname, join, relative, resolve } from 'node:path'
 import pLimit from 'p-limit'
 
-import { getMp3Files, parseLimit, pathExists } from '../command-utils.js'
+import { getAudioFiles, parseLimit, pathExists } from '../command-utils.js'
 
 interface OrganizeFilesRow {
   action: string
@@ -44,13 +44,13 @@ function formatTrackNumber(trackNumber: number): string {
 export function registerOrganizeFilesCommand(program: Command): void {
   const organizeFilesCommand = program
     .command('organize-files')
-    .description('Copy MP3 files into ArtistName/AlbumName/TrackNumber - TrackName.ext')
-    .requiredOption('--source-dir <sourceDir>', 'directory containing MP3 files to organize')
+    .description('Copy FLAC and MP3 files into ArtistName/AlbumName/TrackNumber - TrackName.ext')
+    .requiredOption('--source-dir <sourceDir>', 'directory containing FLAC and MP3 files to organize')
     .requiredOption('--dest-dir <destDir>', 'directory to copy organized files into')
     .option('--limit <count>', 'maximum number of files to copy')
     .option('--execute', 'copy files')
     .action(async (options: { destDir: string, execute?: boolean, limit?: string, sourceDir: string }) => {
-      const { files, targetDirectory: sourceDirectory } = await getMp3Files(organizeFilesCommand, options.sourceDir)
+      const { files, targetDirectory: sourceDirectory } = await getAudioFiles(organizeFilesCommand, options.sourceDir)
       const destinationDirectory = resolve(options.destDir)
       const limit = parseLimit(organizeFilesCommand, options.limit)
       const filesToOrganize = limit === undefined ? files : files.slice(0, limit)
