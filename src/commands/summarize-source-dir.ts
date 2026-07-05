@@ -23,6 +23,8 @@ interface AudioMetadataRow {
   title: string
   year: number | string
   subtitle: string
+  publisher: string
+  label: string
 }
 
 export function registerSummarizeSourceDirCommand(program: Command): void {
@@ -48,6 +50,8 @@ export function registerSummarizeSourceDirCommand(program: Command): void {
             duration: formatAudioDuration(metadata.format.duration),
             filename: file.name,
             grouping: metadata.common.grouping ?? '',
+            label: metadata.common.label?.[0] ?? '',
+            publisher: metadata.common.publisher?.[0] ?? '',
             sampleRate: formatAudioSampleRate(metadata.format.sampleRate),
             subtitle: metadata.common.subtitle?.[0] ?? '',
             title: metadata.common.title ?? '',
