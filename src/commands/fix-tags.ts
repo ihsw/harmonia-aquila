@@ -10,12 +10,12 @@ import { getAudioFiles, parseLimit, pathExists } from '../command-utils.js'
 interface FixTagsRow {
   action: string
   album: string
-  albumartists: string
+  albumartists: string[]
   destination: string
   filename: string
   grouping: string
   newAlbum: string
-  newAlbumartists: string
+  newAlbumartists: string[]
   title: string
   artist: string
 }
@@ -171,13 +171,13 @@ export function registerFixTagsCommand(program: Command): void {
             row: {
               action,
               album: parsedTagFixSource.album,
-              albumartists: formatArtists(parsedTagFixSource.albumArtists),
+              albumartists: parsedTagFixSource.albumArtists,
               artist: parsedTagFixSource.artist,
               destination: relative(destinationDirectory, parsedTagFixSource.destinationPath),
               filename: parsedTagFixSource.filename,
               grouping: parsedTagFixSource.grouping,
               newAlbum: parsedTagFixSource.grouping,
-              newAlbumartists: formatArtists(albumArtists),
+              newAlbumartists: albumArtists,
               title: parsedTagFixSource.title,
             },
             sourcePath: parsedTagFixSource.sourcePath,
