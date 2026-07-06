@@ -18,7 +18,7 @@ interface OrganizeFilesRow {
   trackNumber: string
 }
 
-type ArtistFilenameStrategy = 'albumartist' | 'artist' | 'label'
+type ArtistFilenameStrategy = 'albumartist' | 'artist' | 'label' | 'producer'
 type TitleFilenameStrategy = 'subtitle' | 'title'
 
 interface PlannedCopy {
@@ -53,8 +53,8 @@ function formatMetadataValues(values: string[] | undefined): string {
 function parseArtistFilenameStrategy(command: Command, value: string | undefined): ArtistFilenameStrategy {
   const artistFilenameStrategy = value ?? 'artist'
 
-  if (artistFilenameStrategy !== 'albumartist' && artistFilenameStrategy !== 'artist' && artistFilenameStrategy !== 'label') {
-    command.error('--artist-filename-strategy must be one of: artist, albumartist, label')
+  if (artistFilenameStrategy !== 'albumartist' && artistFilenameStrategy !== 'artist' && artistFilenameStrategy !== 'label' && artistFilenameStrategy !== 'producer') {
+    command.error('--artist-filename-strategy must be one of: artist, albumartist, label, producer')
   }
 
   return artistFilenameStrategy
@@ -70,13 +70,17 @@ function parseTitleFilenameStrategy(command: Command, value: string | undefined)
   return titleFilenameStrategy
 }
 
-function getArtistFilename(strategy: ArtistFilenameStrategy, artist: string, albumartist: string, label: string[]): string {
+function getArtistFilename(strategy: ArtistFilenameStrategy, artist: string, albumartist: string, label: string[], producer: string[]): string {
   if (strategy === 'albumartist') {
     return albumartist
   }
 
   if (strategy === 'label') {
     return formatMetadataValues(label)
+  }
+
+  if (strategy === 'producer') {
+    return formatMetadataValues(producer)
   }
 
   return artist
@@ -89,7 +93,7 @@ export function registerOrganizeFilesCommand(program: Command): void {
     .requiredOption('--source-dir <sourceDir>', 'directory containing FLAC and MP3 files to organize')
     .requiredOption('--dest-dir <destDir>', 'directory to copy organized files into')
     .option('--limit <count>', 'maximum number of files to copy')
-    .option('--artist-filename-strategy <strategy>', 'metadata field to use for the artist portion of the filename: artist, albumartist, label', 'artist')
+    .option('--artist-filename-strategy <strategy>', 'metadata field to use for the artist portion of the filename: artist, albumartist, label, producer', 'artist')
     .option('--title-filename-strategy <strategy>', 'metadata field to use for the title portion of the filename: subtitle, title', 'title')
     .option('--execute', 'copy files')
     .action(async (options: { artistFilenameStrategy?: string, destDir: string, execute?: boolean, limit?: string, sourceDir: string, titleFilenameStrategy?: string }) => {
@@ -108,7 +112,8 @@ export function registerOrganizeFilesCommand(program: Command): void {
           const albumartist = metadata.common.albumartist ?? ''
           const artist = metadata.common.artist ?? ''
           const label = metadata.common.label ?? []
-          const artistFilename = getArtistFilename(artistFilenameStrategy, artist, albumartist, label)
+          const producer = metadata.common.producer ?? []
+          const artistFilename = getArtistFilename(artistFilenameStrategy, artist, albumartist, label, producer)
           const title = metadata.common.title ?? ''
           const subtitle = metadata.common.subtitle?.[0] ?? ''
           const titleFilename = titleFilenameStrategy === 'subtitle' ? subtitle : title
