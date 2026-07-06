@@ -14,14 +14,18 @@ interface FixTagsRow {
   destination: string
   filename: string
   grouping: string
-  newAlbum: string
+  newAlbum?: string
   newAlbumartists?: string[]
+  newProducers?: string[]
+  producers?: string[]
   title: string
   artist: string
 }
 
 type DestinationStrategy = 'error' | 'ignore' | 'overwrite'
 type AlbumArtistsStrategy = 'aggregate' | 'blank' | 'no change'
+type AlbumStrategy = 'grouping' | 'no change'
+type ProducerStrategy = 'aggregate' | 'blank' | 'copy-from-album-artists' | 'no change'
 
 interface ParsedTagFixSource {
   album: string
@@ -30,6 +34,7 @@ interface ParsedTagFixSource {
   destinationPath: string
   filename: string
   grouping: string
+  producers: string[]
   sourcePath: string
   title: string
   artist: string
@@ -42,8 +47,9 @@ interface PlannedTagFix {
   row: FixTagsRow
   sourcePath: string
   tagFix: {
-    album: string
+    album?: string
     albumArtists?: string[]
+    producers?: string[]
   }
 }
 
@@ -83,6 +89,26 @@ function parseAlbumArtistsStrategy(command: Command, value: string | undefined):
   return albumArtistsStrategy
 }
 
+function parseAlbumStrategy(command: Command, value: string | undefined): AlbumStrategy {
+  const albumStrategy = value ?? 'no change'
+
+  if (albumStrategy !== 'no change' && albumStrategy !== 'grouping') {
+    command.error('--album-strategy must be one of: no change, grouping')
+  }
+
+  return albumStrategy
+}
+
+function parseProducerStrategy(command: Command, value: string | undefined): ProducerStrategy {
+  const producerStrategy = value ?? 'no change'
+
+  if (producerStrategy !== 'no change' && producerStrategy !== 'blank' && producerStrategy !== 'aggregate' && producerStrategy !== 'copy-from-album-artists') {
+    command.error('--producer-strategy must be one of: no change, blank, aggregate, copy-from-album-artists')
+  }
+
+  return producerStrategy
+}
+
 function getAction(destinationStrategy: DestinationStrategy, destinationExists: boolean, execute: boolean, hasChanges: boolean): string {
   if (destinationExists && destinationStrategy === 'ignore') {
     return execute ? 'ignored' : 'would ignore'
@@ -102,17 +128,21 @@ function getAction(destinationStrategy: DestinationStrategy, destinationExists: 
 export function registerFixTagsCommand(program: Command): void {
   const fixTagsCommand = program
     .command('fix-tags')
-    .description('Replace FLAC and MP3 album metadata with grouping')
+    .description('Fix FLAC and MP3 album metadata')
     .requiredOption('--source-dir <sourceDir>', 'directory containing source FLAC and MP3 files to copy and fix')
     .requiredOption('--dest-dir <destDir>', 'directory to copy fixed FLAC and MP3 files into')
     .option('--limit <count>', 'maximum number of files to inspect')
     .option('--destination-strategy <strategy>', 'what to do when a destination file exists: error, ignore, overwrite', 'error')
+    .option('--album-strategy <strategy>', 'how to update album: no change, grouping', 'no change')
     .option('--album-artists-strategy <strategy>', 'how to update albumartists: no change, aggregate, blank', 'no change')
+    .option('--producer-strategy <strategy>', 'how to update producers: no change, blank, aggregate, copy-from-album-artists', 'no change')
     .option('--execute', 'copy files and write tag changes to destination files')
-    .action(async (options: { albumArtistsStrategy?: string, destDir: string, destinationStrategy?: string, execute?: boolean, limit?: string, sourceDir: string }) => {
+    .action(async (options: { albumArtistsStrategy?: string, albumStrategy?: string, destDir: string, destinationStrategy?: string, execute?: boolean, limit?: string, producerStrategy?: string, sourceDir: string }) => {
       const limit = parseLimit(fixTagsCommand, options.limit)
       const destinationStrategy = parseDestinationStrategy(fixTagsCommand, options.destinationStrategy)
+      const albumStrategy = parseAlbumStrategy(fixTagsCommand, options.albumStrategy)
       const albumArtistsStrategy = parseAlbumArtistsStrategy(fixTagsCommand, options.albumArtistsStrategy)
+      const producerStrategy = parseProducerStrategy(fixTagsCommand, options.producerStrategy)
       const { files, targetDirectory: sourceDirectory } = await getAudioFiles(fixTagsCommand, options.sourceDir)
       const destinationDirectory = resolve(options.destDir)
       const filesToFix = limit === undefined ? files : files.slice(0, limit)
@@ -137,6 +167,7 @@ export function registerFixTagsCommand(program: Command): void {
           const albumArtists = getMetadataArtists(metadata.common.albumartists, metadata.common.albumartist)
           const artists = getMetadataArtists(metadata.common.artists, metadata.common.artist)
           const grouping = metadata.common.grouping ?? ''
+          const producers = metadata.common.producer ?? []
           const title = metadata.common.title ?? ''
           const artist = metadata.common.artist ?? ''
 
@@ -148,6 +179,7 @@ export function registerFixTagsCommand(program: Command): void {
             destinationPath,
             filename: file.name,
             grouping,
+            producers,
             sourcePath,
             title,
           }
@@ -166,19 +198,44 @@ export function registerFixTagsCommand(program: Command): void {
         artistsByAlbum.set(album, uniqueSorted(artists))
       }
 
+      const producersByAlbum = new Map<string, string[]>()
+
+      for (const parsedTagFixSource of parsedTagFixSources) {
+        const producers = producersByAlbum.get(parsedTagFixSource.grouping) ?? []
+
+        producers.push(...parsedTagFixSource.producers)
+        producersByAlbum.set(parsedTagFixSource.grouping, producers)
+      }
+
+      for (const [album, producers] of producersByAlbum.entries()) {
+        producersByAlbum.set(album, uniqueSorted(producers))
+      }
+
       const plannedTagFixes = await Promise.all(
         parsedTagFixSources.map(async (parsedTagFixSource): Promise<PlannedTagFix> => {
           const albumArtists = albumArtistsStrategy === 'aggregate'
             ? artistsByAlbum.get(parsedTagFixSource.grouping) ?? []
             : []
           const shouldUpdateAlbumArtists = albumArtistsStrategy !== 'no change'
+          const shouldUpdateAlbum = albumStrategy !== 'no change'
+          const producers = producerStrategy === 'aggregate'
+            ? producersByAlbum.get(parsedTagFixSource.grouping) ?? []
+            : producerStrategy === 'copy-from-album-artists'
+              ? parsedTagFixSource.albumArtists
+              : []
+          const shouldUpdateProducers = producerStrategy !== 'no change'
+          const album = albumStrategy === 'grouping' ? parsedTagFixSource.grouping : undefined
           const hasAlbumArtistsChanges = shouldUpdateAlbumArtists && !areStringArraysEqual(parsedTagFixSource.albumArtists, albumArtists)
-          const hasChanges = parsedTagFixSource.album !== parsedTagFixSource.grouping || hasAlbumArtistsChanges
+          const hasAlbumChanges = shouldUpdateAlbum && parsedTagFixSource.album !== parsedTagFixSource.grouping
+          const hasProducerChanges = shouldUpdateProducers && !areStringArraysEqual(parsedTagFixSource.producers, producers)
+          const hasChanges = hasAlbumChanges || hasAlbumArtistsChanges || hasProducerChanges
           const destinationExists = await pathExists(parsedTagFixSource.destinationPath)
           const action = getAction(destinationStrategy, destinationExists, options.execute === true, hasChanges)
-          const tagFix = shouldUpdateAlbumArtists
-            ? { album: parsedTagFixSource.grouping, albumArtists }
-            : { album: parsedTagFixSource.grouping }
+          const tagFix = {
+            ...(album === undefined ? {} : { album }),
+            ...(shouldUpdateAlbumArtists ? { albumArtists } : {}),
+            ...(shouldUpdateProducers ? { producers } : {}),
+          }
 
           return {
             destinationExists,
@@ -192,12 +249,18 @@ export function registerFixTagsCommand(program: Command): void {
               destination: relative(destinationDirectory, parsedTagFixSource.destinationPath),
               filename: parsedTagFixSource.filename,
               grouping: parsedTagFixSource.grouping,
-              newAlbum: parsedTagFixSource.grouping,
               title: parsedTagFixSource.title,
+              ...(shouldUpdateAlbum ? { newAlbum: parsedTagFixSource.grouping } : {}),
               ...(shouldUpdateAlbumArtists
                 ? {
                     albumartists: parsedTagFixSource.albumArtists,
                     newAlbumartists: albumArtists,
+                  }
+                : {}),
+              ...(shouldUpdateProducers
+                ? {
+                    newProducers: producers,
+                    producers: parsedTagFixSource.producers,
                   }
                 : {}),
             },
@@ -244,15 +307,23 @@ export function registerFixTagsCommand(program: Command): void {
         const row = {
           album: plannedTagFix.row.album,
           artist: plannedTagFix.row.artist,
-          newAlbum: plannedTagFix.row.newAlbum,
           title: plannedTagFix.row.title,
+          ...(albumStrategy !== 'no change' ? { newAlbum: plannedTagFix.row.newAlbum } : {}),
         }
 
         if (albumArtistsStrategy !== 'no change') {
-          return {
+          Object.assign(row, {
             ...row,
             albumartists: plannedTagFix.row.albumartists,
             newAlbumartists: plannedTagFix.row.newAlbumartists,
+          })
+        }
+
+        if (producerStrategy !== 'no change') {
+          return {
+            ...row,
+            newProducers: plannedTagFix.row.newProducers,
+            producers: plannedTagFix.row.producers,
           }
         }
 
