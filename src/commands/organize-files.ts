@@ -4,9 +4,9 @@ import { copyFile, mkdir } from 'node:fs/promises'
 import { dirname, extname, join, relative, resolve } from 'node:path'
 import pLimit from 'p-limit'
 
-import { getAudioFiles, parseLimit, pathExists } from '../command-utils.js'
+import { getAudioFiles, parseLimit, parseOutputFormat, pathExists, writeRows } from '../command-utils.js'
 
-interface OrganizeFilesRow {
+export interface OrganizeFilesJsonOutputRow {
   action: string
   album: string
   artistFilename: string
@@ -18,12 +18,14 @@ interface OrganizeFilesRow {
   trackNumber: string
 }
 
+export type OrganizeFilesJsonOutput = OrganizeFilesJsonOutputRow[]
+
 type ArtistFilenameStrategy = 'albumartist' | 'artist' | 'label' | 'producer'
 type TitleFilenameStrategy = 'subtitle' | 'title'
 
 interface PlannedCopy {
   destinationPath: string
-  row: OrganizeFilesRow
+  row: OrganizeFilesJsonOutputRow
   sourcePath: string
 }
 
@@ -96,8 +98,10 @@ export function registerOrganizeFilesCommand(program: Command): void {
     .option('--artist-filename-strategy <strategy>', 'metadata field to use for the artist portion of the filename: artist, albumartist, label, producer', 'artist')
     .option('--title-filename-strategy <strategy>', 'metadata field to use for the title portion of the filename: subtitle, title', 'title')
     .option('--execute', 'copy files')
-    .action(async (options: { artistFilenameStrategy?: string, destDir: string, execute?: boolean, limit?: string, sourceDir: string, titleFilenameStrategy?: string }) => {
+    .option('--format <format>', 'output format: plaintext, json', 'plaintext')
+    .action(async (options: { artistFilenameStrategy?: string, destDir: string, execute?: boolean, format?: string, limit?: string, sourceDir: string, titleFilenameStrategy?: string }) => {
       const limit = parseLimit(organizeFilesCommand, options.limit)
+      const outputFormat = parseOutputFormat(organizeFilesCommand, options.format)
       const artistFilenameStrategy = parseArtistFilenameStrategy(organizeFilesCommand, options.artistFilenameStrategy)
       const titleFilenameStrategy = parseTitleFilenameStrategy(organizeFilesCommand, options.titleFilenameStrategy)
       const { files, targetDirectory: sourceDirectory } = await getAudioFiles(organizeFilesCommand, options.sourceDir)
@@ -196,10 +200,13 @@ export function registerOrganizeFilesCommand(program: Command): void {
           await copyFile(plannedCopy.sourcePath, plannedCopy.destinationPath)
         }
       }
-      else {
-        console.info('Dry run: no files were copied. Pass --execute to copy files.')
-      }
 
-      console.table(plannedCopies.map(plannedCopy => plannedCopy.row))
+      const outputRows: OrganizeFilesJsonOutput = plannedCopies.map(plannedCopy => plannedCopy.row)
+
+      writeRows(
+        outputFormat,
+        outputRows,
+        options.execute === true ? undefined : 'Dry run: no files were copied. Pass --execute to copy files.',
+      )
     })
 }

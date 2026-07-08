@@ -6,6 +6,9 @@ import { extname, resolve } from 'node:path'
 const SUPPORTED_AUDIO_EXTENSIONS = ['.flac', '.mp3'] as const
 const SUPPORTED_AUDIO_EXTENSION_SET = new Set<string>(SUPPORTED_AUDIO_EXTENSIONS)
 const SUPPORTED_AUDIO_EXTENSIONS_DISPLAY = SUPPORTED_AUDIO_EXTENSIONS.join(', ')
+const OUTPUT_FORMATS = ['plaintext', 'json'] as const
+
+export type OutputFormat = typeof OUTPUT_FORMATS[number]
 
 export interface AudioFilesResult {
   files: Dirent[]
@@ -51,6 +54,34 @@ export function parseLimit(command: Command, limitOption: string | undefined): n
   }
 
   return limit
+}
+
+function isOutputFormat(value: string): value is OutputFormat {
+  return OUTPUT_FORMATS.includes(value as OutputFormat)
+}
+
+export function parseOutputFormat(command: Command, formatOption: string | undefined): OutputFormat {
+  const outputFormat = formatOption ?? 'plaintext'
+
+  if (!isOutputFormat(outputFormat)) {
+    command.error('--format must be one of: plaintext, json')
+  }
+
+  return outputFormat
+}
+
+export function writeRows(format: OutputFormat, rows: readonly unknown[], plaintextMessage?: string): void {
+  if (format === 'json') {
+    console.info(JSON.stringify(rows, undefined, 2))
+
+    return
+  }
+
+  if (plaintextMessage !== undefined) {
+    console.info(plaintextMessage)
+  }
+
+  console.table(rows)
 }
 
 export async function pathExists(path: string): Promise<boolean> {

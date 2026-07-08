@@ -5,7 +5,7 @@ import { dirname, relative, resolve } from 'node:path'
 import pLimit from 'p-limit'
 
 import { writeAudioTagFix } from '../audio-tags.js'
-import { getAudioFiles, parseLimit, pathExists } from '../command-utils.js'
+import { getAudioFiles, parseLimit, parseOutputFormat, pathExists, writeRows } from '../command-utils.js'
 
 interface FixTagsRow {
   action: string
@@ -22,6 +22,20 @@ interface FixTagsRow {
   title: string
   artist: string
 }
+
+export interface FixTagsJsonOutputRow {
+  album: string
+  artist: string
+  title: string
+  albumartists?: string[]
+  newAlbum?: string
+  newAlbumartists?: string[]
+  newArtists?: string[]
+  newProducers?: string[]
+  producers?: string[]
+}
+
+export type FixTagsJsonOutput = FixTagsJsonOutputRow[]
 
 type DestinationStrategy = 'error' | 'ignore' | 'overwrite'
 type AlbumArtistsStrategy = 'aggregate' | 'blank' | 'no change'
@@ -133,6 +147,14 @@ function getAction(destinationStrategy: DestinationStrategy, destinationExists: 
     : hasChanges ? 'would copy and update' : 'would copy'
 }
 
+function requireFixTagsJsonField<T>(fieldName: keyof FixTagsJsonOutputRow, value: T | undefined): T {
+  if (value === undefined) {
+    throw new Error(`Missing expected fix-tags JSON output field: ${fieldName}`)
+  }
+
+  return value
+}
+
 export function registerFixTagsCommand(program: Command): void {
   const fixTagsCommand = program
     .command('fix-tags')
@@ -146,8 +168,10 @@ export function registerFixTagsCommand(program: Command): void {
     .option('--producer-strategy <strategy>', 'how to update producers: no change, blank, aggregate, copy-from-album-artists', 'no change')
     .option('--swap-artist-albumartist', 'swap artist and albumartist metadata')
     .option('--execute', 'copy files and write tag changes to destination files')
-    .action(async (options: { albumArtistsStrategy?: string, albumStrategy?: string, destDir: string, destinationStrategy?: string, execute?: boolean, limit?: string, producerStrategy?: string, sourceDir: string, swapArtistAlbumartist?: boolean }) => {
+    .option('--format <format>', 'output format: plaintext, json', 'plaintext')
+    .action(async (options: { albumArtistsStrategy?: string, albumStrategy?: string, destDir: string, destinationStrategy?: string, execute?: boolean, format?: string, limit?: string, producerStrategy?: string, sourceDir: string, swapArtistAlbumartist?: boolean }) => {
       const limit = parseLimit(fixTagsCommand, options.limit)
+      const outputFormat = parseOutputFormat(fixTagsCommand, options.format)
       const destinationStrategy = parseDestinationStrategy(fixTagsCommand, options.destinationStrategy)
       const albumStrategy = parseAlbumStrategy(fixTagsCommand, options.albumStrategy)
       const albumArtistsStrategy = parseAlbumArtistsStrategy(fixTagsCommand, options.albumArtistsStrategy)
@@ -335,42 +359,44 @@ export function registerFixTagsCommand(program: Command): void {
           }
         }
       }
-      else {
-        console.info('Dry run: no files were copied or changed. Pass --execute to copy and write updates.')
-      }
 
-      console.table(plannedTagFixes.map((plannedTagFix) => {
-        const row = {
+      const outputRows: FixTagsJsonOutput = plannedTagFixes.map((plannedTagFix): FixTagsJsonOutputRow => {
+        const row: FixTagsJsonOutputRow = {
           album: plannedTagFix.row.album,
           artist: plannedTagFix.row.artist,
           title: plannedTagFix.row.title,
-          ...(albumStrategy !== 'no change' ? { newAlbum: plannedTagFix.row.newAlbum } : {}),
+        }
+
+        if (albumStrategy !== 'no change') {
+          row.newAlbum = requireFixTagsJsonField('newAlbum', plannedTagFix.row.newAlbum)
         }
 
         if (swapArtistAlbumartist) {
           Object.assign(row, {
-            albumartists: plannedTagFix.row.albumartists,
-            newAlbumartists: plannedTagFix.row.newAlbumartists,
-            newArtists: plannedTagFix.row.newArtists,
+            albumartists: requireFixTagsJsonField('albumartists', plannedTagFix.row.albumartists),
+            newAlbumartists: requireFixTagsJsonField('newAlbumartists', plannedTagFix.row.newAlbumartists),
+            newArtists: requireFixTagsJsonField('newArtists', plannedTagFix.row.newArtists),
           })
         }
         else if (albumArtistsStrategy !== 'no change') {
           Object.assign(row, {
-            ...row,
-            albumartists: plannedTagFix.row.albumartists,
-            newAlbumartists: plannedTagFix.row.newAlbumartists,
+            albumartists: requireFixTagsJsonField('albumartists', plannedTagFix.row.albumartists),
+            newAlbumartists: requireFixTagsJsonField('newAlbumartists', plannedTagFix.row.newAlbumartists),
           })
         }
 
         if (producerStrategy !== 'no change') {
-          return {
-            ...row,
-            newProducers: plannedTagFix.row.newProducers,
-            producers: plannedTagFix.row.producers,
-          }
+          row.newProducers = requireFixTagsJsonField('newProducers', plannedTagFix.row.newProducers)
+          row.producers = requireFixTagsJsonField('producers', plannedTagFix.row.producers)
         }
 
         return row
-      }))
+      })
+
+      writeRows(
+        outputFormat,
+        outputRows,
+        options.execute === true ? undefined : 'Dry run: no files were copied or changed. Pass --execute to copy and write updates.',
+      )
     })
 }

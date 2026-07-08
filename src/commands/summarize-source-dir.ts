@@ -9,9 +9,11 @@ import {
   formatAudioSampleRate,
   getAudioFiles,
   parseLimit,
+  parseOutputFormat,
+  writeRows,
 } from '../command-utils.js'
 
-interface AudioMetadataRow {
+export interface SummarizeSourceDirJsonOutputRow {
   album: string
   grouping: string
   artist: string
@@ -27,19 +29,23 @@ interface AudioMetadataRow {
   label: string
 }
 
+export type SummarizeSourceDirJsonOutput = SummarizeSourceDirJsonOutputRow[]
+
 export function registerSummarizeSourceDirCommand(program: Command): void {
   const summarizeSourceDirCommand = program
     .command('summarize-source-dir')
     .description('List FLAC and MP3 files and metadata in a source directory')
     .requiredOption('--dir-name <dirName>', 'directory to list')
     .option('--limit <count>', 'maximum number of files to list')
-    .action(async (options: { dirName: string, limit?: string }) => {
-      const { files, targetDirectory } = await getAudioFiles(summarizeSourceDirCommand, options.dirName)
+    .option('--format <format>', 'output format: plaintext, json', 'plaintext')
+    .action(async (options: { dirName: string, format?: string, limit?: string }) => {
       const limit = parseLimit(summarizeSourceDirCommand, options.limit)
+      const outputFormat = parseOutputFormat(summarizeSourceDirCommand, options.format)
+      const { files, targetDirectory } = await getAudioFiles(summarizeSourceDirCommand, options.dirName)
       const filesToSummarize = limit === undefined ? files : files.slice(0, limit)
       const parseMetadata = pLimit(16)
-      const metadataRows = await Promise.all(
-        filesToSummarize.map(file => parseMetadata(async (): Promise<AudioMetadataRow> => {
+      const metadataRows: SummarizeSourceDirJsonOutput = await Promise.all(
+        filesToSummarize.map(file => parseMetadata(async (): Promise<SummarizeSourceDirJsonOutputRow> => {
           const metadata = await parseFile(resolve(targetDirectory, file.name))
 
           return {
@@ -60,6 +66,6 @@ export function registerSummarizeSourceDirCommand(program: Command): void {
         })),
       )
 
-      console.table(metadataRows)
+      writeRows(outputFormat, metadataRows)
     })
 }
