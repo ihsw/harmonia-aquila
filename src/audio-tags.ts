@@ -12,6 +12,7 @@ import { extname } from 'node:path'
 export interface AudioTagFix {
   album?: string
   albumArtists?: string[]
+  artists?: string[]
   producers?: string[]
 }
 
@@ -89,6 +90,10 @@ export function writeAudioTagFix(filePath: string, tagFix: AudioTagFix): void {
 
     if (tagFix.albumArtists !== undefined) {
       audioFile.tag.albumArtists = tagFix.albumArtists
+    }
+
+    if (tagFix.artists !== undefined) {
+      audioFile.tag.performers = tagFix.artists
     }
 
     if (tagFix.producers !== undefined) {
