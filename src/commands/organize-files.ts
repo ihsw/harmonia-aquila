@@ -98,9 +98,10 @@ export function registerOrganizeFilesCommand(program: Command): void {
     .option('--artist-filename-strategy <strategy>', 'metadata field to use for the artist portion of the filename: artist, albumartist, label, producer', 'artist')
     .option('--title-filename-strategy <strategy>', 'metadata field to use for the title portion of the filename: subtitle, title', 'title')
     .option('--ignore-non-audio-files', 'ignore non-audio files in the source directory')
+    .option('--ignore-audio-files-without-tracks', 'ignore audio files without track number metadata')
     .option('--execute', 'copy files')
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
-    .action(async (options: { artistFilenameStrategy?: string, destDir: string, execute?: boolean, format?: string, ignoreNonAudioFiles?: boolean, limit?: string, sourceDir: string, titleFilenameStrategy?: string }) => {
+    .action(async (options: { artistFilenameStrategy?: string, destDir: string, execute?: boolean, format?: string, ignoreAudioFilesWithoutTracks?: boolean, ignoreNonAudioFiles?: boolean, limit?: string, sourceDir: string, titleFilenameStrategy?: string }) => {
       const limit = parseLimit(organizeFilesCommand, options.limit)
       const outputFormat = parseOutputFormat(organizeFilesCommand, options.format)
       const artistFilenameStrategy = parseArtistFilenameStrategy(organizeFilesCommand, options.artistFilenameStrategy)
@@ -113,8 +114,8 @@ export function registerOrganizeFilesCommand(program: Command): void {
       )
       const filesToOrganize = limit === undefined ? files : files.slice(0, limit)
       const parseMetadata = pLimit(16)
-      const plannedCopies = await Promise.all(
-        filesToOrganize.map(file => parseMetadata(async (): Promise<PlannedCopy> => {
+      const plannedCopiesOrSkipped = await Promise.all(
+        filesToOrganize.map(file => parseMetadata(async (): Promise<PlannedCopy | undefined> => {
           const sourcePath = resolve(sourceDirectory, file.name)
           const metadata = await parseFile(sourcePath)
           const album = metadata.common.album ?? ''
@@ -127,6 +128,11 @@ export function registerOrganizeFilesCommand(program: Command): void {
           const subtitle = metadata.common.subtitle?.[0] ?? ''
           const titleFilename = titleFilenameStrategy === 'subtitle' ? subtitle : title
           const trackNumber = metadata.common.track.no
+
+          if (trackNumber === null && options.ignoreAudioFilesWithoutTracks === true) {
+            return undefined
+          }
+
           const missingFields = [
             album === '' ? 'album' : undefined,
             artistFilename === '' ? artistFilenameStrategy : undefined,
@@ -168,6 +174,7 @@ export function registerOrganizeFilesCommand(program: Command): void {
           }
         })),
       )
+      const plannedCopies = plannedCopiesOrSkipped.filter((plannedCopy): plannedCopy is PlannedCopy => plannedCopy !== undefined)
       const duplicateDestinations = new Map<string, string[]>()
 
       for (const plannedCopy of plannedCopies) {
