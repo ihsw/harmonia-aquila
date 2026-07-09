@@ -1,115 +1,128 @@
 # Design: Organize Source Albums
 
-> Scope reminder: this spec touches only generated audit artifacts, `etc/2-fixed-tag-files`, and `etc/3-organized-files`. `etc/1-source-files` is read-only, and no source code or dependency changes are in scope.
+> Scope reminder: this spec touches only audit artifacts, `etc/2-fixed-tag-files`, and `etc/3-organized-files`. `etc/1-source-files` is read-only. No source code or dependency changes are in scope.
 
 ## 1. Overview
 
-Use a staged, command-driven organization workflow. The current CLI only accepts flat directories containing supported audio files and no sidecars. Therefore the design has two lanes for audio: direct processing for CLI-accepted audio-only folders, and audio-only staging for folders that contain direct audio plus sidecars. Album cover images are handled as a companion copy step after `organize-files` succeeds.
+Use a narrow clean-album workflow. Earlier inventory data remains useful for future cleanup, but this spec now excludes all albums that require metadata repair or fail `organize-files` dry-run. The only executable units are the 87 album batches listed below.
 
-The re-analysis of `etc/1-source-files` found a broad discography-style collection rather than a single album folder. The workflow must operate in batches, preserve JSON audit output, select one best source per duplicate album, and gate every copy into `etc/3-organized-files` behind `organize-files` dry-run output.
+Validation was performed with `summarize-source-dir --format json` followed by `organize-files --format json` without `--execute`. The dry-run used `--artist-filename-strategy albumartist` and `--title-filename-strategy title`, so the listed albums are processable without `fix-tags`.
 
-## 2. File layout
-
-### Modified files during execution
-
-```text
-etc/2-fixed-tag-files/**       audio-only staging and optional fix-tags output
-etc/3-organized-files/**       final organized audio and album artwork output
-```
-
-### Files explicitly NOT modified
-
-- `etc/1-source-files/**` because original sources must be preserved.
-- `etc/_1-source-files/**` because this pass targets only `etc/1-source-files`.
-- `src/**`, `package.json`, and `package-lock.json` because this is data organization, not a code change.
-
-## 3. Re-analysis inventory
+## 2. Validation summary
 
 | Metric | Count |
 | --- | ---: |
-| Top-level source roots | 55 |
-| Supported `.flac`/`.mp3` files | 8,141 |
-| Unsupported audio files | 2 |
-| Image files (`.jpg`, `.jpeg`, `.png`, `.bmp`, `.tif`) | 1,618 |
-| Direct audio-only directories discovered | 221 |
-| Direct audio-only files | 2,090 |
-| Successful `summarize-source-dir` folders | 210 |
-| Successfully summarized tracks | 1,983 |
-| Failed direct candidate summaries | 11 |
-| Direct audio-plus-sidecar directories | 587 |
-| Audio files inside audio-plus-sidecar directories | 6,051 |
+| Summarized source/staging folders | 796 |
+| Complete core metadata folders | 545 |
+| Successful organize dry-runs | 91 |
+| Dry-run failures | 454 |
+| Destination-deduplicated in-scope albums | 87 |
+| Total in-scope album audio size | 26.3 GiB (28,261,601,616 bytes) |
+| Metadata-skipped folders | 251 |
+| Duplicate destination skipped folders | 4 |
 
-Unsupported audio extensions observed: `.ape` and `.ogg`.
+## 3. Processing rules
 
-## 4. Successful summary roots
+1. Use only the processing directory listed for an in-scope album.
+2. Run `organize-files --format json` without `--execute` immediately before execution to confirm the album still passes.
+3. Do not run `fix-tags`; metadata repair is out of scope.
+4. Copy artwork from the listed source directory, not from audio-only staging, after audio copy succeeds.
+5. Block, rather than repair, any listed album that develops a dry-run error.
 
-| Root | Folders | Tracks | FLAC folders | MP3 folders | Missing metadata folders |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| `Angels & Airwaves` | 2 | 22 | 0 | 2 | 0 |
-| `BT Complete Discography (US Versions)` | 10 | 95 | 0 | 10 | 8 |
-| `Billy Talent Studio Discography (2003-2022) [MP3 320kbps]` | 6 | 73 | 0 | 6 | 0 |
-| `Bran Van 3000 - Garden -FLAC` | 1 | 15 | 1 | 0 | 0 |
-| `Cascada - Discography 2004-2011 Dez16v ( TLS Release )` | 15 | 156 | 0 | 15 | 7 |
-| `Daft Punk - Discography [FLAC Songs] [PMEDIA] ⭐️` | 2 | 31 | 2 | 0 | 0 |
-| `Dark Tranquility - Discography` | 2 | 26 | 0 | 2 | 2 |
-| `Iced.Earth.-.The.Whole.Discography.(1991-2008).(22CDs).[EAC-FLAC-APE].by.Calimeero` | 12 | 108 | 12 | 0 | 12 |
-| `Linkin Park - Discography [FLAC Songs] [PMEDIA] ⭐️` | 6 | 80 | 6 | 0 | 0 |
-| `My Dying Bride` | 10 | 80 | 0 | 10 | 0 |
-| `Opeth - Discography-(1995 - 2011)-FLAC-VINYL-2012-JKoop` | 9 | 70 | 9 | 0 | 9 |
-| `Richard D. James as Aphex Twin (Albums 1992 - 2019) [FLAC]` | 6 | 80 | 6 | 0 | 0 |
-| `Sigur Ros discography (FLAC)` | 2 | 12 | 2 | 0 | 1 |
-| `System Of A Down - Discography [FLAC Songs] [PMEDIA] ⭐️` | 2 | 17 | 2 | 0 | 0 |
-| `THE BIRTHDAY MASSACRE - DISCOGRAPHY (2000-14) [CHANNEL NEO]` | 11 | 110 | 0 | 11 | 11 |
-| `The Prodigy` | 2 | 30 | 0 | 2 | 2 |
-| `The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️` | 43 | 501 | 43 | 0 | 0 |
-| `Utada Hikaru - Discography [FLAC Songs] [PMEDIA] ⭐️` | 2 | 18 | 2 | 0 | 0 |
-| `XJapan` | 66 | 455 | 0 | 66 | 66 |
-| `dp` | 1 | 4 | 0 | 1 | 1 |
+## 4. In-scope albums
 
-The 119 folders with missing core metadata must be expected to fail `organize-files` unless staged through tag correction or intentionally skipped.
+Only the following albums are in scope. Albums not listed here are out of scope.
 
-## 5. Processing lanes
-
-### Lane A: direct audio-only folders
-
-Use this lane when a folder contains only `.flac`/`.mp3` direct files and `summarize-source-dir` succeeds. Save the summary, duplicate-classify the folder, run `organize-files` dry-run, then execute only selected folders.
-
-### Lane B: audio-plus-sidecar folders
-
-Use this lane for the 587 folders with direct supported audio plus sidecars. Create a clean staging folder under `etc/2-fixed-tag-files/audio-only/<slug>/` containing only hardlinked or copied supported audio files from the source folder. Run all `harmonia-aquila` commands against that staging folder, not the original sidecar-contaminated source folder.
-
-### Lane C: blocked folders
-
-Use this lane for unsupported `.ape`/`.ogg`, failed candidate folders with nested children, missing metadata folders that cannot be fixed safely, and existing destination collisions. Write a skipped/blocked report with the path and reason.
-
-## 6. Album artwork copying
-
-Album artwork is in scope when its source album is selected for organization. Candidate cover images are files with extensions `.jpg`, `.jpeg`, `.png`, `.bmp`, `.tif`, or `.tiff` that are either direct children of the selected source album folder or direct children of conventional artwork subdirectories such as `Artwork`, `Art`, `Covers`, `Cover`, or `Scans`.
-
-After `organize-files --execute` succeeds, copy the selected album's artwork candidates into the final organized album directory reported by the dry-run/execute output. Preserve original image filenames. If multiple images exist, copy all candidates rather than guessing a single cover. If the destination already contains an image with the same filename but different content, block and record a conflict instead of overwriting.
-
-For staged audio folders, keep a source-to-stage manifest so artwork is copied from the original source album folder, not from the audio-only staging directory.
-
-## 7. Final Markdown report
-
-After final verification, generate a Markdown report in the audit workspace, for example `album-organization-report.md`. The report should be derived from final organized album summaries plus copied-artwork audit data, not from assumptions about the original source tree.
-
-The report must include a table with these columns:
-
-| Column | Meaning |
-| --- | --- |
-| Final album path | Directory under `etc/3-organized-files`. |
-| Album artist | Unique `albumartist` value or `(mixed)` if multiple values remain. |
-| Album | Unique `album` value or `(mixed)` if multiple values remain. |
-| Tracks | Count from final `summarize-source-dir` output. |
-| Format | `FLAC`, `MP3`, or `mixed`, based on final file extensions. |
-| Bitrate | Min/median/max or a concise range from final summary bitrate values. |
-| Artwork present | `yes` when copied artwork exists in the final album directory, otherwise `no`. |
-| Artwork files | Copied image filenames or `(none)`. |
-
-Include a short totals section above the table with organized album count, organized track count, FLAC album count, MP3 album count, mixed-format album count, albums with artwork, albums without artwork, and blocked/skipped batch count.
-
-## 8. Command plan
+| ID | Source directory | Processing directory | Albumartist | Album | Tracks | Format | Bitrate | Audio size | Artwork | Final album dir |
+| --- | --- | --- | --- | --- | ---: | --- | --- | ---: | --- | --- |
+| 001 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1970) The Velvet Underground - Loaded (Re-Loaded 45th Anniversary Edition) [16Bit-44.1kHz]/Disc 3` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1970) The Velvet Underground - Loaded (Re-Loaded 45th Anniversary Edition) [16Bit-44.1kHz]/Disc 3` | The Velvet Underground | Loaded (Re-Loaded 45th Anniversary Edition) | 21 | FLAC | 712-957 kbps | 478.7 MiB | no | `The Velvet Underground/Loaded (Re-Loaded 45th Anniversary Edition)` |
+| 002 | `etc/1-source-files/Linkin Park - Discography [FLAC Songs] [PMEDIA] ⭐️/(2000) Linkin Park - Hybrid Theory  (20th Anniversary Edition) [16Bit-44.1kHz]/Disc 2` | `etc/1-source-files/Linkin Park - Discography [FLAC Songs] [PMEDIA] ⭐️/(2000) Linkin Park - Hybrid Theory  (20th Anniversary Edition) [16Bit-44.1kHz]/Disc 2` | Linkin Park | Hybrid Theory | 20 | FLAC | 379-1057 kbps | 420.4 MiB | no | `Linkin Park/Hybrid Theory` |
+| 003 | `etc/1-source-files/Linkin Park - Discography [FLAC Songs] [PMEDIA] ⭐️/(2000) Linkin Park - Hybrid Theory  (20th Anniversary Edition) [16Bit-44.1kHz]/Disc 5` | `etc/1-source-files/Linkin Park - Discography [FLAC Songs] [PMEDIA] ⭐️/(2000) Linkin Park - Hybrid Theory  (20th Anniversary Edition) [16Bit-44.1kHz]/Disc 5` | Linkin Park | Hybrid Theory | 18 | FLAC | 1429-1760 kbps | 622.3 MiB | no | `Linkin Park/Hybrid Theory` |
+| 004 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1995) The Velvet Underground - Peel Slowly And See 1965-1969 [16Bit-44.1kHz]/Disc 4` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1995) The Velvet Underground - Peel Slowly And See 1965-1969 [16Bit-44.1kHz]/Disc 4` | The Velvet Underground | Peel Slowly And See 1965-1969 | 18 | FLAC | 377-900 kbps | 400.2 MiB | no | `The Velvet Underground/Peel Slowly And See 1965-1969` |
+| 005 | `etc/1-source-files/Daft Punk - Discography [FLAC Songs] [PMEDIA] ⭐️/(1997) Daft Punk - Homework  (25th Anniversary Edition) [16Bit-44.1kHz]/Disc 1` | `etc/1-source-files/Daft Punk - Discography [FLAC Songs] [PMEDIA] ⭐️/(1997) Daft Punk - Homework  (25th Anniversary Edition) [16Bit-44.1kHz]/Disc 1` | Daft Punk | Homework | 16 | FLAC | 812-1048 kbps | 493.6 MiB | no | `Daft Punk/Homework` |
+| 006 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2005) The Velvet Underground - Gold [16Bit-44.1kHz]/Disc 2` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2005) The Velvet Underground - Gold [16Bit-44.1kHz]/Disc 2` | The Velvet Underground | Gold | 16 | FLAC | 801-937 kbps | 475.6 MiB | no | `The Velvet Underground/Gold` |
+| 007 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1966) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary - Deluxe Edition) [16Bit-44.1kHz]/Disc 1` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1966) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary - Deluxe Edition) [16Bit-44.1kHz]/Disc 1` | The Velvet Underground | The Velvet Underground & Nico (45th Anniversary - Deluxe Edition) | 16 | FLAC | 655-859 kbps | 429.5 MiB | no | `The Velvet Underground/The Velvet Underground & Nico (45th Anniversary - Deluxe Edition)` |
+| 008 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary  Super Deluxe Edition) [16Bit-44.1kHz]/Disc 1` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary  Super Deluxe Edition) [16Bit-44.1kHz]/Disc 1` | The Velvet Underground | The Velvet Underground & Nico | 16 | FLAC | 655-858 kbps | 429.1 MiB | no | `The Velvet Underground/The Velvet Underground & Nico` |
+| 009 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1995) The Velvet Underground - Peel Slowly And See 1965-1969 [16Bit-44.1kHz]/Disc 3` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1995) The Velvet Underground - Peel Slowly And See 1965-1969 [16Bit-44.1kHz]/Disc 3` | The Velvet Underground | Peel Slowly And See 1965-1969 | 16 | FLAC | 366-887 kbps | 372.2 MiB | no | `The Velvet Underground/Peel Slowly And See 1965-1969` |
+| 010 | `etc/1-source-files/Bran Van 3000 - Garden -FLAC` | `etc/1-source-files/Bran Van 3000 - Garden -FLAC` | Bran Van 3000 | The Garden | 15 | FLAC | 745-1028 kbps | 399.7 MiB | no | `Bran Van 3000/The Garden` |
+| 011 | `etc/1-source-files/Daft Punk - Discography [FLAC Songs] [PMEDIA] ⭐️/(1997) Daft Punk - Homework  (25th Anniversary Edition) [16Bit-44.1kHz]/Disc 2` | `etc/1-source-files/Daft Punk - Discography [FLAC Songs] [PMEDIA] ⭐️/(1997) Daft Punk - Homework  (25th Anniversary Edition) [16Bit-44.1kHz]/Disc 2` | Daft Punk | Homework | 15 | FLAC | 597-1002 kbps | 698.9 MiB | no | `Daft Punk/Homework` |
+| 012 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1995) The Velvet Underground - Peel Slowly And See 1965-1969 [16Bit-44.1kHz]/Disc 2` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1995) The Velvet Underground - Peel Slowly And See 1965-1969 [16Bit-44.1kHz]/Disc 2` | The Velvet Underground | Peel Slowly And See 1965-1969 | 15 | FLAC | 480-882 kbps | 423.2 MiB | no | `The Velvet Underground/Peel Slowly And See 1965-1969` |
+| 013 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1966) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary - Deluxe Edition) [16Bit-44.1kHz]/Disc 2` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1966) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary - Deluxe Edition) [16Bit-44.1kHz]/Disc 2` | The Velvet Underground | The Velvet Underground & Nico (45th Anniversary - Deluxe Edition) | 15 | FLAC | 417-914 kbps | 367.8 MiB | no | `The Velvet Underground/The Velvet Underground & Nico (45th Anniversary - Deluxe Edition)` |
+| 014 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary  Super Deluxe Edition) [16Bit-44.1kHz]/Disc 4` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary  Super Deluxe Edition) [16Bit-44.1kHz]/Disc 4` | The Velvet Underground | The Velvet Underground & Nico | 15 | FLAC | 416-914 kbps | 367.2 MiB | no | `The Velvet Underground/The Velvet Underground & Nico` |
+| 015 | `etc/1-source-files/Richard D. James as Aphex Twin (Albums 1992 - 2019) [FLAC]/2001 - Drukqs/Disc 1` | `etc/1-source-files/Richard D. James as Aphex Twin (Albums 1992 - 2019) [FLAC]/2001 - Drukqs/Disc 1` | Aphex Twin | Disc 1 - Drukqs | 15 | FLAC | 353-984 kbps | 266.5 MiB | no | `Aphex Twin/Disc 1 - Drukqs` |
+| 016 | `etc/1-source-files/Richard D. James as Aphex Twin (Albums 1992 - 2019) [FLAC]/2001 - Drukqs/Disc 2` | `etc/1-source-files/Richard D. James as Aphex Twin (Albums 1992 - 2019) [FLAC]/2001 - Drukqs/Disc 2` | Aphex Twin | Disc 2 - Drukqs | 15 | FLAC | 313-919 kbps | 259.7 MiB | no | `Aphex Twin/Disc 2 - Drukqs` |
+| 017 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1970) The Velvet Underground - Loaded (Re-Loaded 45th Anniversary Edition) [16Bit-44.1kHz]/Disc 4` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1970) The Velvet Underground - Loaded (Re-Loaded 45th Anniversary Edition) [16Bit-44.1kHz]/Disc 4` | The Velvet Underground | Loaded (Re-Loaded 45th Anniversary Edition) | 15 | FLAC | 426-498 kbps | 263.8 MiB | no | `The Velvet Underground/Loaded (Re-Loaded 45th Anniversary Edition)` |
+| 018 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary  Super Deluxe Edition) [16Bit-44.1kHz]/Disc 2` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary  Super Deluxe Edition) [16Bit-44.1kHz]/Disc 2` | The Velvet Underground | The Velvet Underground & Nico | 15 | FLAC | 413-481 kbps | 197.4 MiB | no | `The Velvet Underground/The Velvet Underground & Nico` |
+| 019 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1969) The Velvet Underground - The Velvet Underground (45th Anniversary  Super Deluxe) [24Bit-96kHz]/Disc 4` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1969) The Velvet Underground - The Velvet Underground (45th Anniversary  Super Deluxe) [24Bit-96kHz]/Disc 4` | The Velvet Underground | The Velvet Underground | 14 | FLAC | 2579-3078 kbps | 1.1 GiB | no | `The Velvet Underground/The Velvet Underground` |
+| 020 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1970) The Velvet Underground - Loaded (Re-Loaded 45th Anniversary Edition) [16Bit-44.1kHz]/Disc 1` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1970) The Velvet Underground - Loaded (Re-Loaded 45th Anniversary Edition) [16Bit-44.1kHz]/Disc 1` | The Velvet Underground | Loaded (Re-Loaded 45th Anniversary Edition) | 14 | FLAC | 783-951 kbps | 349.6 MiB | no | `The Velvet Underground/Loaded (Re-Loaded 45th Anniversary Edition)` |
+| 021 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2005) The Velvet Underground - Gold [16Bit-44.1kHz]/Disc 1` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2005) The Velvet Underground - Gold [16Bit-44.1kHz]/Disc 1` | The Velvet Underground | Gold | 14 | FLAC | 684-877 kbps | 452.4 MiB | no | `The Velvet Underground/Gold` |
+| 022 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1970) The Velvet Underground - Loaded (Re-Loaded 45th Anniversary Edition) [16Bit-44.1kHz]/Disc 2` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1970) The Velvet Underground - Loaded (Re-Loaded 45th Anniversary Edition) [16Bit-44.1kHz]/Disc 2` | The Velvet Underground | Loaded (Re-Loaded 45th Anniversary Edition) | 14 | FLAC | 469-526 kbps | 195.0 MiB | no | `The Velvet Underground/Loaded (Re-Loaded 45th Anniversary Edition)` |
+| 023 | `etc/1-source-files/System Of A Down - Discography [FLAC Songs] [PMEDIA] ⭐️/(1998) System Of A Down - System Of A Down [16Bit-44.1kHz]/Disc 1` | `etc/1-source-files/System Of A Down - Discography [FLAC Songs] [PMEDIA] ⭐️/(1998) System Of A Down - System Of A Down [16Bit-44.1kHz]/Disc 1` | System Of A Down | System Of A Down | 13 | FLAC | 885-1070 kbps | 287.1 MiB | no | `System Of A Down/System Of A Down` |
+| 024 | `etc/1-source-files/Utada Hikaru - Discography [FLAC Songs] [PMEDIA] ⭐️/(2010) - Utada Hikaru - Utada Hikaru Single Collection Vol.2 [16Bit-44.1kHz]/Disc 1` | `etc/1-source-files/Utada Hikaru - Discography [FLAC Songs] [PMEDIA] ⭐️/(2010) - Utada Hikaru - Utada Hikaru Single Collection Vol.2 [16Bit-44.1kHz]/Disc 1` | Utada Hikaru | Utada Hikaru Single Collection Vol.2 | 13 | FLAC | 780-1065 kbps | 429.3 MiB | no | `Utada Hikaru/Utada Hikaru Single Collection Vol.2` |
+| 025 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - White Light  White Heat (Deluxe Edition) [16Bit-44.1kHz]/Disc 1` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - White Light  White Heat (Deluxe Edition) [16Bit-44.1kHz]/Disc 1` | The Velvet Underground | White Light / White Heat (Deluxe Edition) | 13 | FLAC | 761-931 kbps | 407.6 MiB | no | `The Velvet Underground/White Light - White Heat (Deluxe Edition)` |
+| 026 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - White Light  White Heat (Super Deluxe) [16Bit-44.1kHz]/Disc 1` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - White Light  White Heat (Super Deluxe) [16Bit-44.1kHz]/Disc 1` | The Velvet Underground | White Light / White Heat | 13 | FLAC | 761-931 kbps | 407.6 MiB | no | `The Velvet Underground/White Light - White Heat` |
+| 027 | `etc/1-source-files/Richard D. James as Aphex Twin (Albums 1992 - 2019) [FLAC]/2003 - 26 Mixes For Cash (Compilation)/Disc 2` | `etc/1-source-files/Richard D. James as Aphex Twin (Albums 1992 - 2019) [FLAC]/2003 - 26 Mixes For Cash (Compilation)/Disc 2` | Aphex Twin | Disc 2 - 26 Mixes For Cash (Compilation) | 13 | FLAC | 645-1046 kbps | 398.0 MiB | no | `Aphex Twin/Disc 2 - 26 Mixes For Cash (Compilation)` |
+| 028 | `etc/1-source-files/Richard D. James as Aphex Twin (Albums 1992 - 2019) [FLAC]/2003 - 26 Mixes For Cash (Compilation)/Disc 1` | `etc/1-source-files/Richard D. James as Aphex Twin (Albums 1992 - 2019) [FLAC]/2003 - 26 Mixes For Cash (Compilation)/Disc 1` | Aphex Twin | Disc 1 - 26 Mixes For Cash (Compilation) | 13 | FLAC | 618-877 kbps | 398.2 MiB | no | `Aphex Twin/Disc 1 - 26 Mixes For Cash (Compilation)` |
+| 029 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1969) The Velvet Underground - The Velvet Underground (45th Anniversary  Deluxe Edition) [24Bit-96kHz]/Disc 2` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1969) The Velvet Underground - The Velvet Underground (45th Anniversary  Deluxe Edition) [24Bit-96kHz]/Disc 2` | The Velvet Underground | The Velvet Underground | 12 | FLAC | 2802-3158 kbps | 1.5 GiB | no | `The Velvet Underground/The Velvet Underground` |
+| 030 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1969) The Velvet Underground - The Velvet Underground (45th Anniversary  Super Deluxe) [24Bit-96kHz]/Disc 3` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1969) The Velvet Underground - The Velvet Underground (45th Anniversary  Super Deluxe) [24Bit-96kHz]/Disc 3` | The Velvet Underground | The Velvet Underground | 12 | FLAC | 1604-1726 kbps | 591.4 MiB | no | `The Velvet Underground/The Velvet Underground` |
+| 031 | `etc/1-source-files/Linkin Park - Discography [FLAC Songs] [PMEDIA] ⭐️/(2000) Linkin Park - Hybrid Theory  (20th Anniversary Edition) [16Bit-44.1kHz]/Disc 6` | `etc/1-source-files/Linkin Park - Discography [FLAC Songs] [PMEDIA] ⭐️/(2000) Linkin Park - Hybrid Theory  (20th Anniversary Edition) [16Bit-44.1kHz]/Disc 6` | Linkin Park | Hybrid Theory | 12 | FLAC | 1519-1753 kbps | 506.6 MiB | no | `Linkin Park/Hybrid Theory` |
+| 032 | `etc/1-source-files/Linkin Park - Discography [FLAC Songs] [PMEDIA] ⭐️/(2000) Linkin Park - Hybrid Theory  (20th Anniversary Edition) [16Bit-44.1kHz]/Disc 4` | `etc/1-source-files/Linkin Park - Discography [FLAC Songs] [PMEDIA] ⭐️/(2000) Linkin Park - Hybrid Theory  (20th Anniversary Edition) [16Bit-44.1kHz]/Disc 4` | Linkin Park | Hybrid Theory | 12 | FLAC | 936-1106 kbps | 315.6 MiB | no | `Linkin Park/Hybrid Theory` |
+| 033 | `etc/1-source-files/Linkin Park - Discography [FLAC Songs] [PMEDIA] ⭐️/(2000) Linkin Park - Hybrid Theory  (20th Anniversary Edition) [16Bit-44.1kHz]/Disc 1` | `etc/1-source-files/Linkin Park - Discography [FLAC Songs] [PMEDIA] ⭐️/(2000) Linkin Park - Hybrid Theory  (20th Anniversary Edition) [16Bit-44.1kHz]/Disc 1` | Linkin Park | Hybrid Theory | 12 | FLAC | 818-1104 kbps | 278.1 MiB | no | `Linkin Park/Hybrid Theory` |
+| 034 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1993) The Velvet Underground - Live MCMXCIII [16Bit-44.1kHz]/Disc 2` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1993) The Velvet Underground - Live MCMXCIII [16Bit-44.1kHz]/Disc 2` | The Velvet Underground | Live MCMXCIII | 12 | FLAC | 744-1003 kbps | 455.6 MiB | no | `The Velvet Underground/Live MCMXCIII` |
+| 035 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2015) The Velvet Underground - The Complete Matrix Tapes - Recorded November 26 & 27, 1969 [16Bit-44.1kHz]/Disc 4` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2015) The Velvet Underground - The Complete Matrix Tapes - Recorded November 26 & 27, 1969 [16Bit-44.1kHz]/Disc 4` | The Velvet Underground | The Complete Matrix Tapes - Recorded November 26 & 27, 1969 | 12 | FLAC | 639-838 kbps | 388.6 MiB | no | `The Velvet Underground/The Complete Matrix Tapes - Recorded November 26 & 27, 1969` |
+| 036 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2015) The Velvet Underground - The Complete Matrix Tapes - Recorded November 26 & 27, 1969 [16Bit-44.1kHz]/Disc 2` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2015) The Velvet Underground - The Complete Matrix Tapes - Recorded November 26 & 27, 1969 [16Bit-44.1kHz]/Disc 2` | The Velvet Underground | The Complete Matrix Tapes - Recorded November 26 & 27, 1969 | 12 | FLAC | 660-912 kbps | 377.9 MiB | no | `The Velvet Underground/The Complete Matrix Tapes - Recorded November 26 & 27, 1969` |
+| 037 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2015) The Velvet Underground - The Complete Matrix Tapes - Recorded November 26 & 27, 1969 [16Bit-44.1kHz]/Disc 1` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2015) The Velvet Underground - The Complete Matrix Tapes - Recorded November 26 & 27, 1969 [16Bit-44.1kHz]/Disc 1` | The Velvet Underground | The Complete Matrix Tapes - Recorded November 26 & 27, 1969 | 12 | FLAC | 653-828 kbps | 364.2 MiB | no | `The Velvet Underground/The Complete Matrix Tapes - Recorded November 26 & 27, 1969` |
+| 038 | `etc/1-source-files/Richard D. James as Aphex Twin (Albums 1992 - 2019) [FLAC]/1994 - Selected Ambient Works Volume II (2 discs)/Disc 2` | `etc/1-source-files/Richard D. James as Aphex Twin (Albums 1992 - 2019) [FLAC]/1994 - Selected Ambient Works Volume II (2 discs)/Disc 2` | Aphex Twin | Disc 2 - Selected Ambient Works Volume II | 12 | FLAC | 436-649 kbps | 289.1 MiB | no | `Aphex Twin/Disc 2 - Selected Ambient Works Volume II` |
+| 039 | `etc/1-source-files/Richard D. James as Aphex Twin (Albums 1992 - 2019) [FLAC]/1994 - Selected Ambient Works Volume II (2 discs)/Disc 1` | `etc/1-source-files/Richard D. James as Aphex Twin (Albums 1992 - 2019) [FLAC]/1994 - Selected Ambient Works Volume II (2 discs)/Disc 1` | Aphex Twin | Disc 1 - Selected Ambient Works Volume II | 12 | FLAC | 394-643 kbps | 265.2 MiB | no | `Aphex Twin/Disc 1 - Selected Ambient Works Volume II` |
+| 040 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1969) The Velvet Underground - The Velvet Underground (45th Anniversary  Super Deluxe) [24Bit-96kHz]/Disc 2` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1969) The Velvet Underground - The Velvet Underground (45th Anniversary  Super Deluxe) [24Bit-96kHz]/Disc 2` | The Velvet Underground | The Velvet Underground | 11 | FLAC | 2990-3131 kbps | 1.0 GiB | no | `The Velvet Underground/The Velvet Underground` |
+| 041 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1993) The Velvet Underground - Live MCMXCIII [16Bit-44.1kHz]/Disc 1` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1993) The Velvet Underground - Live MCMXCIII [16Bit-44.1kHz]/Disc 1` | The Velvet Underground | Live MCMXCIII | 11 | FLAC | 818-950 kbps | 361.0 MiB | no | `The Velvet Underground/Live MCMXCIII` |
+| 042 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2001) The Velvet Underground - The Bootleg Series Vol.1 - The Quine Tapes (Live) [16Bit-44.1kHz]/Disc 1` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2001) The Velvet Underground - The Bootleg Series Vol.1 - The Quine Tapes (Live) [16Bit-44.1kHz]/Disc 1` | The Velvet Underground | The Bootleg Series Vol.1 - The Quine Tapes | 11 | FLAC | 512-596 kbps | 294.6 MiB | no | `The Velvet Underground/The Bootleg Series Vol.1 - The Quine Tapes` |
+| 043 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1970) The Velvet Underground - Loaded (Re-Loaded 45th Anniversary Edition) [16Bit-44.1kHz]/Disc 5` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1970) The Velvet Underground - Loaded (Re-Loaded 45th Anniversary Edition) [16Bit-44.1kHz]/Disc 5` | The Velvet Underground | Loaded (Re-Loaded 45th Anniversary Edition) | 11 | FLAC | 421-669 kbps | 273.6 MiB | no | `The Velvet Underground/Loaded (Re-Loaded 45th Anniversary Edition)` |
+| 044 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1970) The Velvet Underground - Loaded (Re-Loaded 45th Anniversary Edition) [16Bit-44.1kHz]/Disc 7` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1970) The Velvet Underground - Loaded (Re-Loaded 45th Anniversary Edition) [16Bit-44.1kHz]/Disc 7` | The Velvet Underground | Loaded (Re-Loaded 45th Anniversary Edition) | 10 | FLAC | 745-903 kbps | 239.8 MiB | no | `The Velvet Underground/Loaded (Re-Loaded 45th Anniversary Edition)` |
+| 045 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary  Super Deluxe Edition) [16Bit-44.1kHz]/Disc 3` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary  Super Deluxe Edition) [16Bit-44.1kHz]/Disc 3` | The Velvet Underground | The Velvet Underground & Nico | 10 | FLAC | 662-767 kbps | 238.9 MiB | no | `The Velvet Underground/The Velvet Underground & Nico` |
+| 046 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - White Light  White Heat (Super Deluxe) [16Bit-44.1kHz]/Disc 2` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - White Light  White Heat (Super Deluxe) [16Bit-44.1kHz]/Disc 2` | The Velvet Underground | White Light / White Heat | 10 | FLAC | 332-452 kbps | 183.7 MiB | no | `The Velvet Underground/White Light - White Heat` |
+| 047 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - White Light  White Heat (Deluxe Edition) [16Bit-44.1kHz]/Disc 2` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - White Light  White Heat (Deluxe Edition) [16Bit-44.1kHz]/Disc 2` | The Velvet Underground | White Light / White Heat (Deluxe Edition) | 7 | FLAC | 684-753 kbps | 306.6 MiB | no | `The Velvet Underground/White Light - White Heat (Deluxe Edition)` |
+| 048 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - White Light  White Heat (Super Deluxe) [16Bit-44.1kHz]/Disc 3` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - White Light  White Heat (Super Deluxe) [16Bit-44.1kHz]/Disc 3` | The Velvet Underground | White Light / White Heat | 7 | FLAC | 684-753 kbps | 306.6 MiB | no | `The Velvet Underground/White Light - White Heat` |
+| 049 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2001) The Velvet Underground - The Bootleg Series Vol.1 - The Quine Tapes (Live) [16Bit-44.1kHz]/Disc 3` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2001) The Velvet Underground - The Bootleg Series Vol.1 - The Quine Tapes (Live) [16Bit-44.1kHz]/Disc 3` | The Velvet Underground | The Bootleg Series Vol.1 - The Quine Tapes | 7 | FLAC | 515-587 kbps | 317.2 MiB | no | `The Velvet Underground/The Bootleg Series Vol.1 - The Quine Tapes` |
+| 050 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1969) The Velvet Underground - The Velvet Underground (45th Anniversary  Super Deluxe) [24Bit-96kHz]/Disc 6` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1969) The Velvet Underground - The Velvet Underground (45th Anniversary  Super Deluxe) [24Bit-96kHz]/Disc 6` | The Velvet Underground | The Velvet Underground | 6 | FLAC | 2778-3135 kbps | 1.3 GiB | no | `The Velvet Underground/The Velvet Underground` |
+| 051 | `etc/1-source-files/Linkin Park - Discography [FLAC Songs] [PMEDIA] ⭐️/(2000) Linkin Park - Hybrid Theory  (20th Anniversary Edition) [16Bit-44.1kHz]/Disc 3` | `etc/1-source-files/Linkin Park - Discography [FLAC Songs] [PMEDIA] ⭐️/(2000) Linkin Park - Hybrid Theory  (20th Anniversary Edition) [16Bit-44.1kHz]/Disc 3` | Linkin Park | Hybrid Theory | 6 | FLAC | 1389-1632 kbps | 306.2 MiB | no | `Linkin Park/Hybrid Theory` |
+| 052 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2015) The Velvet Underground - The Complete Matrix Tapes - Recorded November 26 & 27, 1969 [16Bit-44.1kHz]/Disc 3` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2015) The Velvet Underground - The Complete Matrix Tapes - Recorded November 26 & 27, 1969 [16Bit-44.1kHz]/Disc 3` | The Velvet Underground | The Complete Matrix Tapes - Recorded November 26 & 27, 1969 | 6 | FLAC | 692-862 kbps | 361.0 MiB | no | `The Velvet Underground/The Complete Matrix Tapes - Recorded November 26 & 27, 1969` |
+| 053 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1995) The Velvet Underground - Peel Slowly And See 1965-1969 [16Bit-44.1kHz]/Disc 1` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1995) The Velvet Underground - Peel Slowly And See 1965-1969 [16Bit-44.1kHz]/Disc 1` | The Velvet Underground | Peel Slowly And See 1965-1969 | 6 | FLAC | 295-400 kbps | 192.9 MiB | no | `The Velvet Underground/Peel Slowly And See 1965-1969` |
+| 054 | `etc/1-source-files/Utada Hikaru - Discography [FLAC Songs] [PMEDIA] ⭐️/(2010) - Utada Hikaru - Utada Hikaru Single Collection Vol.2 [16Bit-44.1kHz]/Disc 2` | `etc/1-source-files/Utada Hikaru - Discography [FLAC Songs] [PMEDIA] ⭐️/(2010) - Utada Hikaru - Utada Hikaru Single Collection Vol.2 [16Bit-44.1kHz]/Disc 2` | Utada Hikaru | Utada Hikaru Single Collection Vol.2 | 5 | FLAC | 732-1010 kbps | 160.1 MiB | no | `Utada Hikaru/Utada Hikaru Single Collection Vol.2` |
+| 055 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2001) The Velvet Underground - The Bootleg Series Vol.1 - The Quine Tapes (Live) [16Bit-44.1kHz]/Disc 2` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(2001) The Velvet Underground - The Bootleg Series Vol.1 - The Quine Tapes (Live) [16Bit-44.1kHz]/Disc 2` | The Velvet Underground | The Bootleg Series Vol.1 - The Quine Tapes | 5 | FLAC | 530-563 kbps | 309.5 MiB | no | `The Velvet Underground/The Bootleg Series Vol.1 - The Quine Tapes` |
+| 056 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary  Super Deluxe Edition) [16Bit-44.1kHz]/Disc 5` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary  Super Deluxe Edition) [16Bit-44.1kHz]/Disc 5` | The Velvet Underground | The Velvet Underground & Nico | 5 | FLAC | 450-475 kbps | 149.3 MiB | no | `The Velvet Underground/The Velvet Underground & Nico` |
+| 057 | `etc/1-source-files/System Of A Down - Discography [FLAC Songs] [PMEDIA] ⭐️/(1998) System Of A Down - System Of A Down [16Bit-44.1kHz]/Disc 2` | `etc/1-source-files/System Of A Down - Discography [FLAC Songs] [PMEDIA] ⭐️/(1998) System Of A Down - System Of A Down [16Bit-44.1kHz]/Disc 2` | System Of A Down | System Of A Down | 4 | FLAC | 894-1001 kbps | 77.8 MiB | no | `System Of A Down/System Of A Down` |
+| 058 | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary  Super Deluxe Edition) [16Bit-44.1kHz]/Disc 6` | `etc/1-source-files/The Velvet Underground - Discography [FLAC Songs] [PMEDIA] ⭐️/(1967) The Velvet Underground - The Velvet Underground & Nico (45th Anniversary  Super Deluxe Edition) [16Bit-44.1kHz]/Disc 6` | The Velvet Underground | The Velvet Underground & Nico | 4 | FLAC | 403-462 kbps | 147.2 MiB | no | `The Velvet Underground/The Velvet Underground & Nico` |
+| 059 | `etc/1-source-files/Sigur Ros discography (FLAC)/7. Singles/2009. Ekki Múkk` | `etc/1-source-files/Sigur Ros discography (FLAC)/7. Singles/2009. Ekki Múkk` | Sigur Rós | Ekki Múkk | 2 | FLAC | 608-641 kbps | 58.1 MiB | no | `Sigur Rós/Ekki Múkk` |
+| 060 | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - 2006 - Everytime We Touch/Cascada - 2006 - Everytime We Touch` | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - 2006 - Everytime We Touch/Cascada - 2006 - Everytime We Touch` | Cascada | Everytime We Touch (The Album) | 14 | MP3 | 320-320 kbps | 111.4 MiB | no | `Cascada/Everytime We Touch (The Album)` |
+| 061 | `etc/1-source-files/Billy Talent Studio Discography (2003-2022) [MP3 320kbps]/(2012) Dead Silence` | `etc/1-source-files/Billy Talent Studio Discography (2003-2022) [MP3 320kbps]/(2012) Dead Silence` | Billy Talent | Dead Silence | 14 | MP3 | 320-320 kbps | 126.3 MiB | no | `Billy Talent/Dead Silence` |
+| 062 | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - 2007 - Perfect Day/Cascada - 2007 - Perfect Day` | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - 2007 - Perfect Day/Cascada - 2007 - Perfect Day` | Cascada | Perfect Day | 13 | MP3 | 320-320 kbps | 102.4 MiB | no | `Cascada/Perfect Day` |
+| 063 | `etc/1-source-files/Billy Talent Studio Discography (2003-2022) [MP3 320kbps]/(2006) Billy Talent II` | `etc/1-source-files/Billy Talent Studio Discography (2003-2022) [MP3 320kbps]/(2006) Billy Talent II` | Billy Talent | Billy Talent II | 13 | MP3 | 320-320 kbps | 109.5 MiB | no | `Billy Talent/Billy Talent II` |
+| 064 | `etc/1-source-files/Billy Talent Studio Discography (2003-2022) [MP3 320kbps]/(2016) Afraid of Heights` | `etc/1-source-files/Billy Talent Studio Discography (2003-2022) [MP3 320kbps]/(2016) Afraid of Heights` | Billy Talent | Afraid of Heights | 13 | MP3 | 320-320 kbps | 122.4 MiB | no | `Billy Talent/Afraid of Heights` |
+| 065 | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - 2009 - Evacuate The Dancefloor/Cascada - 2009 - Evacuate The Dancefloor` | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - 2009 - Evacuate The Dancefloor/Cascada - 2009 - Evacuate The Dancefloor` | Cascada | Evacuate The Dancefloor (Maxi-Single) | 12 | MP3 | 320-320 kbps | 140.8 MiB | no | `Cascada/Evacuate The Dancefloor (Maxi-Single)` |
+| 066 | `etc/1-source-files/Billy Talent Studio Discography (2003-2022) [MP3 320kbps]/(2003) Billy Talent` | `etc/1-source-files/Billy Talent Studio Discography (2003-2022) [MP3 320kbps]/(2003) Billy Talent` | Billy Talent | Billy Talent | 12 | MP3 | 320-320 kbps | 95.7 MiB | no | `Billy Talent/Billy Talent` |
+| 067 | `etc/1-source-files/Angels & Airwaves/2010 - Love/Instrumental` | `etc/1-source-files/Angels & Airwaves/2010 - Love/Instrumental` | Angels & Airwaves | Love (Instrumentals) | 11 | MP3 | 320-320 kbps | 124.6 MiB | no | `Angels & Airwaves/Love (Instrumentals)` |
+| 068 | `etc/1-source-files/Billy Talent Studio Discography (2003-2022) [MP3 320kbps]/(2009) Billy Talent III` | `etc/1-source-files/Billy Talent Studio Discography (2003-2022) [MP3 320kbps]/(2009) Billy Talent III` | Billy Talent | Billy Talent III | 11 | MP3 | 320-320 kbps | 100.0 MiB | no | `Billy Talent/Billy Talent III` |
+| 069 | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - Singles (2004-2010)/Cascada - Singles (2004-2010)/2009 - Evacuate The Dancefloor` | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - Singles (2004-2010)/Cascada - Singles (2004-2010)/2009 - Evacuate The Dancefloor` | Cascada | Evacuate The Dancefloor | 11 | MP3 | 233-320 kbps | 68.6 MiB | no | `Cascada/Evacuate The Dancefloor` |
+| 070 | `etc/1-source-files/Angels & Airwaves/2011 - Love Part Two/(Instrumental)` | `etc/1-source-files/Angels & Airwaves/2011 - Love Part Two/(Instrumental)` | Angels & Airwaves | Love Part Two (Instrumentals) | 11 | MP3 | 192-192 kbps | 63.5 MiB | no | `Angels & Airwaves/Love Part Two (Instrumentals)` |
+| 071 | `etc/1-source-files/BT Complete Discography (US Versions)/1999 - Movement in Still Life` | `etc/1-source-files/BT Complete Discography (US Versions)/1999 - Movement in Still Life` | BT | Movement in Still Life | 11 | MP3 | 160-192 kbps | 85.9 MiB | no | `BT/Movement in Still Life` |
+| 072 | `etc/1-source-files/Billy Talent Studio Discography (2003-2022) [MP3 320kbps]/(2022) Crisis of Faith` | `etc/1-source-files/Billy Talent Studio Discography (2003-2022) [MP3 320kbps]/(2022) Crisis of Faith` | Billy Talent | Crisis of Faith | 10 | MP3 | 320-320 kbps | 86.7 MiB | no | `Billy Talent/Crisis of Faith` |
+| 073 | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - Singles (2004-2010)/Cascada - Singles (2004-2010)/2008 - Faded` | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - Singles (2004-2010)/Cascada - Singles (2004-2010)/2008 - Faded` | Cascada | Cascada Faded | 10 | MP3 | 320-320 kbps | 110.5 MiB | no | `Cascada/Cascada Faded` |
+| 074 | `etc/1-source-files/BT Complete Discography (US Versions)/ESCM` | `etc/1-source-files/BT Complete Discography (US Versions)/ESCM` | Brian Transeau | ESCM | 10 | MP3 | 192-192 kbps | 99.0 MiB | no | `Brian Transeau/ESCM` |
+| 075 | `etc/1-source-files/My Dying Bride/[1999] - The Light at the End of the World (320k)` | `etc/1-source-files/My Dying Bride/[1999] - The Light at the End of the World (320k)` | My Dying Bride | The Light at the End of the World | 9 | MP3 | 320-320 kbps | 163.4 MiB | no | `My Dying Bride/The Light at the End of the World` |
+| 076 | `etc/1-source-files/My Dying Bride/[1996] - Like Gods of the Sun (320k)` | `etc/1-source-files/My Dying Bride/[1996] - Like Gods of the Sun (320k)` | My Dying Bride | Like Gods of the Sun | 9 | MP3 | 320-320 kbps | 124.1 MiB | no | `My Dying Bride/Like Gods of the Sun` |
+| 077 | `etc/1-source-files/My Dying Bride/[2009] - For Lies I Sire (320k)` | `etc/1-source-files/My Dying Bride/[2009] - For Lies I Sire (320k)` | My Dying Bride | For Lies I Sire | 9 | MP3 | 320-320 kbps | 137.4 MiB | no | `My Dying Bride/For Lies I Sire` |
+| 078 | `etc/1-source-files/My Dying Bride/[2006] - A Line of Deathless Kings (320k)` | `etc/1-source-files/My Dying Bride/[2006] - A Line of Deathless Kings (320k)` | My Dying Bride | A Line of Deathless Kings | 9 | MP3 | 320-320 kbps | 140.4 MiB | no | `My Dying Bride/A Line of Deathless Kings` |
+| 079 | `etc/1-source-files/My Dying Bride/[2001] - The Dreadful Hours (320k)` | `etc/1-source-files/My Dying Bride/[2001] - The Dreadful Hours (320k)` | My Dying Bride | The Dreadful Hours | 8 | MP3 | 320-320 kbps | 162.3 MiB | no | `My Dying Bride/The Dreadful Hours` |
+| 080 | `etc/1-source-files/My Dying Bride/[2004] - Songs of Darkness, Words of Light (320k)` | `etc/1-source-files/My Dying Bride/[2004] - Songs of Darkness, Words of Light (320k)` | My Dying Bride | Songs of Darkness, Words of Light | 8 | MP3 | 320-320 kbps | 135.7 MiB | no | `My Dying Bride/Songs of Darkness, Words of Light` |
+| 081 | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - Singles (2004-2010)/Cascada - Singles (2004-2010)/2007 - What Do You Want From Me` | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - Singles (2004-2010)/Cascada - Singles (2004-2010)/2007 - What Do You Want From Me` | Cascada | What Do You Want from Me CDM | 8 | MP3 | 182-208 kbps | 57.7 MiB | no | `Cascada/What Do You Want from Me CDM` |
+| 082 | `etc/1-source-files/My Dying Bride/[1993] - Turn Loose the Swans (320k)` | `etc/1-source-files/My Dying Bride/[1993] - Turn Loose the Swans (320k)` | My Dying Bride | Turn Loose the Swans | 7 | MP3 | 320-320 kbps | 133.3 MiB | no | `My Dying Bride/Turn Loose the Swans` |
+| 083 | `etc/1-source-files/My Dying Bride/[1998] - 34.788%... Complete (320k)` | `etc/1-source-files/My Dying Bride/[1998] - 34.788%... Complete (320k)` | My Dying Bride | 34.788%... Complete | 7 | MP3 | 320-320 kbps | 129.8 MiB | no | `My Dying Bride/34.788%... Complete` |
+| 084 | `etc/1-source-files/My Dying Bride/[1992] - As the Flower Withers (320k)` | `etc/1-source-files/My Dying Bride/[1992] - As the Flower Withers (320k)` | My Dying Bride | As the Flower Withers | 7 | MP3 | 320-320 kbps | 113.8 MiB | no | `My Dying Bride/As the Flower Withers` |
+| 085 | `etc/1-source-files/My Dying Bride/[1995] - The Angel and the Dark River (320k)` | `etc/1-source-files/My Dying Bride/[1995] - The Angel and the Dark River (320k)` | My Dying Bride | The Angel and the Dark River | 7 | MP3 | 320-320 kbps | 138.7 MiB | no | `My Dying Bride/The Angel and the Dark River` |
+| 086 | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - Singles (2004-2010)/Cascada - Singles (2004-2010)/2004 - Miracle` | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - Singles (2004-2010)/Cascada - Singles (2004-2010)/2004 - Miracle` | Cascada | Miracle | 5 | MP3 | 189-226 kbps | 40.3 MiB | no | `Cascada/Miracle` |
+| 087 | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - Singles (2004-2010)/Cascada - Singles (2004-2010)/2006 - A Neverending Dream` | `etc/1-source-files/Cascada - Discography 2004-2011 Dez16v ( TLS Release )/Cascada - Singles (2004-2010)/Cascada - Singles (2004-2010)/2006 - A Neverending Dream` | Cascada | A Neverending Dream | 3 | MP3 | 228-248 kbps | 29.2 MiB | no | `Cascada/A Neverending Dream` |
+## 5. Command plan
 
 Build once:
 
@@ -117,28 +130,22 @@ Build once:
 npm run build
 ```
 
-Summarize:
-
-```sh
-node build/dist/index.js summarize-source-dir --dir-name "$AUDIO_ONLY_DIR" --format json
-```
-
-Dry-run organization:
+Final dry-run per listed album:
 
 ```sh
 node build/dist/index.js organize-files \
-  --source-dir "$SELECTED_AUDIO_ONLY_DIR" \
+  --source-dir "$PROCESSING_DIR" \
   --dest-dir "etc/3-organized-files" \
   --artist-filename-strategy albumartist \
   --title-filename-strategy title \
   --format json
 ```
 
-Execute after review:
+Execute only if the final dry-run succeeds:
 
 ```sh
 node build/dist/index.js organize-files \
-  --source-dir "$SELECTED_AUDIO_ONLY_DIR" \
+  --source-dir "$PROCESSING_DIR" \
   --dest-dir "etc/3-organized-files" \
   --artist-filename-strategy albumartist \
   --title-filename-strategy title \
@@ -146,22 +153,15 @@ node build/dist/index.js organize-files \
   --execute
 ```
 
-Use `fix-tags` only when metadata can be corrected systematically:
+## 6. Final Markdown report
 
-```sh
-node build/dist/index.js fix-tags \
-  --source-dir "$SELECTED_AUDIO_ONLY_DIR" \
-  --dest-dir "$TAG_FIX_STAGE_DIR" \
-  --format json
-```
+Generate `album-organization-report.md` in the audit workspace after verification. Include totals and a table with final album path, albumartist, album, track count, format, bitrate summary, artwork-present status, and artwork filenames.
 
-## 9. Risk Table
+## 7. Risk Table
 
 | Risk | Likelihood | Mitigation |
 | --- | --- | --- |
-| Most audio files are in sidecar-contaminated folders | High | Stage audio-only copies before CLI processing. |
-| Missing metadata causes organize failures | High | Use summary metadata reports to route folders to fix-tags or blocked status. |
-| Discographies contain duplicate albums across roots | Medium | Group by albumartist, album, track count, track titles, and format before execution. |
-| Existing organized output conflicts with new output | Medium | Verify existing output and skip or explicitly replace only after review. |
-| Cover image filename conflicts occur in destination | Medium | Preserve names and block on differing existing files rather than overwriting. |
-| Unsupported audio gets silently ignored | Low | Record `.ape` and `.ogg` in skipped output. |
+| A listed album becomes invalid because destination files already exist | Medium | Re-run dry-run immediately before execution and block on errors. |
+| An unlisted but desirable album is skipped | High | Treat it as a future metadata-repair pass; do not expand this spec silently. |
+| Staging path loses artwork context | Medium | Copy artwork from source directory recorded in the in-scope table. |
+| Duplicate final destinations occur across listed albums | Low | The list was destination-deduplicated after dry-run validation. |

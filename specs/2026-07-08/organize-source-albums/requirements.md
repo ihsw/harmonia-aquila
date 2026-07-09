@@ -2,69 +2,64 @@
 
 ## 1. Background
 
-`harmonia-aquila` provides `summarize-source-dir`, `fix-tags`, and `organize-files` for audio cleanup. The current source tree at `etc/1-source-files` is now populated with a large mixed album collection: 55 top-level source roots, 8,141 supported `.flac`/`.mp3` files, 2 unsupported audio files (`.ape`, `.ogg`), 1,618 image files (`.jpg`, `.jpeg`, `.png`, `.bmp`, `.tif`), and many other sidecars such as logs, playlists, cues, PDFs, videos, and metadata files.
+`etc/1-source-files` contains a broad mixed album collection with 55 top-level source roots, 8,141 supported `.flac`/`.mp3` files, 2 unsupported audio files (`.ape`, `.ogg`), and 1,618 image files. The current `harmonia-aquila` CLI only processes flat directories containing supported audio files, so sidecar-heavy source folders must be staged before CLI use.
 
-The re-analysis found 221 direct audio-only directories containing 2,090 supported audio files. `summarize-source-dir --format json` succeeded for 210 of those directories and summarized 1,983 tracks. Eleven candidate directories failed because they also contain direct child directories, which `getAudioFiles` treats as invalid entries even when all direct files are audio.
+This spec has been narrowed to **only albums with correct metadata**. Correct metadata means `summarize-source-dir --format json` succeeds and every track has the core fields required for organization (`album`, `albumartist`, `artist`, and `title`); `organize-files --format json` must also pass without `--execute` using `--artist-filename-strategy albumartist` and `--title-filename-strategy title`.
 
-Most of the collection cannot be processed directly by the current CLI because 587 directories contain direct supported audio files plus sidecar files, covering 6,051 supported audio files. These directories need a clean staging step that copies only supported audio files into audio-only staging folders before running `harmonia-aquila` subcommands.
+Validation found 796 summarized source/staging folders, 545 folders with complete core summary metadata, 91 folders that passed `organize-files` dry-run, and 87 in-scope album batches after destination deduplication. All albums not listed in `design.md` §4 and `tasks.md` §3.1 are out of scope for this spec.
 
 ## 2. Goal
 
-Organize all valid `.flac` and `.mp3` album batches from `etc/1-source-files` into `etc/3-organized-files` using `harmonia-aquila` subcommands, while preserving source files, copying album cover artwork for selected albums, excluding non-artwork sidecars from CLI input, preferring higher-quality non-duplicative sources, and staging messy album folders when necessary.
+Organize exactly the 87 validated in-scope album batches into `etc/3-organized-files`, copy associated album artwork when present, and produce a final Markdown breakdown report. Do not attempt to repair, tag-fix, or organize any album outside the explicit in-scope list.
 
 ## 3. Scope
 
 ### In scope
 
-- Read-only analysis of `etc/1-source-files`.
-- Audio-only staging under `etc/2-fixed-tag-files` for folders that contain audio plus sidecars or need tag fixes.
-- Final organized output under `etc/3-organized-files`.
-- Album cover image copying for selected album batches, limited to `.jpg`, `.jpeg`, `.png`, `.bmp`, `.tif`, and `.tiff` files found with the selected source album.
-- `harmonia-aquila summarize-source-dir`, `fix-tags`, and `organize-files`.
-- Temporary JSON audit artifacts for summaries, dry-runs, execute results, skipped-folder reports, and a final Markdown album breakdown report.
+- The 87 album batches listed in `design.md` §4 and `tasks.md` §3.1.
+- `harmonia-aquila summarize-source-dir` JSON outputs used to establish metadata correctness.
+- `harmonia-aquila organize-files --format json` dry-run outputs used to establish processability.
+- Audio-only staging under `etc/2-fixed-tag-files` only for listed albums whose original source folder contains sidecars.
+- Final audio and selected cover images under `etc/3-organized-files`.
+- A final audit Markdown report with album, format, bitrate, and artwork status.
 
 ### Out of scope
 
+- Any album batch not listed in `tasks.md` §3.1.
+- Any folder with missing `album`, `albumartist`, `artist`, or `title` in `summarize-source-dir` output.
+- Any folder that fails `organize-files --format json` without `--execute`.
+- Metadata repair or `fix-tags` work for this pass.
 - Source code changes to `src/**`.
 - Deleting or mutating files under `etc/1-source-files`.
-- Organizing non-artwork sidecar content into the audio library.
-- Transcoding unsupported audio formats or converting MP3 to FLAC.
-- Using legacy `etc/_1-source-files` as input for this pass.
+- Organizing non-artwork sidecars, unsupported audio, or legacy `etc/_1-source-files`.
 
 ## 4. Functional Requirements
 
-- **FR-1** The workflow MUST treat `etc/1-source-files` as the canonical source root.
-- **FR-2** The workflow MUST inventory every top-level source root, supported audio file, unsupported audio file, audio-only directory, audio-plus-sidecar directory, and failed summary directory before organization.
-- **FR-3** The workflow MUST run `summarize-source-dir --format json` on every direct audio-only folder that the current CLI accepts.
-- **FR-4** The workflow MUST create audio-only staging folders for audio-plus-sidecar directories before running `summarize-source-dir`, `fix-tags`, or `organize-files` on those albums.
-- **FR-5** The workflow MUST inventory album cover image candidates and associate them with the selected album batch before copying audio.
-- **FR-6** When a selected album batch is copied from source or staging into `etc/3-organized-files`, the workflow MUST also copy its associated album cover image files into the final organized album directory.
-- **FR-7** The workflow MUST preserve source files and MUST NOT delete sidecars; non-artwork sidecars MAY be recorded in audit output as excluded content.
-- **FR-8** The workflow MUST classify duplicate album batches, including parallel FLAC/MP3 batches, repeated discography copies, and already-organized destinations.
-- **FR-9** When duplicate batches represent the same album and track set, the workflow MUST prefer FLAC over MP3 unless the FLAC batch is incomplete, corrupt, or has materially worse metadata.
-- **FR-10** The workflow MUST run `organize-files --format json` without `--execute` for every selected source or staging folder before copying.
-- **FR-11** The workflow MUST execute `organize-files --execute` only after dry-run JSON is reviewed and destinations are collision-free.
-- **FR-12** If metadata prevents clean organization, the workflow MUST use `fix-tags` into a staging folder or mark the album as blocked with the exact missing fields.
-- **FR-13** Existing files in `etc/3-organized-files` MUST be treated as conflicts or already-organized output, not silently overwritten.
-- **FR-14** Unsupported audio files (`.ape`, `.ogg`) MUST be reported as skipped because current subcommands support only `.flac` and `.mp3`.
-- **FR-15** At the end of the workflow, the workflow MUST produce a Markdown report that breaks down organized albums by final path, album artist, album, track count, audio format, bitrate summary, and whether album artwork is present.
+- **FR-1** The workflow MUST process only the 87 album batches listed in `tasks.md` §3.1.
+- **FR-2** Every in-scope album MUST have a saved `summarize-source-dir --format json` output proving complete `album`, `albumartist`, `artist`, and `title` metadata.
+- **FR-3** Every in-scope album MUST have a saved successful `organize-files --format json` dry-run output before `--execute` is used.
+- **FR-4** Albums not listed in `tasks.md` §3.1 MUST be treated as out of scope even if they might be fixable later.
+- **FR-5** The workflow MUST NOT run `fix-tags` as part of this scoped pass.
+- **FR-6** For staged albums, the workflow MUST process the listed staging directory while preserving the original source directory as read-only.
+- **FR-7** If a listed album no longer passes `organize-files` dry-run at execution time, it MUST be marked blocked rather than repaired in-place.
+- **FR-8** Album artwork associated with a listed source album MUST be copied into the final organized album directory after audio organization succeeds.
+- **FR-9** Existing destination files and cover image filename conflicts MUST block execution for that album unless the conflict is identical and documented.
+- **FR-10** The final Markdown report MUST include each processed album's final path, albumartist, album, track count, format, bitrate summary, artwork-present status, and copied artwork filenames.
 
 ## 5. Non-Functional Requirements
 
-- **NFR-1 (lint after every file modification)** After every modification to repository text files, `npm run lint` MUST be run if source files changed; if only spec/docs files changed, record why lint is not applicable.
+- **NFR-1 (lint after every file modification)** After every repository text-file modification, run `npm run lint` if source files changed; for spec-only edits, record that lint is not applicable.
 - **NFR-2 (no `npx`)** `npx` is forbidden in all forms. Use `npm run <script>`, `node build/dist/index.js`, or existing project binaries only.
 - **NFR-3 (build before CLI use)** `npm run build` MUST exit 0 before using `node build/dist/index.js`.
-- **NFR-4 (source preservation)** Files under `etc/1-source-files` MUST remain read-only for the entire workflow.
-- **NFR-5 (auditability)** Summary, staging, dry-run, execute, and skipped-file JSON artifacts SHOULD be retained until final verification is complete.
+- **NFR-4 (source preservation)** Files under `etc/1-source-files` MUST remain read-only.
+- **NFR-5 (auditability)** Summary, dry-run, execute, artwork-copy, blocked, and final report artifacts SHOULD be retained until verification is complete.
 - **NFR-6 (scope discipline)** Implementation MUST NOT modify `src/**`, `package.json`, or dependency lockfiles.
 
 ## 6. Acceptance Criteria
 
-1. Inventory output accounts for 55 top-level roots, 8,141 supported audio files, 2 unsupported audio files, 1,618 image files, 221 direct audio-only directories, and 587 audio-plus-sidecar directories.
-2. All CLI-accepted audio-only folders have saved `summarize-source-dir --format json` output.
-3. All audio-plus-sidecar folders selected for organization are represented by audio-only staging folders before CLI processing.
-4. Every executed copy has prior saved dry-run JSON and matching execute JSON.
-5. Every selected album with associated cover images has those images copied into its final organized album directory.
-6. `etc/3-organized-files` contains one selected copy per organized track and excludes lower-quality duplicate batches.
-7. Final verification summarizes each organized album folder successfully or records a blocked/skipped reason.
-8. A final Markdown report exists and includes album path, albumartist, album, track count, format, bitrate summary, artwork-present status, and copied artwork filenames for each organized album.
+1. The tasks file lists exactly 87 in-scope album batches.
+2. Every listed album has saved successful `summarize-source-dir --format json` and `organize-files --format json` dry-run artifacts.
+3. No unlisted album batch is executed, copied, repaired, or tag-fixed.
+4. Each executed listed album has matching execute JSON and copied artwork audit output when artwork exists.
+5. The final Markdown report includes all executed listed albums with format, bitrate, and artwork status.
+6. `git --no-pager diff --stat src package.json package-lock.json` is empty.
