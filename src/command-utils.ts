@@ -15,11 +15,15 @@ export interface AudioFilesResult {
   targetDirectory: string
 }
 
+interface GetAudioFilesOptions {
+  ignoreNonAudioFiles?: boolean
+}
+
 function isSupportedAudioFile(file: Dirent): boolean {
   return file.isFile() && SUPPORTED_AUDIO_EXTENSION_SET.has(extname(file.name).toLowerCase())
 }
 
-export async function getAudioFiles(command: Command, dirName: string): Promise<AudioFilesResult> {
+export async function getAudioFiles(command: Command, dirName: string, options: GetAudioFilesOptions = {}): Promise<AudioFilesResult> {
   const targetDirectory = resolve(dirName)
   const directoryStats = await stat(targetDirectory)
 
@@ -27,12 +31,13 @@ export async function getAudioFiles(command: Command, dirName: string): Promise<
     command.error(`"${dirName}" is not a directory`)
   }
 
-  const files = await readdir(targetDirectory, { withFileTypes: true })
-  const invalidFiles = files.filter(
+  const directoryEntries = await readdir(targetDirectory, { withFileTypes: true })
+  const files = directoryEntries.filter(isSupportedAudioFile)
+  const invalidFiles = directoryEntries.filter(
     file => !isSupportedAudioFile(file),
   )
 
-  if (invalidFiles.length > 0) {
+  if (options.ignoreNonAudioFiles !== true && invalidFiles.length > 0) {
     command.error(
       `"${dirName}" must contain only supported audio files (${SUPPORTED_AUDIO_EXTENSIONS_DISPLAY}). Invalid entries: ${invalidFiles
         .map(file => file.name)
