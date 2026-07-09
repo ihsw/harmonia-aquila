@@ -19,3 +19,12 @@ npm run build
 ```
 
 Do not run `fix-tags` during this suitable-candidate pass, and do not use overwrite behavior or manual merges for duplicate destination album folders.
+
+## Reconciled suitable-candidate processing spec
+
+- Spec: `specs/2026-07-09/process-reconciled-suitable-source-albums/`
+- Source report: `reports/album-organization-audit/2026-07-09-source-dir-summaries/album-organization-audit-2026-07-09.md`
+- Executable candidates: 513
+- Duplicate-destination blocked candidates: 47
+
+Use each candidate's listed dry-run mode. Candidates promoted from sidecar folders require `--ignore-non-audio-files`; strict candidates should not use that flag unless their candidate row says so.
