@@ -37,11 +37,16 @@ export function registerSummarizeSourceDirCommand(program: Command): void {
     .description('List FLAC and MP3 files and metadata in a source directory')
     .requiredOption('--dir-name <dirName>', 'directory to list')
     .option('--limit <count>', 'maximum number of files to list')
+    .option('--ignore-non-audio-files', 'ignore non-audio files in the source directory')
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
-    .action(async (options: { dirName: string, format?: string, limit?: string }) => {
+    .action(async (options: { dirName: string, format?: string, ignoreNonAudioFiles?: boolean, limit?: string }) => {
       const limit = parseLimit(summarizeSourceDirCommand, options.limit)
       const outputFormat = parseOutputFormat(summarizeSourceDirCommand, options.format)
-      const { files, targetDirectory } = await getAudioFiles(summarizeSourceDirCommand, options.dirName)
+      const { files, targetDirectory } = await getAudioFiles(
+        summarizeSourceDirCommand,
+        options.dirName,
+        { ignoreNonAudioFiles: options.ignoreNonAudioFiles === true },
+      )
       const filesToSummarize = limit === undefined ? files : files.slice(0, limit)
       const parseMetadata = pLimit(16)
       const metadataRows: SummarizeSourceDirJsonOutput = await Promise.all(
