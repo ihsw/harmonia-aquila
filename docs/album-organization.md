@@ -33,7 +33,8 @@ Use each candidate's listed dry-run mode. Candidates promoted from sidecar folde
 
 - Spec: `specs/2026-07-09/process-new-source-albums/`
 - Source audit: `reports/album-organization-audit/2026-07-09-new-source-files-audit/new-source-files-audit.md`
-- Executable candidates: 18
-- Blocked candidates: 23
+- Reanalysis: `reports/album-organization-audit/2026-07-09-new-source-files-audit/reanalyze-overclock-remix-parent-20260709-165454/`
+- Executable candidates: 7
+- Blocked candidates: 34
 
-This spec covers the current OC ReMix-style source folders in `etc/1-source-files`. Run every listed dry-run with `--ignore-non-audio-files`, execute only the selected candidates, and copy each candidate's `albumArt.likelyAlbumArtFiles` into the resolved destination album folder after the audio copy succeeds. MP3/mp3s alternates are blocked when a FLAC/flacs source resolves to the same destination, and Chrono Symphonic / Super Metroid entries remain blocked until missing track-number metadata is repaired.
+This spec covers the current OC ReMix-style source folders in `etc/1-source-files`. Run every listed dry-run with `--ignore-non-audio-files --artist-filename-strategy albumartist`, execute only candidates that resolve under `OverClocked ReMix/`, and copy each candidate's `albumArt.likelyAlbumArtFiles` into the resolved destination album folder after the audio copy succeeds. MP3/mp3s alternates are blocked when a FLAC/flacs source resolves to the same destination; same-quality FLAC disc folders that collapse into the same `OverClocked ReMix/<Album>` destination are blocked until multi-disc merge handling is designed; Blood on the Asphalt, Chrono Symphonic, and Super Metroid entries remain blocked until metadata is repaired.
