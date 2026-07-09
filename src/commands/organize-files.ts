@@ -104,8 +104,8 @@ export function registerOrganizeFilesCommand(program: Command): void {
       const outputFormat = parseOutputFormat(organizeFilesCommand, options.format)
       const artistFilenameStrategy = parseArtistFilenameStrategy(organizeFilesCommand, options.artistFilenameStrategy)
       const titleFilenameStrategy = parseTitleFilenameStrategy(organizeFilesCommand, options.titleFilenameStrategy)
-      const { files, targetDirectory: sourceDirectory } = await getAudioFiles(organizeFilesCommand, options.sourceDir)
       const destinationDirectory = resolve(options.destDir)
+      const { files, targetDirectory: sourceDirectory } = await getAudioFiles(organizeFilesCommand, options.sourceDir)
       const filesToOrganize = limit === undefined ? files : files.slice(0, limit)
       const parseMetadata = pLimit(16)
       const plannedCopies = await Promise.all(
@@ -178,6 +178,21 @@ export function registerOrganizeFilesCommand(program: Command): void {
         organizeFilesCommand.error(`Multiple files resolve to the same destination: ${duplicateDestinationEntries
           .map(([destinationPath, filenames]) => `${relative(destinationDirectory, destinationPath)} (${filenames.join(', ')})`)
           .join('; ')}`)
+      }
+
+      const albumDestinationPaths = [...new Set(plannedCopies.map(plannedCopy => dirname(plannedCopy.destinationPath)))]
+      const existingAlbumDestinations = await Promise.all(
+        albumDestinationPaths.map(async albumDestinationPath => ({
+          albumDestinationPath,
+          exists: await pathExists(albumDestinationPath),
+        })),
+      )
+      const conflictingAlbumDestinations = existingAlbumDestinations.filter(destination => destination.exists)
+
+      if (conflictingAlbumDestinations.length > 0) {
+        organizeFilesCommand.error(`Destination album directories already exist: ${conflictingAlbumDestinations
+          .map(destination => relative(destinationDirectory, destination.albumDestinationPath))
+          .join(', ')}`)
       }
 
       const existingDestinations = await Promise.all(
