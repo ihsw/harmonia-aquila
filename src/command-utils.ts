@@ -8,6 +8,14 @@ const SUPPORTED_AUDIO_EXTENSION_SET = new Set<string>(SUPPORTED_AUDIO_EXTENSIONS
 const SUPPORTED_AUDIO_EXTENSIONS_DISPLAY = SUPPORTED_AUDIO_EXTENSIONS.join(', ')
 const OUTPUT_FORMATS = ['plaintext', 'json'] as const
 
+export function getSupportedAudioExtensions(): readonly string[] {
+  return SUPPORTED_AUDIO_EXTENSIONS
+}
+
+export function isSupportedAudioExtension(extension: string): boolean {
+  return SUPPORTED_AUDIO_EXTENSION_SET.has(extension.toLowerCase())
+}
+
 export type OutputFormat = typeof OUTPUT_FORMATS[number]
 
 export interface AudioFilesResult {

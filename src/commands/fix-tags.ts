@@ -6,6 +6,7 @@ import pLimit from 'p-limit'
 
 import { writeAudioTagFix } from '../audio-tags.js'
 import { getAudioFiles, parseLimit, parseOutputFormat, pathExists, writeRows } from '../command-utils.js'
+import { parseSetMetadataFile, reconcileSetMetadata, type SetMetadataRecord } from '../set-metadata.js'
 
 interface FixTagsRow {
   action: string
@@ -18,6 +19,7 @@ interface FixTagsRow {
   newAlbumartists?: string[]
   newArtists?: string[]
   newProducers?: string[]
+  newTitle?: string
   newTrackNumber?: number
   producers?: string[]
   title: string
@@ -34,6 +36,7 @@ export interface FixTagsJsonOutputRow {
   newAlbumartists?: string[]
   newArtists?: string[]
   newProducers?: string[]
+  newTitle?: string
   newTrackNumber?: number
   producers?: string[]
   trackNumber?: number | string
@@ -72,6 +75,7 @@ interface PlannedTagFix {
     albumArtists?: string[]
     artists?: string[]
     producers?: string[]
+    title?: string
     trackNumber?: number
   }
 }
@@ -158,6 +162,46 @@ function validateAlbumOptions(command: Command, albumStrategy: AlbumStrategy, se
   }
 }
 
+interface SetMetadataConflictOptions {
+  albumStrategy: AlbumStrategy
+  resetTrack: boolean
+  setAlbum: string | undefined
+  setArtist: string | undefined
+  swapArtistAlbumartist: boolean
+}
+
+function validateSetMetadataOptions(command: Command, setMetadata: string | undefined, conflicts: SetMetadataConflictOptions): void {
+  if (setMetadata === undefined) {
+    return
+  }
+
+  const conflictingOptions: string[] = []
+
+  if (conflicts.setArtist !== undefined) {
+    conflictingOptions.push('--set-artist')
+  }
+
+  if (conflicts.setAlbum !== undefined) {
+    conflictingOptions.push('--set-album')
+  }
+
+  if (conflicts.albumStrategy !== 'no change') {
+    conflictingOptions.push('--album-strategy')
+  }
+
+  if (conflicts.resetTrack) {
+    conflictingOptions.push('--reset-track')
+  }
+
+  if (conflicts.swapArtistAlbumartist) {
+    conflictingOptions.push('--swap-artist-albumartist')
+  }
+
+  if (conflictingOptions.length > 0) {
+    command.error(`--set-metadata conflicts with ${conflictingOptions.join(', ')}`)
+  }
+}
+
 function getEffectiveAlbum(parsedTagFixSource: ParsedTagFixSource, albumStrategy: AlbumStrategy, setAlbum: string | undefined): string {
   if (setAlbum !== undefined) {
     return setAlbum
@@ -211,12 +255,13 @@ export function registerFixTagsCommand(program: Command): void {
     .option('--album-artists-strategy <strategy>', 'how to update albumartists: no change, aggregate, blank', 'no change')
     .option('--set-album-artist <albumArtist>', 'set album artist metadata to the provided value')
     .option('--set-artist <artist>', 'set artist metadata to the provided value')
+    .option('--set-metadata <path>', 'set whole-album per-track metadata (filename, artist, album, trackNumber, title) from a JSON or CSV file')
     .option('--producer-strategy <strategy>', 'how to update producers: no change, blank, aggregate, copy-from-album-artists', 'no change')
     .option('--reset-track', 'reset track number metadata from each song file alphabetical index within its album')
     .option('--swap-artist-albumartist', 'swap artist and albumartist metadata')
     .option('--execute', 'copy files and write tag changes to destination files')
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
-    .action(async (options: { albumArtistsStrategy?: string, albumStrategy?: string, destDir: string, destinationStrategy?: string, execute?: boolean, format?: string, limit?: string, producerStrategy?: string, resetTrack?: boolean, setAlbum?: string, setAlbumArtist?: string, setArtist?: string, sourceDir: string, swapArtistAlbumartist?: boolean }) => {
+    .action(async (options: { albumArtistsStrategy?: string, albumStrategy?: string, destDir: string, destinationStrategy?: string, execute?: boolean, format?: string, limit?: string, producerStrategy?: string, resetTrack?: boolean, setAlbum?: string, setAlbumArtist?: string, setArtist?: string, setMetadata?: string, sourceDir: string, swapArtistAlbumartist?: boolean }) => {
       const limit = parseLimit(fixTagsCommand, options.limit)
       const outputFormat = parseOutputFormat(fixTagsCommand, options.format)
       const destinationStrategy = parseDestinationStrategy(fixTagsCommand, options.destinationStrategy)
@@ -226,16 +271,39 @@ export function registerFixTagsCommand(program: Command): void {
       const setAlbum = options.setAlbum
       const setAlbumArtist = options.setAlbumArtist
       const setArtist = options.setArtist
+      const setMetadata = options.setMetadata
       const resetTrack = options.resetTrack === true
       const swapArtistAlbumartist = options.swapArtistAlbumartist === true
 
       validateAlbumOptions(fixTagsCommand, albumStrategy, setAlbum)
       validateAlbumArtistOptions(fixTagsCommand, swapArtistAlbumartist, albumArtistsStrategy, setAlbumArtist)
       validateArtistOptions(fixTagsCommand, swapArtistAlbumartist, setArtist)
+      validateSetMetadataOptions(fixTagsCommand, setMetadata, { albumStrategy, resetTrack, setAlbum, setArtist, swapArtistAlbumartist })
+
+      let setMetadataRecords: SetMetadataRecord[] | undefined
+
+      if (setMetadata !== undefined) {
+        try {
+          setMetadataRecords = await parseSetMetadataFile(resolve(setMetadata))
+        }
+        catch (error) {
+          fixTagsCommand.error(error instanceof Error ? error.message : String(error))
+        }
+      }
 
       const { files, targetDirectory: sourceDirectory } = await getAudioFiles(fixTagsCommand, options.sourceDir)
       const destinationDirectory = resolve(options.destDir)
       const filesToFix = limit === undefined ? files : files.slice(0, limit)
+      let setMetadataByFilename: Map<string, SetMetadataRecord> | undefined
+
+      if (setMetadataRecords !== undefined) {
+        try {
+          setMetadataByFilename = reconcileSetMetadata(setMetadataRecords, filesToFix.map(file => file.name))
+        }
+        catch (error) {
+          fixTagsCommand.error(error instanceof Error ? error.message : String(error))
+        }
+      }
       const processMetadata = pLimit(16)
       const parsedTagFixSources = await Promise.all(
         filesToFix.map(file => processMetadata(async (): Promise<ParsedTagFixSource> => {
@@ -329,6 +397,7 @@ export function registerFixTagsCommand(program: Command): void {
 
       const plannedTagFixes = await Promise.all(
         parsedTagFixSources.map(async (parsedTagFixSource): Promise<PlannedTagFix> => {
+          const setMetadataRecord = setMetadataByFilename?.get(parsedTagFixSource.filename)
           const albumArtists = (() => {
             if (setAlbumArtist !== undefined) {
               return [setAlbumArtist]
@@ -345,10 +414,12 @@ export function registerFixTagsCommand(program: Command): void {
             return []
           })()
           const shouldUpdateAlbumArtists = setAlbumArtist !== undefined || swapArtistAlbumartist || albumArtistsStrategy !== 'no change'
-          const shouldUpdateAlbum = setAlbum !== undefined || albumStrategy !== 'no change'
-          const artists = setArtist !== undefined
-            ? [setArtist]
-            : swapArtistAlbumartist ? parsedTagFixSource.albumArtists : undefined
+          const shouldUpdateAlbum = setMetadataRecord !== undefined || setAlbum !== undefined || albumStrategy !== 'no change'
+          const artists = setMetadataRecord !== undefined
+            ? [setMetadataRecord.artist]
+            : setArtist !== undefined
+              ? [setArtist]
+              : swapArtistAlbumartist ? parsedTagFixSource.albumArtists : undefined
           const shouldUpdateArtists = artists !== undefined
           const producers = producerStrategy === 'aggregate'
             ? producersByAlbum.get(parsedTagFixSource.grouping) ?? []
@@ -356,18 +427,21 @@ export function registerFixTagsCommand(program: Command): void {
               ? parsedTagFixSource.albumArtists
               : []
           const shouldUpdateProducers = producerStrategy !== 'no change'
-          const album = setAlbum ?? (albumStrategy === 'grouping'
+          const album = setMetadataRecord?.album ?? setAlbum ?? (albumStrategy === 'grouping'
             ? parsedTagFixSource.grouping
             : albumStrategy === 'originalalbum'
               ? parsedTagFixSource.originalAlbum
               : undefined)
-          const trackNumber = resetTrackNumbersBySourcePath.get(parsedTagFixSource.sourcePath)
+          const trackNumber = setMetadataRecord?.trackNumber ?? resetTrackNumbersBySourcePath.get(parsedTagFixSource.sourcePath)
+          const title = setMetadataRecord?.title
+          const shouldUpdateTitle = title !== undefined
           const hasAlbumArtistsChanges = shouldUpdateAlbumArtists && !areStringArraysEqual(parsedTagFixSource.albumArtists, albumArtists)
           const hasArtistsChanges = shouldUpdateArtists && !areStringArraysEqual(parsedTagFixSource.artists, artists)
           const hasAlbumChanges = shouldUpdateAlbum && album !== undefined && parsedTagFixSource.album !== album
           const hasProducerChanges = shouldUpdateProducers && !areStringArraysEqual(parsedTagFixSource.producers, producers)
           const hasTrackNumberChanges = trackNumber !== undefined && parsedTagFixSource.trackNumber !== trackNumber
-          const hasChanges = hasAlbumChanges || hasAlbumArtistsChanges || hasArtistsChanges || hasProducerChanges || hasTrackNumberChanges
+          const hasTitleChanges = shouldUpdateTitle && parsedTagFixSource.title !== title
+          const hasChanges = hasAlbumChanges || hasAlbumArtistsChanges || hasArtistsChanges || hasProducerChanges || hasTrackNumberChanges || hasTitleChanges
           const destinationExists = await pathExists(parsedTagFixSource.destinationPath)
           const action = getAction(destinationStrategy, destinationExists, options.execute === true, hasChanges)
           const albumArtistsRow = (() => {
@@ -396,6 +470,7 @@ export function registerFixTagsCommand(program: Command): void {
             ...(shouldUpdateAlbumArtists ? { albumArtists } : {}),
             ...(shouldUpdateArtists ? { artists } : {}),
             ...(shouldUpdateProducers ? { producers } : {}),
+            ...(title === undefined ? {} : { title }),
             ...(trackNumber === undefined ? {} : { trackNumber }),
           }
 
@@ -417,6 +492,7 @@ export function registerFixTagsCommand(program: Command): void {
                     newTrackNumber: trackNumber,
                     trackNumber: parsedTagFixSource.trackNumber ?? '',
                   }),
+              ...(title === undefined ? {} : { newTitle: title }),
               ...(album === undefined ? {} : { newAlbum: album }),
               ...albumArtistsRow,
               ...artistsRow,
@@ -470,7 +546,7 @@ export function registerFixTagsCommand(program: Command): void {
           title: plannedTagFix.row.title,
         }
 
-        if (albumStrategy !== 'no change' || setAlbum !== undefined) {
+        if (albumStrategy !== 'no change' || setAlbum !== undefined || setMetadata !== undefined) {
           row.newAlbum = requireFixTagsJsonField('newAlbum', plannedTagFix.row.newAlbum)
         }
 
@@ -487,8 +563,12 @@ export function registerFixTagsCommand(program: Command): void {
             newAlbumartists: requireFixTagsJsonField('newAlbumartists', plannedTagFix.row.newAlbumartists),
           })
         }
-        if (setArtist !== undefined) {
+        if (setArtist !== undefined || setMetadata !== undefined) {
           row.newArtists = requireFixTagsJsonField('newArtists', plannedTagFix.row.newArtists)
+        }
+
+        if (setMetadata !== undefined) {
+          row.newTitle = requireFixTagsJsonField('newTitle', plannedTagFix.row.newTitle)
         }
 
         if (producerStrategy !== 'no change') {
@@ -496,7 +576,7 @@ export function registerFixTagsCommand(program: Command): void {
           row.producers = requireFixTagsJsonField('producers', plannedTagFix.row.producers)
         }
 
-        if (resetTrack) {
+        if (resetTrack || setMetadata !== undefined) {
           row.newTrackNumber = requireFixTagsJsonField('newTrackNumber', plannedTagFix.row.newTrackNumber)
           row.trackNumber = requireFixTagsJsonField('trackNumber', plannedTagFix.row.trackNumber)
         }

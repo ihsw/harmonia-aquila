@@ -14,6 +14,7 @@ export interface AudioTagFix {
   albumArtists?: string[]
   artists?: string[]
   producers?: string[]
+  title?: string
   trackNumber?: number
 }
 
@@ -99,6 +100,10 @@ export function writeAudioTagFix(filePath: string, tagFix: AudioTagFix): void {
 
     if (tagFix.producers !== undefined) {
       writeProducers(audioFile, filePath, tagFix.producers)
+    }
+
+    if (tagFix.title !== undefined) {
+      audioFile.tag.title = tagFix.title
     }
 
     if (tagFix.trackNumber !== undefined) {
