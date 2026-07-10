@@ -21,6 +21,7 @@ export interface SummarizeSourceDirJsonOutputRow {
   bitrate: string
   duration: string
   filename: string
+  originalalbum: string
   sampleRate: string
   title: string
   year: number | string
@@ -62,6 +63,7 @@ export function registerSummarizeSourceDirCommand(program: Command): void {
             filename: file.name,
             grouping: metadata.common.grouping ?? '',
             label: metadata.common.label?.[0] ?? '',
+            originalalbum: metadata.common.originalalbum ?? '',
             publisher: metadata.common.publisher?.[0] ?? '',
             sampleRate: formatAudioSampleRate(metadata.format.sampleRate),
             subtitle: metadata.common.subtitle?.[0] ?? '',

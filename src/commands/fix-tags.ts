@@ -43,7 +43,7 @@ export type FixTagsJsonOutput = FixTagsJsonOutputRow[]
 
 type DestinationStrategy = 'error' | 'ignore' | 'overwrite'
 type AlbumArtistsStrategy = 'aggregate' | 'blank' | 'no change'
-type AlbumStrategy = 'grouping' | 'no change'
+type AlbumStrategy = 'grouping' | 'no change' | 'originalalbum'
 type ProducerStrategy = 'aggregate' | 'blank' | 'copy-from-album-artists' | 'no change'
 
 interface ParsedTagFixSource {
@@ -53,6 +53,7 @@ interface ParsedTagFixSource {
   destinationPath: string
   filename: string
   grouping: string
+  originalAlbum: string
   producers: string[]
   sourcePath: string
   title: string
@@ -114,8 +115,8 @@ function parseAlbumArtistsStrategy(command: Command, value: string | undefined):
 function parseAlbumStrategy(command: Command, value: string | undefined): AlbumStrategy {
   const albumStrategy = value ?? 'no change'
 
-  if (albumStrategy !== 'no change' && albumStrategy !== 'grouping') {
-    command.error('--album-strategy must be one of: no change, grouping')
+  if (albumStrategy !== 'no change' && albumStrategy !== 'grouping' && albumStrategy !== 'originalalbum') {
+    command.error('--album-strategy must be one of: no change, grouping, originalalbum')
   }
 
   return albumStrategy
@@ -152,7 +153,19 @@ function validateAlbumOptions(command: Command, albumStrategy: AlbumStrategy, se
 }
 
 function getEffectiveAlbum(parsedTagFixSource: ParsedTagFixSource, albumStrategy: AlbumStrategy, setAlbum: string | undefined): string {
-  return setAlbum ?? (albumStrategy === 'grouping' ? parsedTagFixSource.grouping : parsedTagFixSource.album)
+  if (setAlbum !== undefined) {
+    return setAlbum
+  }
+
+  if (albumStrategy === 'grouping') {
+    return parsedTagFixSource.grouping
+  }
+
+  if (albumStrategy === 'originalalbum') {
+    return parsedTagFixSource.originalAlbum
+  }
+
+  return parsedTagFixSource.album
 }
 
 function getAction(destinationStrategy: DestinationStrategy, destinationExists: boolean, execute: boolean, hasChanges: boolean): string {
@@ -187,7 +200,7 @@ export function registerFixTagsCommand(program: Command): void {
     .requiredOption('--dest-dir <destDir>', 'directory to copy fixed FLAC and MP3 files into')
     .option('--limit <count>', 'maximum number of files to inspect')
     .option('--destination-strategy <strategy>', 'what to do when a destination file exists: error, ignore, overwrite', 'error')
-    .option('--album-strategy <strategy>', 'how to update album: no change, grouping', 'no change')
+    .option('--album-strategy <strategy>', 'how to update album: no change, grouping, originalalbum', 'no change')
     .option('--set-album <album>', 'set album metadata to the provided value')
     .option('--album-artists-strategy <strategy>', 'how to update albumartists: no change, aggregate, blank', 'no change')
     .option('--set-album-artist <albumArtist>', 'set album artist metadata to the provided value')
@@ -235,6 +248,7 @@ export function registerFixTagsCommand(program: Command): void {
           const albumArtists = getMetadataArtists(metadata.common.albumartists, metadata.common.albumartist)
           const artists = getMetadataArtists(metadata.common.artists, metadata.common.artist)
           const grouping = metadata.common.grouping ?? ''
+          const originalAlbum = metadata.common.originalalbum ?? ''
           const producers = metadata.common.producer ?? []
           const title = metadata.common.title ?? ''
           const trackNumber = metadata.common.track.no
@@ -248,6 +262,7 @@ export function registerFixTagsCommand(program: Command): void {
             destinationPath,
             filename: file.name,
             grouping,
+            originalAlbum,
             producers,
             sourcePath,
             title,
@@ -329,7 +344,11 @@ export function registerFixTagsCommand(program: Command): void {
               ? parsedTagFixSource.albumArtists
               : []
           const shouldUpdateProducers = producerStrategy !== 'no change'
-          const album = setAlbum ?? (albumStrategy === 'grouping' ? parsedTagFixSource.grouping : undefined)
+          const album = setAlbum ?? (albumStrategy === 'grouping'
+            ? parsedTagFixSource.grouping
+            : albumStrategy === 'originalalbum'
+              ? parsedTagFixSource.originalAlbum
+              : undefined)
           const trackNumber = resetTrackNumbersBySourcePath.get(parsedTagFixSource.sourcePath)
           const hasAlbumArtistsChanges = shouldUpdateAlbumArtists && !areStringArraysEqual(parsedTagFixSource.albumArtists, albumArtists)
           const hasArtistsChanges = swapArtistAlbumartist && !areStringArraysEqual(parsedTagFixSource.artists, parsedTagFixSource.albumArtists)
