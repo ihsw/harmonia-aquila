@@ -1,0 +1,3176 @@
+{
+  "generatedAt": "2026-07-09T19:12:51.661947",
+  "sourceCandidateSummary": "specs/2026-07-09/process-new-source-albums/candidate-summary.json",
+  "analysisArtifacts": "reports/album-organization-audit/2026-07-09-new-source-files-audit/missing-albums-spec-analysis-20260709-191046",
+  "sourceRoot": "etc/1-source-files",
+  "destRoot": "etc/3-organized-files",
+  "stagingRoot": "reports/album-organization-audit/2026-07-09-new-source-files-audit/processing-runs/<run-id>/staging",
+  "policy": {
+    "albumArtistRepairValue": "OverClocked ReMix",
+    "xenogearsAlbumValue": "Xenogears - Humans + Gears",
+    "organizeArtistFilenameStrategy": "albumartist",
+    "sourceTreeReadOnly": true,
+    "preferFlacOverMp3": true
+  },
+  "counts": {
+    "executableWorkflows": 3,
+    "blockedWorkflows": 11,
+    "executableTracksPlanned": 76,
+    "fixTagsWorkflows": 2,
+    "blockedTrackNumberRepair": 2,
+    "blockedExistingPartialAlbumReplacement": 9,
+    "executableWithLikelyAlbumArt": 2,
+    "likelyAlbumArtFiles": 2
+  },
+  "executable": [
+    {
+      "id": "blood",
+      "status": "executable",
+      "workflow": "audio-only-stage-fix-tags-organize",
+      "sources": [
+        "etc/1-source-files/Blood on the Asphalt - Super Street Fighter 2 Turbo"
+      ],
+      "fixTags": [
+        {
+          "source": "etc/1-source-files/Blood on the Asphalt - Super Street Fighter 2 Turbo",
+          "sourceMode": "copy supported audio files to an audio-only staging source first because fix-tags is strict about non-audio sidecars",
+          "setAlbumArtist": "OverClocked ReMix"
+        }
+      ],
+      "organizeSource": "staging/fixed/blood",
+      "finalAlbumDir": "OverClocked ReMix/http---sf2.ocremix.org - Blood on the Ashpalt",
+      "trackCount": 24,
+      "organizeFlags": [
+        "--ignore-non-audio-files",
+        "--artist-filename-strategy",
+        "albumartist"
+      ],
+      "notes": [
+        "Album title is preserved as existing metadata, including the source typo \"Ashpalt\"."
+      ],
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/Blood on the Asphalt - Super Street Fighter 2 Turbo",
+        "imageFiles": [],
+        "squareImageFiles": [],
+        "likelyAlbumArtFiles": [],
+        "copyToDestinationAlbumFolder": false
+      }
+    },
+    {
+      "id": "super-metroid-flac",
+      "status": "executable",
+      "workflow": "organize-ignore-trackless",
+      "sources": [
+        "etc/1-source-files/Super Metroid - Relics of the Chozo/FLAC"
+      ],
+      "fixTags": [],
+      "organizeSource": "etc/1-source-files/Super Metroid - Relics of the Chozo/FLAC",
+      "finalAlbumDir": "OverClocked ReMix/Super Metroid- Relics of the Chozo",
+      "trackCount": 19,
+      "organizeFlags": [
+        "--ignore-non-audio-files",
+        "--ignore-audio-files-without-tracks",
+        "--artist-filename-strategy",
+        "albumartist"
+      ],
+      "notes": [
+        "One audio file without track-number metadata is intentionally skipped by --ignore-audio-files-without-tracks."
+      ],
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/Super Metroid - Relics of the Chozo",
+        "imageFiles": [
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/20th Anniversary/Calming Chozo [DiceSMS].jpg",
+            "relativeToPackage": "Artwork/20th Anniversary/Calming Chozo [DiceSMS].jpg",
+            "filename": "Calming Chozo [DiceSMS].jpg",
+            "format": "JPEG",
+            "width": 3997,
+            "height": 2224,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.2224
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/20th Anniversary/Concepts [DiceSMS].jpg",
+            "relativeToPackage": "Artwork/20th Anniversary/Concepts [DiceSMS].jpg",
+            "filename": "Concepts [DiceSMS].jpg",
+            "format": "JPEG",
+            "width": 1659,
+            "height": 2584,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.1659
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/20th Anniversary/Front (alternate, clear) [DiceSMS].jpg",
+            "relativeToPackage": "Artwork/20th Anniversary/Front (alternate, clear) [DiceSMS].jpg",
+            "filename": "Front (alternate, clear) [DiceSMS].jpg",
+            "format": "JPEG",
+            "width": 4561,
+            "height": 4000,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 300.4
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/20th Anniversary/Front (clear) [DiceSMS].jpg",
+            "relativeToPackage": "Artwork/20th Anniversary/Front (clear) [DiceSMS].jpg",
+            "filename": "Front (clear) [DiceSMS].jpg",
+            "format": "JPEG",
+            "width": 4561,
+            "height": 4000,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 300.4
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/20th Anniversary/Front [DiceSMS].png",
+            "relativeToPackage": "Artwork/20th Anniversary/Front [DiceSMS].png",
+            "filename": "Front [DiceSMS].png",
+            "format": "PNG",
+            "width": 4000,
+            "height": 4000,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.4
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/20th Anniversary/Front embed.png",
+            "relativeToPackage": "Artwork/20th Anniversary/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/20th Anniversary/Logo [djpretzel].png",
+            "relativeToPackage": "Artwork/20th Anniversary/Logo [djpretzel].png",
+            "filename": "Logo [djpretzel].png",
+            "format": "PNG",
+            "width": 1180,
+            "height": 331,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9669
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/20th Anniversary/Trailer [José the Bronx Rican].png",
+            "relativeToPackage": "Artwork/20th Anniversary/Trailer [José the Bronx Rican].png",
+            "filename": "Trailer [José the Bronx Rican].png",
+            "format": "PNG",
+            "width": 1920,
+            "height": 1080,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.892
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/20th Anniversary/Website (footer) [djpretzel, DiceSMS].png",
+            "relativeToPackage": "Artwork/20th Anniversary/Website (footer) [djpretzel, DiceSMS].png",
+            "filename": "Website (footer) [djpretzel, DiceSMS].png",
+            "format": "PNG",
+            "width": 2500,
+            "height": 1453,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8547
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/20th Anniversary/Website (header) [djpretzel, DiceSMS].png",
+            "relativeToPackage": "Artwork/20th Anniversary/Website (header) [djpretzel, DiceSMS].png",
+            "filename": "Website (header) [djpretzel, DiceSMS].png",
+            "format": "PNG",
+            "width": 2500,
+            "height": 1200,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.88
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/Original/Back [Rob Saunders].jpg",
+            "relativeToPackage": "Artwork/Original/Back [Rob Saunders].jpg",
+            "filename": "Back [Rob Saunders].jpg",
+            "format": "JPEG",
+            "width": 534,
+            "height": 528,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9472
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/Original/Banner (aged) [Protricity].gif",
+            "relativeToPackage": "Artwork/Original/Banner (aged) [Protricity].gif",
+            "filename": "Banner (aged) [Protricity].gif",
+            "format": "GIF",
+            "width": 140,
+            "height": 96,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9904
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/Original/Banner [Protricity].gif",
+            "relativeToPackage": "Artwork/Original/Banner [Protricity].gif",
+            "filename": "Banner [Protricity].gif",
+            "format": "GIF",
+            "width": 140,
+            "height": 96,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9904
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/Original/Disc [Rob Saunders].jpg",
+            "relativeToPackage": "Artwork/Original/Disc [Rob Saunders].jpg",
+            "filename": "Disc [Rob Saunders].jpg",
+            "format": "JPEG",
+            "width": 525,
+            "height": 525,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.0525
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/Original/Front [Rob Saunders].jpg",
+            "relativeToPackage": "Artwork/Original/Front [Rob Saunders].jpg",
+            "filename": "Front [Rob Saunders].jpg",
+            "format": "JPEG",
+            "width": 534,
+            "height": 528,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 300.0528
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/Original/Inlay [Rob Saunders].jpg",
+            "relativeToPackage": "Artwork/Original/Inlay [Rob Saunders].jpg",
+            "filename": "Inlay [Rob Saunders].jpg",
+            "format": "JPEG",
+            "width": 649,
+            "height": 510,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.949
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/Original/Link [Rob Saunders].gif",
+            "relativeToPackage": "Artwork/Original/Link [Rob Saunders].gif",
+            "filename": "Link [Rob Saunders].gif",
+            "format": "GIF",
+            "width": 88,
+            "height": 31,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.0031
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/Original/Metroid logo [Protricity].jpg",
+            "relativeToPackage": "Artwork/Original/Metroid logo [Protricity].jpg",
+            "filename": "Metroid logo [Protricity].jpg",
+            "format": "JPEG",
+            "width": 600,
+            "height": 600,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.06
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/Original/Website [Protricity, Rob Saunders].jpg",
+            "relativeToPackage": "Artwork/Original/Website [Protricity, Rob Saunders].jpg",
+            "filename": "Website [Protricity, Rob Saunders].jpg",
+            "format": "JPEG",
+            "width": 798,
+            "height": 399,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9601
+          }
+        ],
+        "squareImageFiles": [
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/20th Anniversary/Front [DiceSMS].png",
+            "relativeToPackage": "Artwork/20th Anniversary/Front [DiceSMS].png",
+            "filename": "Front [DiceSMS].png",
+            "format": "PNG",
+            "width": 4000,
+            "height": 4000,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.4
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/20th Anniversary/Front embed.png",
+            "relativeToPackage": "Artwork/20th Anniversary/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/Original/Disc [Rob Saunders].jpg",
+            "relativeToPackage": "Artwork/Original/Disc [Rob Saunders].jpg",
+            "filename": "Disc [Rob Saunders].jpg",
+            "format": "JPEG",
+            "width": 525,
+            "height": 525,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.0525
+          },
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/Original/Metroid logo [Protricity].jpg",
+            "relativeToPackage": "Artwork/Original/Metroid logo [Protricity].jpg",
+            "filename": "Metroid logo [Protricity].jpg",
+            "format": "JPEG",
+            "width": 600,
+            "height": 600,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.06
+          }
+        ],
+        "likelyAlbumArtFiles": [
+          {
+            "path": "etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/20th Anniversary/Front embed.png",
+            "relativeToPackage": "Artwork/20th Anniversary/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "copyToDestinationAlbumFolder": true
+      }
+    },
+    {
+      "id": "xenogears-flac-combined",
+      "status": "executable",
+      "workflow": "fix-tags-combine-discs-organize",
+      "sources": [
+        "etc/1-source-files/Xenogears - Humans + Gears/FLAC/Disc 1 - Humans",
+        "etc/1-source-files/Xenogears - Humans + Gears/FLAC/Disc 2 - Gears"
+      ],
+      "fixTags": [
+        {
+          "source": "etc/1-source-files/Xenogears - Humans + Gears/FLAC/Disc 1 - Humans",
+          "setAlbum": "Xenogears - Humans + Gears"
+        },
+        {
+          "source": "etc/1-source-files/Xenogears - Humans + Gears/FLAC/Disc 2 - Gears",
+          "setAlbum": "Xenogears - Humans + Gears"
+        }
+      ],
+      "organizeSource": "staging/combined/xenogears-flac-combined",
+      "finalAlbumDir": "OverClocked ReMix/Xenogears - Humans + Gears",
+      "trackCount": 33,
+      "organizeFlags": [
+        "--ignore-non-audio-files",
+        "--artist-filename-strategy",
+        "albumartist"
+      ],
+      "notes": [
+        "Both FLAC discs must be fixed into staging and combined before organize-files runs so the destination album folder is created once. Existing incorrect folder OverClocked ReMix/http---xenogears.ocremix.org - Humans + Gears is not removed by this spec."
+      ],
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/Xenogears - Humans + Gears",
+        "imageFiles": [
+          {
+            "path": "etc/1-source-files/Xenogears - Humans + Gears/Art/back.png",
+            "relativeToPackage": "Art/back.png",
+            "filename": "back.png",
+            "format": "PNG",
+            "width": 1800,
+            "height": 1800,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.18
+          },
+          {
+            "path": "etc/1-source-files/Xenogears - Humans + Gears/Art/disc 1.png",
+            "relativeToPackage": "Art/disc 1.png",
+            "filename": "disc 1.png",
+            "format": "PNG",
+            "width": 1800,
+            "height": 1800,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.18
+          },
+          {
+            "path": "etc/1-source-files/Xenogears - Humans + Gears/Art/disc 2.png",
+            "relativeToPackage": "Art/disc 2.png",
+            "filename": "disc 2.png",
+            "format": "PNG",
+            "width": 1800,
+            "height": 1800,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.18
+          },
+          {
+            "path": "etc/1-source-files/Xenogears - Humans + Gears/Art/front.png",
+            "relativeToPackage": "Art/front.png",
+            "filename": "front.png",
+            "format": "PNG",
+            "width": 3600,
+            "height": 1800,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 300.18
+          }
+        ],
+        "squareImageFiles": [
+          {
+            "path": "etc/1-source-files/Xenogears - Humans + Gears/Art/back.png",
+            "relativeToPackage": "Art/back.png",
+            "filename": "back.png",
+            "format": "PNG",
+            "width": 1800,
+            "height": 1800,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.18
+          },
+          {
+            "path": "etc/1-source-files/Xenogears - Humans + Gears/Art/disc 1.png",
+            "relativeToPackage": "Art/disc 1.png",
+            "filename": "disc 1.png",
+            "format": "PNG",
+            "width": 1800,
+            "height": 1800,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.18
+          },
+          {
+            "path": "etc/1-source-files/Xenogears - Humans + Gears/Art/disc 2.png",
+            "relativeToPackage": "Art/disc 2.png",
+            "filename": "disc 2.png",
+            "format": "PNG",
+            "width": 1800,
+            "height": 1800,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.18
+          }
+        ],
+        "likelyAlbumArtFiles": [
+          {
+            "path": "etc/1-source-files/Xenogears - Humans + Gears/Art/back.png",
+            "relativeToPackage": "Art/back.png",
+            "filename": "back.png",
+            "format": "PNG",
+            "width": 1800,
+            "height": 1800,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.18
+          }
+        ],
+        "copyToDestinationAlbumFolder": true
+      }
+    }
+  ],
+  "blocked": [
+    {
+      "id": "chrono-flac-cd1",
+      "status": "blocked",
+      "workflow": "fix-tags-set-albumartist-then-organize",
+      "sources": [
+        "etc/1-source-files/Chrono Symphonic/Chrono Symphonic (flac version)/CD1"
+      ],
+      "fixTags": [
+        {
+          "source": "etc/1-source-files/Chrono Symphonic/Chrono Symphonic (flac version)/CD1",
+          "setAlbumArtist": "OverClocked ReMix"
+        }
+      ],
+      "finalAlbumDir": "",
+      "trackCountAfterIgnoreTrackless": 0,
+      "blockReasons": [
+        "fix-tags --set-album-artist dry-run succeeds, but organize-files with --ignore-audio-files-without-tracks plans zero tracks because all files still lack track-number metadata; repair track numbers before processing."
+      ],
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/Chrono Symphonic",
+        "imageFiles": [
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD Back.jpg",
+            "relativeToPackage": "Artwork/CD Back.jpg",
+            "filename": "CD Back.jpg",
+            "format": "JPEG",
+            "width": 1771,
+            "height": 1417,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8583
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD Cover and Inlay.jpg",
+            "relativeToPackage": "Artwork/CD Cover and Inlay.jpg",
+            "filename": "CD Cover and Inlay.jpg",
+            "format": "JPEG",
+            "width": 2834,
+            "height": 1417,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 100.1417
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD1 Label.jpg",
+            "relativeToPackage": "Artwork/CD1 Label.jpg",
+            "filename": "CD1 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD2 Label.jpg",
+            "relativeToPackage": "Artwork/CD2 Label.jpg",
+            "filename": "CD2 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/Wallpaper 01 (1024x768).jpg",
+            "relativeToPackage": "Artwork/Wallpaper 01 (1024x768).jpg",
+            "filename": "Wallpaper 01 (1024x768).jpg",
+            "format": "JPEG",
+            "width": 1024,
+            "height": 768,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9232
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/Wallpaper 02 (1024x768).jpg",
+            "relativeToPackage": "Artwork/Wallpaper 02 (1024x768).jpg",
+            "filename": "Wallpaper 02 (1024x768).jpg",
+            "format": "JPEG",
+            "width": 1024,
+            "height": 768,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9232
+          }
+        ],
+        "squareImageFiles": [
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD1 Label.jpg",
+            "relativeToPackage": "Artwork/CD1 Label.jpg",
+            "filename": "CD1 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD2 Label.jpg",
+            "relativeToPackage": "Artwork/CD2 Label.jpg",
+            "filename": "CD2 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          }
+        ],
+        "likelyAlbumArtFiles": [
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD1 Label.jpg",
+            "relativeToPackage": "Artwork/CD1 Label.jpg",
+            "filename": "CD1 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          }
+        ],
+        "copyToDestinationAlbumFolder": true
+      }
+    },
+    {
+      "id": "chrono-flac-cd2",
+      "status": "blocked",
+      "workflow": "fix-tags-set-albumartist-then-organize",
+      "sources": [
+        "etc/1-source-files/Chrono Symphonic/Chrono Symphonic (flac version)/CD2"
+      ],
+      "fixTags": [
+        {
+          "source": "etc/1-source-files/Chrono Symphonic/Chrono Symphonic (flac version)/CD2",
+          "setAlbumArtist": "OverClocked ReMix"
+        }
+      ],
+      "finalAlbumDir": "",
+      "trackCountAfterIgnoreTrackless": 0,
+      "blockReasons": [
+        "fix-tags --set-album-artist dry-run succeeds, but organize-files with --ignore-audio-files-without-tracks plans zero tracks because all files still lack track-number metadata; repair track numbers before processing."
+      ],
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/Chrono Symphonic",
+        "imageFiles": [
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD Back.jpg",
+            "relativeToPackage": "Artwork/CD Back.jpg",
+            "filename": "CD Back.jpg",
+            "format": "JPEG",
+            "width": 1771,
+            "height": 1417,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8583
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD Cover and Inlay.jpg",
+            "relativeToPackage": "Artwork/CD Cover and Inlay.jpg",
+            "filename": "CD Cover and Inlay.jpg",
+            "format": "JPEG",
+            "width": 2834,
+            "height": 1417,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 100.1417
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD1 Label.jpg",
+            "relativeToPackage": "Artwork/CD1 Label.jpg",
+            "filename": "CD1 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD2 Label.jpg",
+            "relativeToPackage": "Artwork/CD2 Label.jpg",
+            "filename": "CD2 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/Wallpaper 01 (1024x768).jpg",
+            "relativeToPackage": "Artwork/Wallpaper 01 (1024x768).jpg",
+            "filename": "Wallpaper 01 (1024x768).jpg",
+            "format": "JPEG",
+            "width": 1024,
+            "height": 768,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9232
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/Wallpaper 02 (1024x768).jpg",
+            "relativeToPackage": "Artwork/Wallpaper 02 (1024x768).jpg",
+            "filename": "Wallpaper 02 (1024x768).jpg",
+            "format": "JPEG",
+            "width": 1024,
+            "height": 768,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9232
+          }
+        ],
+        "squareImageFiles": [
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD1 Label.jpg",
+            "relativeToPackage": "Artwork/CD1 Label.jpg",
+            "filename": "CD1 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD2 Label.jpg",
+            "relativeToPackage": "Artwork/CD2 Label.jpg",
+            "filename": "CD2 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          }
+        ],
+        "likelyAlbumArtFiles": [
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD1 Label.jpg",
+            "relativeToPackage": "Artwork/CD1 Label.jpg",
+            "filename": "CD1 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          }
+        ],
+        "copyToDestinationAlbumFolder": true
+      }
+    },
+    {
+      "id": "ff7-flac-disc2",
+      "status": "blocked",
+      "workflow": "organize-existing-partial-album-conflict",
+      "sources": [
+        "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/FLAC/Disc 2 - Dirge"
+      ],
+      "fixTags": [],
+      "finalAlbumDir": "OverClocked ReMix/Final Fantasy VII- Voices of the Lifestream",
+      "trackCount": 12,
+      "blockReasons": [
+        "Destination album directories already exist: OverClocked ReMix/Final Fantasy VII- Voices of the Lifestream",
+        "These are missing discs for albums that already have a partial destination album folder from the prior run. organize-files intentionally disallows merging into an existing album folder; process them only through a full-album replacement workflow that moves aside the existing partial destination and organizes all FLAC discs together."
+      ],
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream",
+        "imageFiles": [
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Back [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Back [djpretzel].jpg",
+            "filename": "Back [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1299,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8701
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/DVD Front & Back [djpretzel].jpg",
+            "relativeToPackage": "Artwork/DVD Front & Back [djpretzel].jpg",
+            "filename": "DVD Front & Back [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 3219,
+            "height": 2135,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 200.2135
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/DVD Insert Back [djpretzel].jpg",
+            "relativeToPackage": "Artwork/DVD Insert Back [djpretzel].jpg",
+            "filename": "DVD Insert Back [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1473,
+            "height": 2184,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8527
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/DVD Insert Front [djpretzel].jpg",
+            "relativeToPackage": "Artwork/DVD Insert Front [djpretzel].jpg",
+            "filename": "DVD Insert Front [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1478,
+            "height": 2187,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 300.1478
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc 1 - Crisis [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc 1 - Crisis [djpretzel].jpg",
+            "filename": "Disc 1 - Crisis [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1546,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8454
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc 2 - Dirge [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc 2 - Dirge [djpretzel].jpg",
+            "filename": "Disc 2 - Dirge [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1546,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8454
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc 3 - Advent [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc 3 - Advent [djpretzel].jpg",
+            "filename": "Disc 3 - Advent [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1546,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8454
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc 4 - Order [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc 4 - Order [djpretzel].jpg",
+            "filename": "Disc 4 - Order [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1546,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8454
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc Covers Preview [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc Covers Preview [djpretzel].jpg",
+            "filename": "Disc Covers Preview [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 712,
+            "height": 177,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 100.0177
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Front [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Front [djpretzel].jpg",
+            "filename": "Front [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1299,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 300.1299
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Spotlight [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Spotlight [djpretzel].jpg",
+            "filename": "Spotlight [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 258,
+            "height": 333,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9742
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/front embed.jpg",
+            "relativeToPackage": "Artwork/front embed.jpg",
+            "filename": "front embed.jpg",
+            "format": "JPEG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "squareImageFiles": [
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/front embed.jpg",
+            "relativeToPackage": "Artwork/front embed.jpg",
+            "filename": "front embed.jpg",
+            "format": "JPEG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "likelyAlbumArtFiles": [
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/front embed.jpg",
+            "relativeToPackage": "Artwork/front embed.jpg",
+            "filename": "front embed.jpg",
+            "format": "JPEG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "copyToDestinationAlbumFolder": true
+      }
+    },
+    {
+      "id": "ff7-flac-disc3",
+      "status": "blocked",
+      "workflow": "organize-existing-partial-album-conflict",
+      "sources": [
+        "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/FLAC/Disc 3 - Advent"
+      ],
+      "fixTags": [],
+      "finalAlbumDir": "OverClocked ReMix/Final Fantasy VII- Voices of the Lifestream",
+      "trackCount": 11,
+      "blockReasons": [
+        "Destination album directories already exist: OverClocked ReMix/Final Fantasy VII- Voices of the Lifestream",
+        "These are missing discs for albums that already have a partial destination album folder from the prior run. organize-files intentionally disallows merging into an existing album folder; process them only through a full-album replacement workflow that moves aside the existing partial destination and organizes all FLAC discs together."
+      ],
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream",
+        "imageFiles": [
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Back [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Back [djpretzel].jpg",
+            "filename": "Back [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1299,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8701
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/DVD Front & Back [djpretzel].jpg",
+            "relativeToPackage": "Artwork/DVD Front & Back [djpretzel].jpg",
+            "filename": "DVD Front & Back [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 3219,
+            "height": 2135,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 200.2135
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/DVD Insert Back [djpretzel].jpg",
+            "relativeToPackage": "Artwork/DVD Insert Back [djpretzel].jpg",
+            "filename": "DVD Insert Back [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1473,
+            "height": 2184,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8527
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/DVD Insert Front [djpretzel].jpg",
+            "relativeToPackage": "Artwork/DVD Insert Front [djpretzel].jpg",
+            "filename": "DVD Insert Front [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1478,
+            "height": 2187,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 300.1478
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc 1 - Crisis [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc 1 - Crisis [djpretzel].jpg",
+            "filename": "Disc 1 - Crisis [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1546,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8454
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc 2 - Dirge [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc 2 - Dirge [djpretzel].jpg",
+            "filename": "Disc 2 - Dirge [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1546,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8454
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc 3 - Advent [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc 3 - Advent [djpretzel].jpg",
+            "filename": "Disc 3 - Advent [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1546,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8454
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc 4 - Order [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc 4 - Order [djpretzel].jpg",
+            "filename": "Disc 4 - Order [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1546,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8454
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc Covers Preview [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc Covers Preview [djpretzel].jpg",
+            "filename": "Disc Covers Preview [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 712,
+            "height": 177,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 100.0177
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Front [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Front [djpretzel].jpg",
+            "filename": "Front [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1299,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 300.1299
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Spotlight [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Spotlight [djpretzel].jpg",
+            "filename": "Spotlight [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 258,
+            "height": 333,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9742
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/front embed.jpg",
+            "relativeToPackage": "Artwork/front embed.jpg",
+            "filename": "front embed.jpg",
+            "format": "JPEG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "squareImageFiles": [
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/front embed.jpg",
+            "relativeToPackage": "Artwork/front embed.jpg",
+            "filename": "front embed.jpg",
+            "format": "JPEG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "likelyAlbumArtFiles": [
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/front embed.jpg",
+            "relativeToPackage": "Artwork/front embed.jpg",
+            "filename": "front embed.jpg",
+            "format": "JPEG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "copyToDestinationAlbumFolder": true
+      }
+    },
+    {
+      "id": "ff7-flac-disc4",
+      "status": "blocked",
+      "workflow": "organize-existing-partial-album-conflict",
+      "sources": [
+        "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/FLAC/Disc 4 - Order"
+      ],
+      "fixTags": [],
+      "finalAlbumDir": "OverClocked ReMix/Final Fantasy VII- Voices of the Lifestream",
+      "trackCount": 10,
+      "blockReasons": [
+        "Destination album directories already exist: OverClocked ReMix/Final Fantasy VII- Voices of the Lifestream",
+        "These are missing discs for albums that already have a partial destination album folder from the prior run. organize-files intentionally disallows merging into an existing album folder; process them only through a full-album replacement workflow that moves aside the existing partial destination and organizes all FLAC discs together."
+      ],
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream",
+        "imageFiles": [
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Back [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Back [djpretzel].jpg",
+            "filename": "Back [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1299,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8701
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/DVD Front & Back [djpretzel].jpg",
+            "relativeToPackage": "Artwork/DVD Front & Back [djpretzel].jpg",
+            "filename": "DVD Front & Back [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 3219,
+            "height": 2135,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 200.2135
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/DVD Insert Back [djpretzel].jpg",
+            "relativeToPackage": "Artwork/DVD Insert Back [djpretzel].jpg",
+            "filename": "DVD Insert Back [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1473,
+            "height": 2184,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8527
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/DVD Insert Front [djpretzel].jpg",
+            "relativeToPackage": "Artwork/DVD Insert Front [djpretzel].jpg",
+            "filename": "DVD Insert Front [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1478,
+            "height": 2187,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 300.1478
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc 1 - Crisis [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc 1 - Crisis [djpretzel].jpg",
+            "filename": "Disc 1 - Crisis [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1546,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8454
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc 2 - Dirge [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc 2 - Dirge [djpretzel].jpg",
+            "filename": "Disc 2 - Dirge [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1546,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8454
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc 3 - Advent [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc 3 - Advent [djpretzel].jpg",
+            "filename": "Disc 3 - Advent [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1546,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8454
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc 4 - Order [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc 4 - Order [djpretzel].jpg",
+            "filename": "Disc 4 - Order [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1546,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8454
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Disc Covers Preview [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Disc Covers Preview [djpretzel].jpg",
+            "filename": "Disc Covers Preview [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 712,
+            "height": 177,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 100.0177
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Front [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Front [djpretzel].jpg",
+            "filename": "Front [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 1600,
+            "height": 1299,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 300.1299
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/Spotlight [djpretzel].jpg",
+            "relativeToPackage": "Artwork/Spotlight [djpretzel].jpg",
+            "filename": "Spotlight [djpretzel].jpg",
+            "format": "JPEG",
+            "width": 258,
+            "height": 333,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9742
+          },
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/front embed.jpg",
+            "relativeToPackage": "Artwork/front embed.jpg",
+            "filename": "front embed.jpg",
+            "format": "JPEG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "squareImageFiles": [
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/front embed.jpg",
+            "relativeToPackage": "Artwork/front embed.jpg",
+            "filename": "front embed.jpg",
+            "format": "JPEG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "likelyAlbumArtFiles": [
+          {
+            "path": "etc/1-source-files/Final Fantasy VII - Voices of the Lifestream/Artwork/front embed.jpg",
+            "relativeToPackage": "Artwork/front embed.jpg",
+            "filename": "front embed.jpg",
+            "format": "JPEG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "copyToDestinationAlbumFolder": true
+      }
+    },
+    {
+      "id": "golden-sun-flac-disc2",
+      "status": "blocked",
+      "workflow": "organize-existing-partial-album-conflict",
+      "sources": [
+        "etc/1-source-files/Golden Sun - A World Reignited/FLAC/Disc 2 - Shifting Perspectives"
+      ],
+      "fixTags": [],
+      "finalAlbumDir": "OverClocked ReMix/Golden Sun- A World Reignited",
+      "trackCount": 12,
+      "blockReasons": [
+        "Destination album directories already exist: OverClocked ReMix/Golden Sun- A World Reignited",
+        "These are missing discs for albums that already have a partial destination album folder from the prior run. organize-files intentionally disallows merging into an existing album folder; process them only through a full-album replacement workflow that moves aside the existing partial destination and organizes all FLAC discs together."
+      ],
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/Golden Sun - A World Reignited",
+        "imageFiles": [
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Back [Orioto].png",
+            "relativeToPackage": "Artwork/Back [Orioto].png",
+            "filename": "Back [Orioto].png",
+            "format": "PNG",
+            "width": 1920,
+            "height": 1920,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.192
+          },
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Elemental Star Chamber [Orioto].jpg",
+            "relativeToPackage": "Artwork/Elemental Star Chamber [Orioto].jpg",
+            "filename": "Elemental Star Chamber [Orioto].jpg",
+            "format": "JPEG",
+            "width": 2560,
+            "height": 1600,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.16
+          },
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Front [Orioto].png",
+            "relativeToPackage": "Artwork/Front [Orioto].png",
+            "filename": "Front [Orioto].png",
+            "format": "PNG",
+            "width": 1920,
+            "height": 1920,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.192
+          },
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Front embed.png",
+            "relativeToPackage": "Artwork/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          },
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Logo [djpretzel].png",
+            "relativeToPackage": "Artwork/Logo [djpretzel].png",
+            "filename": "Logo [djpretzel].png",
+            "format": "PNG",
+            "width": 5086,
+            "height": 1182,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8818
+          }
+        ],
+        "squareImageFiles": [
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Back [Orioto].png",
+            "relativeToPackage": "Artwork/Back [Orioto].png",
+            "filename": "Back [Orioto].png",
+            "format": "PNG",
+            "width": 1920,
+            "height": 1920,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.192
+          },
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Front [Orioto].png",
+            "relativeToPackage": "Artwork/Front [Orioto].png",
+            "filename": "Front [Orioto].png",
+            "format": "PNG",
+            "width": 1920,
+            "height": 1920,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.192
+          },
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Front embed.png",
+            "relativeToPackage": "Artwork/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "likelyAlbumArtFiles": [
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Front embed.png",
+            "relativeToPackage": "Artwork/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "copyToDestinationAlbumFolder": true
+      }
+    },
+    {
+      "id": "golden-sun-flac-disc3",
+      "status": "blocked",
+      "workflow": "organize-existing-partial-album-conflict",
+      "sources": [
+        "etc/1-source-files/Golden Sun - A World Reignited/FLAC/Disc 3 - Unfathomable Motives"
+      ],
+      "fixTags": [],
+      "finalAlbumDir": "OverClocked ReMix/Golden Sun- A World Reignited",
+      "trackCount": 11,
+      "blockReasons": [
+        "Destination album directories already exist: OverClocked ReMix/Golden Sun- A World Reignited",
+        "These are missing discs for albums that already have a partial destination album folder from the prior run. organize-files intentionally disallows merging into an existing album folder; process them only through a full-album replacement workflow that moves aside the existing partial destination and organizes all FLAC discs together."
+      ],
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/Golden Sun - A World Reignited",
+        "imageFiles": [
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Back [Orioto].png",
+            "relativeToPackage": "Artwork/Back [Orioto].png",
+            "filename": "Back [Orioto].png",
+            "format": "PNG",
+            "width": 1920,
+            "height": 1920,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.192
+          },
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Elemental Star Chamber [Orioto].jpg",
+            "relativeToPackage": "Artwork/Elemental Star Chamber [Orioto].jpg",
+            "filename": "Elemental Star Chamber [Orioto].jpg",
+            "format": "JPEG",
+            "width": 2560,
+            "height": 1600,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.16
+          },
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Front [Orioto].png",
+            "relativeToPackage": "Artwork/Front [Orioto].png",
+            "filename": "Front [Orioto].png",
+            "format": "PNG",
+            "width": 1920,
+            "height": 1920,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.192
+          },
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Front embed.png",
+            "relativeToPackage": "Artwork/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          },
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Logo [djpretzel].png",
+            "relativeToPackage": "Artwork/Logo [djpretzel].png",
+            "filename": "Logo [djpretzel].png",
+            "format": "PNG",
+            "width": 5086,
+            "height": 1182,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8818
+          }
+        ],
+        "squareImageFiles": [
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Back [Orioto].png",
+            "relativeToPackage": "Artwork/Back [Orioto].png",
+            "filename": "Back [Orioto].png",
+            "format": "PNG",
+            "width": 1920,
+            "height": 1920,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.192
+          },
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Front [Orioto].png",
+            "relativeToPackage": "Artwork/Front [Orioto].png",
+            "filename": "Front [Orioto].png",
+            "format": "PNG",
+            "width": 1920,
+            "height": 1920,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.192
+          },
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Front embed.png",
+            "relativeToPackage": "Artwork/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "likelyAlbumArtFiles": [
+          {
+            "path": "etc/1-source-files/Golden Sun - A World Reignited/Artwork/Front embed.png",
+            "relativeToPackage": "Artwork/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "copyToDestinationAlbumFolder": true
+      }
+    },
+    {
+      "id": "nights-flac-disc2",
+      "status": "blocked",
+      "workflow": "organize-existing-partial-album-conflict",
+      "sources": [
+        "etc/1-source-files/NiGHTS - Lucid Dreaming/FLAC/Disc 2 - 2nd Dream"
+      ],
+      "fixTags": [],
+      "finalAlbumDir": "OverClocked ReMix/NiGHTS- Lucid Dreaming",
+      "trackCount": 13,
+      "blockReasons": [
+        "Destination album directories already exist: OverClocked ReMix/NiGHTS- Lucid Dreaming",
+        "These are missing discs for albums that already have a partial destination album folder from the prior run. organize-files intentionally disallows merging into an existing album folder; process them only through a full-album replacement workflow that moves aside the existing partial destination and organizes all FLAC discs together."
+      ],
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/NiGHTS - Lucid Dreaming",
+        "imageFiles": [
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/01 - Front of Booklet - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/01 - Front of Booklet - by Ryuko DragonHalf.jpg",
+            "filename": "01 - Front of Booklet - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4242,
+            "height": 5940,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 300.4242
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/02 - CD Cover - by Min 'Keiiii' Kwon.png",
+            "relativeToPackage": "Artwork/02 - CD Cover - by Min 'Keiiii' Kwon.png",
+            "filename": "02 - CD Cover - by Min 'Keiiii' Kwon.png",
+            "format": "PNG",
+            "width": 3450,
+            "height": 2700,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 200.27
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/03 - Message From Nightopia (Panzer Nightopia) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/03 - Message From Nightopia (Panzer Nightopia) - by Ryuko DragonHalf.jpg",
+            "filename": "03 - Message From Nightopia (Panzer Nightopia) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 2400,
+            "height": 2466,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.24
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/04 - Dreams Dreams (Disco NiGHTS Mix, The World Is Dreaming) - by Jonathan 'JoF' Traynor.jpg",
+            "relativeToPackage": "Artwork/04 - Dreams Dreams (Disco NiGHTS Mix, The World Is Dreaming) - by Jonathan 'JoF' Traynor.jpg",
+            "filename": "04 - Dreams Dreams (Disco NiGHTS Mix, The World Is Dreaming) - by Jonathan 'JoF' Traynor.jpg",
+            "format": "JPEG",
+            "width": 4928,
+            "height": 3646,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.6354
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/05 - Fragmented Nights (From Dusk til Dawn) - by Jonathan 'JoF' Traynor.jpg",
+            "relativeToPackage": "Artwork/05 - Fragmented Nights (From Dusk til Dawn) - by Jonathan 'JoF' Traynor.jpg",
+            "filename": "05 - Fragmented Nights (From Dusk til Dawn) - by Jonathan 'JoF' Traynor.jpg",
+            "format": "JPEG",
+            "width": 4928,
+            "height": 3646,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.6354
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/06 - Deep It Lies (Lies Within Dreams, Restless Depths) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/06 - Deep It Lies (Lies Within Dreams, Restless Depths) - by Ryuko DragonHalf.jpg",
+            "filename": "06 - Deep It Lies (Lies Within Dreams, Restless Depths) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4910,
+            "height": 3404,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3404
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/07 - The Amazing Water (Flow of Dreams) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/07 - The Amazing Water (Flow of Dreams) - by Ryuko DragonHalf.jpg",
+            "filename": "07 - The Amazing Water (Flow of Dreams) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4812,
+            "height": 4280,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.428
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/08 - She Had Long Ears (She Can Has Long Ears, She Had Angry Pixels) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/08 - She Had Long Ears (She Can Has Long Ears, She Had Angry Pixels) - by Ryuko DragonHalf.jpg",
+            "filename": "08 - She Had Long Ears (She Can Has Long Ears, She Had Angry Pixels) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4892,
+            "height": 3440,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.344
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/09 - The Dragon Gave a Loud Scream (The Desert Had a Strange Dream) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/09 - The Dragon Gave a Loud Scream (The Desert Had a Strange Dream) - by Ryuko DragonHalf.jpg",
+            "filename": "09 - The Dragon Gave a Loud Scream (The Desert Had a Strange Dream) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4928,
+            "height": 3646,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3646
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/10 - Under Construction (The NiGHT Has Just Begun...) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/10 - Under Construction (The NiGHT Has Just Begun...) - by Ryuko DragonHalf.jpg",
+            "filename": "10 - Under Construction (The NiGHT Has Just Begun...) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4920,
+            "height": 3566,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3566
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/11 - The Mantle (New Jack Mantle) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/11 - The Mantle (New Jack Mantle) - by Ryuko DragonHalf.jpg",
+            "filename": "11 - The Mantle (New Jack Mantle) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4910,
+            "height": 3466,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3466
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/12 - Dreams Dreams - In Silent Memory (Slumber on a City Corner) - by Jonathan 'JoF' Traynor.jpg",
+            "relativeToPackage": "Artwork/12 - Dreams Dreams - In Silent Memory (Slumber on a City Corner) - by Jonathan 'JoF' Traynor.jpg",
+            "filename": "12 - Dreams Dreams - In Silent Memory (Slumber on a City Corner) - by Jonathan 'JoF' Traynor.jpg",
+            "format": "JPEG",
+            "width": 4928,
+            "height": 3646,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.6354
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/13 - NiGHTS and Reala (The Nemesis Schema) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/13 - NiGHTS and Reala (The Nemesis Schema) - by Ryuko DragonHalf.jpg",
+            "filename": "13 - NiGHTS and Reala (The Nemesis Schema) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4838,
+            "height": 3376,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3376
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/14 - After The Dream (Tomorrow Should Have Been Last Night) - by Jonathan 'JoF' Traynor.jpg",
+            "relativeToPackage": "Artwork/14 - After The Dream (Tomorrow Should Have Been Last Night) - by Jonathan 'JoF' Traynor.jpg",
+            "filename": "14 - After The Dream (Tomorrow Should Have Been Last Night) - by Jonathan 'JoF' Traynor.jpg",
+            "format": "JPEG",
+            "width": 4928,
+            "height": 3646,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.6354
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/15 - Gate of Your Dreams (Beyond the Dream, Sleepless Nights) - by Jonathan 'JoF' Traynor.jpg",
+            "relativeToPackage": "Artwork/15 - Gate of Your Dreams (Beyond the Dream, Sleepless Nights) - by Jonathan 'JoF' Traynor.jpg",
+            "filename": "15 - Gate of Your Dreams (Beyond the Dream, Sleepless Nights) - by Jonathan 'JoF' Traynor.jpg",
+            "format": "JPEG",
+            "width": 4928,
+            "height": 3646,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.6354
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/16 - Paternal Horn (I'll Fly You) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/16 - Paternal Horn (I'll Fly You) - by Ryuko DragonHalf.jpg",
+            "filename": "16 - Paternal Horn (I'll Fly You) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4902,
+            "height": 4406,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.4406
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/17 - Suburban Museum (Urban Museum) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/17 - Suburban Museum (Urban Museum) - by Ryuko DragonHalf.jpg",
+            "filename": "17 - Suburban Museum (Urban Museum) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4920,
+            "height": 3728,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3728
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/18 - Take The Snow Train (Trans Siberian Tuning Fork) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/18 - Take The Snow Train (Trans Siberian Tuning Fork) - by Ryuko DragonHalf.jpg",
+            "filename": "18 - Take The Snow Train (Trans Siberian Tuning Fork) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4910,
+            "height": 3684,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3684
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/19 - E-LE-KI Sparkle (Clawz Jam) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/19 - E-LE-KI Sparkle (Clawz Jam) - by Ryuko DragonHalf.jpg",
+            "filename": "19 - E-LE-KI Sparkle (Clawz Jam) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4928,
+            "height": 3458,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3458
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/20 - Gloom of The N.H.C. (Overnight Cloverleaf) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/20 - Gloom of The N.H.C. (Overnight Cloverleaf) - by Ryuko DragonHalf.jpg",
+            "filename": "20 - Gloom of The N.H.C. (Overnight Cloverleaf) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4882,
+            "height": 3471,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3471
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/21 - Growing Wings (Twin Seeds Flyby) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/21 - Growing Wings (Twin Seeds Flyby) - by Ryuko DragonHalf.jpg",
+            "filename": "21 - Growing Wings (Twin Seeds Flyby) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4902,
+            "height": 3422,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3422
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/22 - D'Force Master (Dies Nox et Omnia) - by Ryuko DragonHalf and Ellavega.jpg",
+            "relativeToPackage": "Artwork/22 - D'Force Master (Dies Nox et Omnia) - by Ryuko DragonHalf and Ellavega.jpg",
+            "filename": "22 - D'Force Master (Dies Nox et Omnia) - by Ryuko DragonHalf and Ellavega.jpg",
+            "format": "JPEG",
+            "width": 4864,
+            "height": 3422,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3422
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/23 - Through the Clouds - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/23 - Through the Clouds - by Ryuko DragonHalf.jpg",
+            "filename": "23 - Through the Clouds - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 1339,
+            "height": 828,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.0828
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/24 - Rear of Booklet - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/24 - Rear of Booklet - by Ryuko DragonHalf.jpg",
+            "filename": "24 - Rear of Booklet - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4050,
+            "height": 4050,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 1000.405
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/CD Cover - by Min 'Keiiii' Kwon.png",
+            "relativeToPackage": "Artwork/CD/CD Cover - by Min 'Keiiii' Kwon.png",
+            "filename": "CD Cover - by Min 'Keiiii' Kwon.png",
+            "format": "PNG",
+            "width": 3450,
+            "height": 2700,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 200.27
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "relativeToPackage": "Artwork/CD/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "filename": "CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "format": "PNG",
+            "width": 1502,
+            "height": 1502,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.1502
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "relativeToPackage": "Artwork/CD/CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "filename": "CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "format": "PNG",
+            "width": 1464,
+            "height": 1504,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.1464
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/CD Tray Back - by Andrew 'OA' Luers, modified by Wes 'Emunator' McDonald.png",
+            "relativeToPackage": "Artwork/CD/CD Tray Back - by Andrew 'OA' Luers, modified by Wes 'Emunator' McDonald.png",
+            "filename": "CD Tray Back - by Andrew 'OA' Luers, modified by Wes 'Emunator' McDonald.png",
+            "format": "PNG",
+            "width": 1920,
+            "height": 1727,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8273
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Disc 1 - by Lynne 'TRiPPY' Triplett.png",
+            "relativeToPackage": "Artwork/CD/Disc 1 - by Lynne 'TRiPPY' Triplett.png",
+            "filename": "Disc 1 - by Lynne 'TRiPPY' Triplett.png",
+            "format": "PNG",
+            "width": 2976,
+            "height": 2976,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.2976
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Disc 2 - by Lynne 'TRiPPY' Triplett.png",
+            "relativeToPackage": "Artwork/CD/Disc 2 - by Lynne 'TRiPPY' Triplett.png",
+            "filename": "Disc 2 - by Lynne 'TRiPPY' Triplett.png",
+            "format": "PNG",
+            "width": 2976,
+            "height": 2976,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.2976
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Front embed.png",
+            "relativeToPackage": "Artwork/CD/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Printing/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "relativeToPackage": "Artwork/CD/Printing/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "filename": "CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "format": "JPEG",
+            "width": 1502,
+            "height": 1502,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.1502
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Printing/CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "relativeToPackage": "Artwork/CD/Printing/CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "filename": "CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "format": "JPEG",
+            "width": 1504,
+            "height": 1504,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 1000.1504
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Printing/CD Tray Back - by Andrew 'OA' Luers, modified by Wes 'Emunator' McDonald.jpg",
+            "relativeToPackage": "Artwork/CD/Printing/CD Tray Back - by Andrew 'OA' Luers, modified by Wes 'Emunator' McDonald.jpg",
+            "filename": "CD Tray Back - by Andrew 'OA' Luers, modified by Wes 'Emunator' McDonald.jpg",
+            "format": "JPEG",
+            "width": 1849,
+            "height": 1463,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8537
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/Coming Soon - July 5th - by Andrew 'OA' Luers.jpg",
+            "relativeToPackage": "Artwork/Coming Soon - July 5th - by Andrew 'OA' Luers.jpg",
+            "filename": "Coming Soon - July 5th - by Andrew 'OA' Luers.jpg",
+            "format": "JPEG",
+            "width": 1724,
+            "height": 1727,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.1724
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/Lucid Dreaming Banner - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/Lucid Dreaming Banner - by Ryuko DragonHalf.jpg",
+            "filename": "Lucid Dreaming Banner - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 1396,
+            "height": 759,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9241
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/Sig Banner - by Jonathan 'JoF' Traynor.png",
+            "relativeToPackage": "Artwork/Sig Banner - by Jonathan 'JoF' Traynor.png",
+            "filename": "Sig Banner - by Jonathan 'JoF' Traynor.png",
+            "format": "PNG",
+            "width": 599,
+            "height": 225,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9775
+          }
+        ],
+        "squareImageFiles": [
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/24 - Rear of Booklet - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/24 - Rear of Booklet - by Ryuko DragonHalf.jpg",
+            "filename": "24 - Rear of Booklet - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4050,
+            "height": 4050,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 1000.405
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "relativeToPackage": "Artwork/CD/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "filename": "CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "format": "PNG",
+            "width": 1502,
+            "height": 1502,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.1502
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Disc 1 - by Lynne 'TRiPPY' Triplett.png",
+            "relativeToPackage": "Artwork/CD/Disc 1 - by Lynne 'TRiPPY' Triplett.png",
+            "filename": "Disc 1 - by Lynne 'TRiPPY' Triplett.png",
+            "format": "PNG",
+            "width": 2976,
+            "height": 2976,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.2976
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Disc 2 - by Lynne 'TRiPPY' Triplett.png",
+            "relativeToPackage": "Artwork/CD/Disc 2 - by Lynne 'TRiPPY' Triplett.png",
+            "filename": "Disc 2 - by Lynne 'TRiPPY' Triplett.png",
+            "format": "PNG",
+            "width": 2976,
+            "height": 2976,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.2976
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Front embed.png",
+            "relativeToPackage": "Artwork/CD/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Printing/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "relativeToPackage": "Artwork/CD/Printing/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "filename": "CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "format": "JPEG",
+            "width": 1502,
+            "height": 1502,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.1502
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Printing/CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "relativeToPackage": "Artwork/CD/Printing/CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "filename": "CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "format": "JPEG",
+            "width": 1504,
+            "height": 1504,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 1000.1504
+          }
+        ],
+        "likelyAlbumArtFiles": [
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Front embed.png",
+            "relativeToPackage": "Artwork/CD/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "copyToDestinationAlbumFolder": true
+      }
+    },
+    {
+      "id": "nights-flac-disc3",
+      "status": "blocked",
+      "workflow": "organize-existing-partial-album-conflict",
+      "sources": [
+        "etc/1-source-files/NiGHTS - Lucid Dreaming/FLAC/Disc 3 - Bonus"
+      ],
+      "fixTags": [],
+      "finalAlbumDir": "OverClocked ReMix/NiGHTS- Lucid Dreaming",
+      "trackCount": 2,
+      "blockReasons": [
+        "Destination album directories already exist: OverClocked ReMix/NiGHTS- Lucid Dreaming",
+        "These are missing discs for albums that already have a partial destination album folder from the prior run. organize-files intentionally disallows merging into an existing album folder; process them only through a full-album replacement workflow that moves aside the existing partial destination and organizes all FLAC discs together."
+      ],
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/NiGHTS - Lucid Dreaming",
+        "imageFiles": [
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/01 - Front of Booklet - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/01 - Front of Booklet - by Ryuko DragonHalf.jpg",
+            "filename": "01 - Front of Booklet - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4242,
+            "height": 5940,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 300.4242
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/02 - CD Cover - by Min 'Keiiii' Kwon.png",
+            "relativeToPackage": "Artwork/02 - CD Cover - by Min 'Keiiii' Kwon.png",
+            "filename": "02 - CD Cover - by Min 'Keiiii' Kwon.png",
+            "format": "PNG",
+            "width": 3450,
+            "height": 2700,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 200.27
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/03 - Message From Nightopia (Panzer Nightopia) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/03 - Message From Nightopia (Panzer Nightopia) - by Ryuko DragonHalf.jpg",
+            "filename": "03 - Message From Nightopia (Panzer Nightopia) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 2400,
+            "height": 2466,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.24
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/04 - Dreams Dreams (Disco NiGHTS Mix, The World Is Dreaming) - by Jonathan 'JoF' Traynor.jpg",
+            "relativeToPackage": "Artwork/04 - Dreams Dreams (Disco NiGHTS Mix, The World Is Dreaming) - by Jonathan 'JoF' Traynor.jpg",
+            "filename": "04 - Dreams Dreams (Disco NiGHTS Mix, The World Is Dreaming) - by Jonathan 'JoF' Traynor.jpg",
+            "format": "JPEG",
+            "width": 4928,
+            "height": 3646,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.6354
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/05 - Fragmented Nights (From Dusk til Dawn) - by Jonathan 'JoF' Traynor.jpg",
+            "relativeToPackage": "Artwork/05 - Fragmented Nights (From Dusk til Dawn) - by Jonathan 'JoF' Traynor.jpg",
+            "filename": "05 - Fragmented Nights (From Dusk til Dawn) - by Jonathan 'JoF' Traynor.jpg",
+            "format": "JPEG",
+            "width": 4928,
+            "height": 3646,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.6354
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/06 - Deep It Lies (Lies Within Dreams, Restless Depths) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/06 - Deep It Lies (Lies Within Dreams, Restless Depths) - by Ryuko DragonHalf.jpg",
+            "filename": "06 - Deep It Lies (Lies Within Dreams, Restless Depths) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4910,
+            "height": 3404,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3404
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/07 - The Amazing Water (Flow of Dreams) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/07 - The Amazing Water (Flow of Dreams) - by Ryuko DragonHalf.jpg",
+            "filename": "07 - The Amazing Water (Flow of Dreams) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4812,
+            "height": 4280,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.428
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/08 - She Had Long Ears (She Can Has Long Ears, She Had Angry Pixels) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/08 - She Had Long Ears (She Can Has Long Ears, She Had Angry Pixels) - by Ryuko DragonHalf.jpg",
+            "filename": "08 - She Had Long Ears (She Can Has Long Ears, She Had Angry Pixels) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4892,
+            "height": 3440,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.344
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/09 - The Dragon Gave a Loud Scream (The Desert Had a Strange Dream) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/09 - The Dragon Gave a Loud Scream (The Desert Had a Strange Dream) - by Ryuko DragonHalf.jpg",
+            "filename": "09 - The Dragon Gave a Loud Scream (The Desert Had a Strange Dream) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4928,
+            "height": 3646,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3646
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/10 - Under Construction (The NiGHT Has Just Begun...) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/10 - Under Construction (The NiGHT Has Just Begun...) - by Ryuko DragonHalf.jpg",
+            "filename": "10 - Under Construction (The NiGHT Has Just Begun...) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4920,
+            "height": 3566,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3566
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/11 - The Mantle (New Jack Mantle) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/11 - The Mantle (New Jack Mantle) - by Ryuko DragonHalf.jpg",
+            "filename": "11 - The Mantle (New Jack Mantle) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4910,
+            "height": 3466,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3466
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/12 - Dreams Dreams - In Silent Memory (Slumber on a City Corner) - by Jonathan 'JoF' Traynor.jpg",
+            "relativeToPackage": "Artwork/12 - Dreams Dreams - In Silent Memory (Slumber on a City Corner) - by Jonathan 'JoF' Traynor.jpg",
+            "filename": "12 - Dreams Dreams - In Silent Memory (Slumber on a City Corner) - by Jonathan 'JoF' Traynor.jpg",
+            "format": "JPEG",
+            "width": 4928,
+            "height": 3646,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.6354
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/13 - NiGHTS and Reala (The Nemesis Schema) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/13 - NiGHTS and Reala (The Nemesis Schema) - by Ryuko DragonHalf.jpg",
+            "filename": "13 - NiGHTS and Reala (The Nemesis Schema) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4838,
+            "height": 3376,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3376
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/14 - After The Dream (Tomorrow Should Have Been Last Night) - by Jonathan 'JoF' Traynor.jpg",
+            "relativeToPackage": "Artwork/14 - After The Dream (Tomorrow Should Have Been Last Night) - by Jonathan 'JoF' Traynor.jpg",
+            "filename": "14 - After The Dream (Tomorrow Should Have Been Last Night) - by Jonathan 'JoF' Traynor.jpg",
+            "format": "JPEG",
+            "width": 4928,
+            "height": 3646,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.6354
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/15 - Gate of Your Dreams (Beyond the Dream, Sleepless Nights) - by Jonathan 'JoF' Traynor.jpg",
+            "relativeToPackage": "Artwork/15 - Gate of Your Dreams (Beyond the Dream, Sleepless Nights) - by Jonathan 'JoF' Traynor.jpg",
+            "filename": "15 - Gate of Your Dreams (Beyond the Dream, Sleepless Nights) - by Jonathan 'JoF' Traynor.jpg",
+            "format": "JPEG",
+            "width": 4928,
+            "height": 3646,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.6354
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/16 - Paternal Horn (I'll Fly You) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/16 - Paternal Horn (I'll Fly You) - by Ryuko DragonHalf.jpg",
+            "filename": "16 - Paternal Horn (I'll Fly You) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4902,
+            "height": 4406,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.4406
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/17 - Suburban Museum (Urban Museum) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/17 - Suburban Museum (Urban Museum) - by Ryuko DragonHalf.jpg",
+            "filename": "17 - Suburban Museum (Urban Museum) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4920,
+            "height": 3728,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3728
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/18 - Take The Snow Train (Trans Siberian Tuning Fork) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/18 - Take The Snow Train (Trans Siberian Tuning Fork) - by Ryuko DragonHalf.jpg",
+            "filename": "18 - Take The Snow Train (Trans Siberian Tuning Fork) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4910,
+            "height": 3684,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3684
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/19 - E-LE-KI Sparkle (Clawz Jam) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/19 - E-LE-KI Sparkle (Clawz Jam) - by Ryuko DragonHalf.jpg",
+            "filename": "19 - E-LE-KI Sparkle (Clawz Jam) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4928,
+            "height": 3458,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3458
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/20 - Gloom of The N.H.C. (Overnight Cloverleaf) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/20 - Gloom of The N.H.C. (Overnight Cloverleaf) - by Ryuko DragonHalf.jpg",
+            "filename": "20 - Gloom of The N.H.C. (Overnight Cloverleaf) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4882,
+            "height": 3471,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3471
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/21 - Growing Wings (Twin Seeds Flyby) - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/21 - Growing Wings (Twin Seeds Flyby) - by Ryuko DragonHalf.jpg",
+            "filename": "21 - Growing Wings (Twin Seeds Flyby) - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4902,
+            "height": 3422,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3422
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/22 - D'Force Master (Dies Nox et Omnia) - by Ryuko DragonHalf and Ellavega.jpg",
+            "relativeToPackage": "Artwork/22 - D'Force Master (Dies Nox et Omnia) - by Ryuko DragonHalf and Ellavega.jpg",
+            "filename": "22 - D'Force Master (Dies Nox et Omnia) - by Ryuko DragonHalf and Ellavega.jpg",
+            "format": "JPEG",
+            "width": 4864,
+            "height": 3422,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.3422
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/23 - Through the Clouds - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/23 - Through the Clouds - by Ryuko DragonHalf.jpg",
+            "filename": "23 - Through the Clouds - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 1339,
+            "height": 828,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.0828
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/24 - Rear of Booklet - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/24 - Rear of Booklet - by Ryuko DragonHalf.jpg",
+            "filename": "24 - Rear of Booklet - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4050,
+            "height": 4050,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 1000.405
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/CD Cover - by Min 'Keiiii' Kwon.png",
+            "relativeToPackage": "Artwork/CD/CD Cover - by Min 'Keiiii' Kwon.png",
+            "filename": "CD Cover - by Min 'Keiiii' Kwon.png",
+            "format": "PNG",
+            "width": 3450,
+            "height": 2700,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 200.27
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "relativeToPackage": "Artwork/CD/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "filename": "CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "format": "PNG",
+            "width": 1502,
+            "height": 1502,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.1502
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "relativeToPackage": "Artwork/CD/CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "filename": "CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "format": "PNG",
+            "width": 1464,
+            "height": 1504,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.1464
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/CD Tray Back - by Andrew 'OA' Luers, modified by Wes 'Emunator' McDonald.png",
+            "relativeToPackage": "Artwork/CD/CD Tray Back - by Andrew 'OA' Luers, modified by Wes 'Emunator' McDonald.png",
+            "filename": "CD Tray Back - by Andrew 'OA' Luers, modified by Wes 'Emunator' McDonald.png",
+            "format": "PNG",
+            "width": 1920,
+            "height": 1727,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8273
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Disc 1 - by Lynne 'TRiPPY' Triplett.png",
+            "relativeToPackage": "Artwork/CD/Disc 1 - by Lynne 'TRiPPY' Triplett.png",
+            "filename": "Disc 1 - by Lynne 'TRiPPY' Triplett.png",
+            "format": "PNG",
+            "width": 2976,
+            "height": 2976,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.2976
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Disc 2 - by Lynne 'TRiPPY' Triplett.png",
+            "relativeToPackage": "Artwork/CD/Disc 2 - by Lynne 'TRiPPY' Triplett.png",
+            "filename": "Disc 2 - by Lynne 'TRiPPY' Triplett.png",
+            "format": "PNG",
+            "width": 2976,
+            "height": 2976,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.2976
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Front embed.png",
+            "relativeToPackage": "Artwork/CD/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Printing/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "relativeToPackage": "Artwork/CD/Printing/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "filename": "CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "format": "JPEG",
+            "width": 1502,
+            "height": 1502,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.1502
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Printing/CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "relativeToPackage": "Artwork/CD/Printing/CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "filename": "CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "format": "JPEG",
+            "width": 1504,
+            "height": 1504,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 1000.1504
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Printing/CD Tray Back - by Andrew 'OA' Luers, modified by Wes 'Emunator' McDonald.jpg",
+            "relativeToPackage": "Artwork/CD/Printing/CD Tray Back - by Andrew 'OA' Luers, modified by Wes 'Emunator' McDonald.jpg",
+            "filename": "CD Tray Back - by Andrew 'OA' Luers, modified by Wes 'Emunator' McDonald.jpg",
+            "format": "JPEG",
+            "width": 1849,
+            "height": 1463,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8537
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/Coming Soon - July 5th - by Andrew 'OA' Luers.jpg",
+            "relativeToPackage": "Artwork/Coming Soon - July 5th - by Andrew 'OA' Luers.jpg",
+            "filename": "Coming Soon - July 5th - by Andrew 'OA' Luers.jpg",
+            "format": "JPEG",
+            "width": 1724,
+            "height": 1727,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.1724
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/Lucid Dreaming Banner - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/Lucid Dreaming Banner - by Ryuko DragonHalf.jpg",
+            "filename": "Lucid Dreaming Banner - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 1396,
+            "height": 759,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9241
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/Sig Banner - by Jonathan 'JoF' Traynor.png",
+            "relativeToPackage": "Artwork/Sig Banner - by Jonathan 'JoF' Traynor.png",
+            "filename": "Sig Banner - by Jonathan 'JoF' Traynor.png",
+            "format": "PNG",
+            "width": 599,
+            "height": 225,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9775
+          }
+        ],
+        "squareImageFiles": [
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/24 - Rear of Booklet - by Ryuko DragonHalf.jpg",
+            "relativeToPackage": "Artwork/24 - Rear of Booklet - by Ryuko DragonHalf.jpg",
+            "filename": "24 - Rear of Booklet - by Ryuko DragonHalf.jpg",
+            "format": "JPEG",
+            "width": 4050,
+            "height": 4050,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 1000.405
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "relativeToPackage": "Artwork/CD/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "filename": "CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.png",
+            "format": "PNG",
+            "width": 1502,
+            "height": 1502,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.1502
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Disc 1 - by Lynne 'TRiPPY' Triplett.png",
+            "relativeToPackage": "Artwork/CD/Disc 1 - by Lynne 'TRiPPY' Triplett.png",
+            "filename": "Disc 1 - by Lynne 'TRiPPY' Triplett.png",
+            "format": "PNG",
+            "width": 2976,
+            "height": 2976,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.2976
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Disc 2 - by Lynne 'TRiPPY' Triplett.png",
+            "relativeToPackage": "Artwork/CD/Disc 2 - by Lynne 'TRiPPY' Triplett.png",
+            "filename": "Disc 2 - by Lynne 'TRiPPY' Triplett.png",
+            "format": "PNG",
+            "width": 2976,
+            "height": 2976,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.2976
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Front embed.png",
+            "relativeToPackage": "Artwork/CD/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Printing/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "relativeToPackage": "Artwork/CD/Printing/CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "filename": "CD Insert (Front) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "format": "JPEG",
+            "width": 1502,
+            "height": 1502,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.1502
+          },
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Printing/CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "relativeToPackage": "Artwork/CD/Printing/CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "filename": "CD Insert (Inside) - by Min 'Keiiii' Kwon, modified by Wes 'Emunator' McDonald.jpg",
+            "format": "JPEG",
+            "width": 1504,
+            "height": 1504,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 1000.1504
+          }
+        ],
+        "likelyAlbumArtFiles": [
+          {
+            "path": "etc/1-source-files/NiGHTS - Lucid Dreaming/Artwork/CD/Front embed.png",
+            "relativeToPackage": "Artwork/CD/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "copyToDestinationAlbumFolder": true
+      }
+    },
+    {
+      "id": "smrpg-flac-disc2",
+      "status": "blocked",
+      "workflow": "organize-existing-partial-album-conflict",
+      "sources": [
+        "etc/1-source-files/Super Mario RPG - Window to the Stars/FLAC/Disc 2 - Confrontation"
+      ],
+      "fixTags": [],
+      "finalAlbumDir": "OverClocked ReMix/Super Mario RPG- Window to the Stars",
+      "trackCount": 10,
+      "blockReasons": [
+        "Destination album directories already exist: OverClocked ReMix/Super Mario RPG- Window to the Stars",
+        "These are missing discs for albums that already have a partial destination album folder from the prior run. organize-files intentionally disallows merging into an existing album folder; process them only through a full-album replacement workflow that moves aside the existing partial destination and organizes all FLAC discs together."
+      ],
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/Super Mario RPG - Window to the Stars",
+        "imageFiles": [
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Back [KrisVRS, Roxanne Chartrand].png",
+            "relativeToPackage": "Artwork/Back [KrisVRS, Roxanne Chartrand].png",
+            "filename": "Back [KrisVRS, Roxanne Chartrand].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Disc 1 - Exploration [KrisVRS].png",
+            "relativeToPackage": "Artwork/Disc 1 - Exploration [KrisVRS].png",
+            "filename": "Disc 1 - Exploration [KrisVRS].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Disc 2 - Confrontation [KrisVRS, Roxanne Chartrand].png",
+            "relativeToPackage": "Artwork/Disc 2 - Confrontation [KrisVRS, Roxanne Chartrand].png",
+            "filename": "Disc 2 - Confrontation [KrisVRS, Roxanne Chartrand].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1200.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Disc 3 - Celebration [KrisVRS].png",
+            "relativeToPackage": "Artwork/Disc 3 - Celebration [KrisVRS].png",
+            "filename": "Disc 3 - Celebration [KrisVRS].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Fight Against Exor [KrisVRS].png",
+            "relativeToPackage": "Artwork/Fight Against Exor [KrisVRS].png",
+            "filename": "Fight Against Exor [KrisVRS].png",
+            "format": "PNG",
+            "width": 787,
+            "height": 694,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.0694
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Front [KrisVRS, Roxanne Chartrand].png",
+            "relativeToPackage": "Artwork/Front [KrisVRS, Roxanne Chartrand].png",
+            "filename": "Front [KrisVRS, Roxanne Chartrand].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Front embed.png",
+            "relativeToPackage": "Artwork/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Trailer [José the Bronx Rican].png",
+            "relativeToPackage": "Artwork/Trailer [José the Bronx Rican].png",
+            "filename": "Trailer [José the Bronx Rican].png",
+            "format": "PNG",
+            "width": 1280,
+            "height": 738,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9262
+          }
+        ],
+        "squareImageFiles": [
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Back [KrisVRS, Roxanne Chartrand].png",
+            "relativeToPackage": "Artwork/Back [KrisVRS, Roxanne Chartrand].png",
+            "filename": "Back [KrisVRS, Roxanne Chartrand].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Disc 1 - Exploration [KrisVRS].png",
+            "relativeToPackage": "Artwork/Disc 1 - Exploration [KrisVRS].png",
+            "filename": "Disc 1 - Exploration [KrisVRS].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Disc 2 - Confrontation [KrisVRS, Roxanne Chartrand].png",
+            "relativeToPackage": "Artwork/Disc 2 - Confrontation [KrisVRS, Roxanne Chartrand].png",
+            "filename": "Disc 2 - Confrontation [KrisVRS, Roxanne Chartrand].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1200.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Disc 3 - Celebration [KrisVRS].png",
+            "relativeToPackage": "Artwork/Disc 3 - Celebration [KrisVRS].png",
+            "filename": "Disc 3 - Celebration [KrisVRS].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Front [KrisVRS, Roxanne Chartrand].png",
+            "relativeToPackage": "Artwork/Front [KrisVRS, Roxanne Chartrand].png",
+            "filename": "Front [KrisVRS, Roxanne Chartrand].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Front embed.png",
+            "relativeToPackage": "Artwork/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "likelyAlbumArtFiles": [
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Front embed.png",
+            "relativeToPackage": "Artwork/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "copyToDestinationAlbumFolder": true
+      }
+    },
+    {
+      "id": "smrpg-flac-disc3",
+      "status": "blocked",
+      "workflow": "organize-existing-partial-album-conflict",
+      "sources": [
+        "etc/1-source-files/Super Mario RPG - Window to the Stars/FLAC/Disc 3 - Celebration"
+      ],
+      "fixTags": [],
+      "finalAlbumDir": "OverClocked ReMix/Super Mario RPG- Window to the Stars",
+      "trackCount": 12,
+      "blockReasons": [
+        "Destination album directories already exist: OverClocked ReMix/Super Mario RPG- Window to the Stars",
+        "These are missing discs for albums that already have a partial destination album folder from the prior run. organize-files intentionally disallows merging into an existing album folder; process them only through a full-album replacement workflow that moves aside the existing partial destination and organizes all FLAC discs together."
+      ],
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/Super Mario RPG - Window to the Stars",
+        "imageFiles": [
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Back [KrisVRS, Roxanne Chartrand].png",
+            "relativeToPackage": "Artwork/Back [KrisVRS, Roxanne Chartrand].png",
+            "filename": "Back [KrisVRS, Roxanne Chartrand].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Disc 1 - Exploration [KrisVRS].png",
+            "relativeToPackage": "Artwork/Disc 1 - Exploration [KrisVRS].png",
+            "filename": "Disc 1 - Exploration [KrisVRS].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Disc 2 - Confrontation [KrisVRS, Roxanne Chartrand].png",
+            "relativeToPackage": "Artwork/Disc 2 - Confrontation [KrisVRS, Roxanne Chartrand].png",
+            "filename": "Disc 2 - Confrontation [KrisVRS, Roxanne Chartrand].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1200.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Disc 3 - Celebration [KrisVRS].png",
+            "relativeToPackage": "Artwork/Disc 3 - Celebration [KrisVRS].png",
+            "filename": "Disc 3 - Celebration [KrisVRS].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Fight Against Exor [KrisVRS].png",
+            "relativeToPackage": "Artwork/Fight Against Exor [KrisVRS].png",
+            "filename": "Fight Against Exor [KrisVRS].png",
+            "format": "PNG",
+            "width": 787,
+            "height": 694,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 0.0694
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Front [KrisVRS, Roxanne Chartrand].png",
+            "relativeToPackage": "Artwork/Front [KrisVRS, Roxanne Chartrand].png",
+            "filename": "Front [KrisVRS, Roxanne Chartrand].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Front embed.png",
+            "relativeToPackage": "Artwork/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Trailer [José the Bronx Rican].png",
+            "relativeToPackage": "Artwork/Trailer [José the Bronx Rican].png",
+            "filename": "Trailer [José the Bronx Rican].png",
+            "format": "PNG",
+            "width": 1280,
+            "height": 738,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9262
+          }
+        ],
+        "squareImageFiles": [
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Back [KrisVRS, Roxanne Chartrand].png",
+            "relativeToPackage": "Artwork/Back [KrisVRS, Roxanne Chartrand].png",
+            "filename": "Back [KrisVRS, Roxanne Chartrand].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Disc 1 - Exploration [KrisVRS].png",
+            "relativeToPackage": "Artwork/Disc 1 - Exploration [KrisVRS].png",
+            "filename": "Disc 1 - Exploration [KrisVRS].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Disc 2 - Confrontation [KrisVRS, Roxanne Chartrand].png",
+            "relativeToPackage": "Artwork/Disc 2 - Confrontation [KrisVRS, Roxanne Chartrand].png",
+            "filename": "Disc 2 - Confrontation [KrisVRS, Roxanne Chartrand].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1200.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Disc 3 - Celebration [KrisVRS].png",
+            "relativeToPackage": "Artwork/Disc 3 - Celebration [KrisVRS].png",
+            "filename": "Disc 3 - Celebration [KrisVRS].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Front [KrisVRS, Roxanne Chartrand].png",
+            "relativeToPackage": "Artwork/Front [KrisVRS, Roxanne Chartrand].png",
+            "filename": "Front [KrisVRS, Roxanne Chartrand].png",
+            "format": "PNG",
+            "width": 1024,
+            "height": 1024,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1300.1024
+          },
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Front embed.png",
+            "relativeToPackage": "Artwork/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "likelyAlbumArtFiles": [
+          {
+            "path": "etc/1-source-files/Super Mario RPG - Window to the Stars/Artwork/Front embed.png",
+            "relativeToPackage": "Artwork/Front embed.png",
+            "filename": "Front embed.png",
+            "format": "PNG",
+            "width": 700,
+            "height": 700,
+            "isSquare": true,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 1450.07
+          }
+        ],
+        "copyToDestinationAlbumFolder": true
+      }
+    }
+  ]
+}

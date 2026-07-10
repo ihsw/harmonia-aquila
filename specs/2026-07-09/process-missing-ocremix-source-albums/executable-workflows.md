@@ -1,0 +1,7 @@
+# Executable workflows
+
+| ID | Workflow | Sources | Final album dir | Tracks | Fix-tags | Organize flags | Artwork |
+|---|---|---|---|---:|---|---|---|
+| `blood` | audio-only-stage-fix-tags-organize | `etc/1-source-files/Blood on the Asphalt - Super Street Fighter 2 Turbo` | `OverClocked ReMix/http---sf2.ocremix.org - Blood on the Ashpalt` | 24 | `etc/1-source-files/Blood on the Asphalt - Super Street Fighter 2 Turbo` --set-album-artist `OverClocked ReMix` | `--ignore-non-audio-files --artist-filename-strategy albumartist` | _none_ |
+| `super-metroid-flac` | organize-ignore-trackless | `etc/1-source-files/Super Metroid - Relics of the Chozo/FLAC` | `OverClocked ReMix/Super Metroid- Relics of the Chozo` | 19 | _none_ | `--ignore-non-audio-files --ignore-audio-files-without-tracks --artist-filename-strategy albumartist` | `etc/1-source-files/Super Metroid - Relics of the Chozo/Artwork/20th Anniversary/Front embed.png` |
+| `xenogears-flac-combined` | fix-tags-combine-discs-organize | `etc/1-source-files/Xenogears - Humans + Gears/FLAC/Disc 1 - Humans`<br>`etc/1-source-files/Xenogears - Humans + Gears/FLAC/Disc 2 - Gears` | `OverClocked ReMix/Xenogears - Humans + Gears` | 33 | `etc/1-source-files/Xenogears - Humans + Gears/FLAC/Disc 1 - Humans` --set-album `Xenogears - Humans + Gears`; `etc/1-source-files/Xenogears - Humans + Gears/FLAC/Disc 2 - Gears` --set-album `Xenogears - Humans + Gears` | `--ignore-non-audio-files --artist-filename-strategy albumartist` | `etc/1-source-files/Xenogears - Humans + Gears/Art/back.png` |
