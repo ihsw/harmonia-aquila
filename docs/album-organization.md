@@ -47,3 +47,12 @@ This spec covers the current OC ReMix-style source folders in `etc/1-source-file
 - Blocked workflows: 11
 
 This spec uses staged `fix-tags` repairs before organization: `--set-album-artist "OverClocked ReMix"` for missing album-artist metadata, and `--set-album "Xenogears - Humans + Gears"` for Xenogears so the organized album folder matches the source folder name. It plans Blood on the Asphalt, Super Metroid, and corrected Xenogears as executable workflows, while leaving Chrono track-number repairs and partial multi-disc replacement workflows blocked.
+
+## Chrono/Blood tagged-album processing spec
+
+- Spec: `specs/2026-07-09/process-chrono-blood-tagged-albums/`
+- Source analysis: `reports/album-organization-audit/2026-07-09-new-source-files-audit/chrono-blood-spec-analysis-20260709-193925/`
+- Executable workflows: 2
+- Blocked workflows: 0
+
+This spec combines Chrono Symphonic FLAC CD1/CD2 into audio-only staging, then uses `fix-tags --set-album-artist "OverClocked ReMix" --set-album "Chrono Symphonic" --reset-track` before organizing 25 tracks. It also stages Blood on the Asphalt with `fix-tags --set-album-artist "OverClocked ReMix" --album-strategy originalalbum` before organizing 24 tracks into `OverClocked ReMix/Super Street Fighter 2 Turbo`.

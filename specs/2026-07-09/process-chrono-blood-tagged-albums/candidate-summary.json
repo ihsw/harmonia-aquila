@@ -1,0 +1,248 @@
+{
+  "generatedAt": "2026-07-09T19:40:51.162187",
+  "sourceRoot": "etc/1-source-files",
+  "destRoot": "etc/3-organized-files",
+  "analysisArtifacts": "reports/album-organization-audit/2026-07-09-new-source-files-audit/chrono-blood-spec-analysis-20260709-193925",
+  "policy": {
+    "sourceTreeReadOnly": true,
+    "stagingRequired": true,
+    "organizeArtistFilenameStrategy": "albumartist"
+  },
+  "counts": {
+    "executableWorkflows": 2,
+    "blockedWorkflows": 0,
+    "tracksPlanned": 49,
+    "fixTagsWorkflows": 2,
+    "workflowsWithLikelyAlbumArt": 1,
+    "likelyAlbumArtFiles": 1
+  },
+  "workflows": [
+    {
+      "id": "chrono-flac-combined",
+      "status": "executable",
+      "workflow": "combine-audio-fix-reset-track-organize",
+      "sources": [
+        "etc/1-source-files/Chrono Symphonic/Chrono Symphonic (flac version)/CD1",
+        "etc/1-source-files/Chrono Symphonic/Chrono Symphonic (flac version)/CD2"
+      ],
+      "audioOnlyInput": "staging/audio-only-inputs/chrono-flac-combined",
+      "fixedSource": "staging/fixed-tags/chrono-flac-combined",
+      "fixTags": [
+        {
+          "source": "staging/audio-only-inputs/chrono-flac-combined",
+          "setAlbumArtist": "OverClocked ReMix",
+          "setAlbum": "Chrono Symphonic",
+          "resetTrack": true
+        }
+      ],
+      "organizeSource": "staging/fixed-tags/chrono-flac-combined",
+      "organizeFlags": [
+        "--ignore-non-audio-files",
+        "--artist-filename-strategy",
+        "albumartist"
+      ],
+      "finalAlbumDir": "OverClocked ReMix/Chrono Symphonic",
+      "trackCount": 25,
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/Chrono Symphonic",
+        "imageFiles": [
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD Back.jpg",
+            "relativeToPackage": "Artwork/CD Back.jpg",
+            "filename": "CD Back.jpg",
+            "format": "JPEG",
+            "width": 1771,
+            "height": 1417,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.8583
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD Cover and Inlay.jpg",
+            "relativeToPackage": "Artwork/CD Cover and Inlay.jpg",
+            "filename": "CD Cover and Inlay.jpg",
+            "format": "JPEG",
+            "width": 2834,
+            "height": 1417,
+            "isSquare": false,
+            "isPreferredCoverName": true,
+            "validImage": true,
+            "selectionScore": 100.1417
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD1 Label.jpg",
+            "relativeToPackage": "Artwork/CD1 Label.jpg",
+            "filename": "CD1 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD2 Label.jpg",
+            "relativeToPackage": "Artwork/CD2 Label.jpg",
+            "filename": "CD2 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/Wallpaper 01 (1024x768).jpg",
+            "relativeToPackage": "Artwork/Wallpaper 01 (1024x768).jpg",
+            "filename": "Wallpaper 01 (1024x768).jpg",
+            "format": "JPEG",
+            "width": 1024,
+            "height": 768,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9232
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/Wallpaper 02 (1024x768).jpg",
+            "relativeToPackage": "Artwork/Wallpaper 02 (1024x768).jpg",
+            "filename": "Wallpaper 02 (1024x768).jpg",
+            "format": "JPEG",
+            "width": 1024,
+            "height": 768,
+            "isSquare": false,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": -99.9232
+          }
+        ],
+        "squareImageFiles": [
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD1 Label.jpg",
+            "relativeToPackage": "Artwork/CD1 Label.jpg",
+            "filename": "CD1 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          },
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD2 Label.jpg",
+            "relativeToPackage": "Artwork/CD2 Label.jpg",
+            "filename": "CD2 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          }
+        ],
+        "likelyAlbumArtFiles": [
+          {
+            "path": "etc/1-source-files/Chrono Symphonic/Artwork/CD1 Label.jpg",
+            "relativeToPackage": "Artwork/CD1 Label.jpg",
+            "filename": "CD1 Label.jpg",
+            "format": "JPEG",
+            "width": 1417,
+            "height": 1417,
+            "isSquare": true,
+            "isPreferredCoverName": false,
+            "validImage": true,
+            "selectionScore": 900.1417
+          }
+        ],
+        "copyToDestinationAlbumFolder": true
+      },
+      "analysis": {
+        "id": "chrono-flac-combined",
+        "sources": [
+          "etc/1-source-files/Chrono Symphonic/Chrono Symphonic (flac version)/CD1",
+          "etc/1-source-files/Chrono Symphonic/Chrono Symphonic (flac version)/CD2"
+        ],
+        "audioOnlyInput": "/tmp/harmonia-chrono-blood-spec/audio-only/chrono-flac-combined",
+        "fixedSource": "/tmp/harmonia-chrono-blood-spec/fixed/chrono-flac-combined",
+        "fixTagsDryRunOk": true,
+        "fixTagsExecuteToTempOk": true,
+        "organizeTempOk": true,
+        "organizeRealOk": true,
+        "destinations": [
+          "OverClocked ReMix/Chrono Symphonic"
+        ],
+        "realError": "",
+        "trackCount": 25,
+        "firstLastTracks": [
+          "01",
+          "25"
+        ]
+      },
+      "notes": [
+        "Combine both FLAC disc folders into one audio-only staging input before fix-tags so --reset-track assigns 01-25 across the full album."
+      ]
+    },
+    {
+      "id": "blood-originalalbum",
+      "status": "executable",
+      "workflow": "audio-only-fix-originalalbum-organize",
+      "sources": [
+        "etc/1-source-files/Blood on the Asphalt - Super Street Fighter 2 Turbo"
+      ],
+      "audioOnlyInput": "staging/audio-only-inputs/blood-originalalbum",
+      "fixedSource": "staging/fixed-tags/blood-originalalbum",
+      "fixTags": [
+        {
+          "source": "staging/audio-only-inputs/blood-originalalbum",
+          "setAlbumArtist": "OverClocked ReMix",
+          "albumStrategy": "originalalbum"
+        }
+      ],
+      "organizeSource": "staging/fixed-tags/blood-originalalbum",
+      "organizeFlags": [
+        "--ignore-non-audio-files",
+        "--artist-filename-strategy",
+        "albumartist"
+      ],
+      "finalAlbumDir": "OverClocked ReMix/Super Street Fighter 2 Turbo",
+      "trackCount": 24,
+      "albumArt": {
+        "packageRoot": "etc/1-source-files/Blood on the Asphalt - Super Street Fighter 2 Turbo",
+        "imageFiles": [],
+        "squareImageFiles": [],
+        "likelyAlbumArtFiles": [],
+        "copyToDestinationAlbumFolder": false
+      },
+      "analysis": {
+        "id": "blood-originalalbum",
+        "sources": [
+          "etc/1-source-files/Blood on the Asphalt - Super Street Fighter 2 Turbo"
+        ],
+        "audioOnlyInput": "/tmp/harmonia-chrono-blood-spec/audio-only/blood",
+        "fixedSource": "/tmp/harmonia-chrono-blood-spec/fixed/blood",
+        "fixTagsDryRunOk": true,
+        "fixTagsExecuteToTempOk": true,
+        "organizeTempOk": true,
+        "organizeRealOk": true,
+        "destinations": [
+          "OverClocked ReMix/Super Street Fighter 2 Turbo"
+        ],
+        "realError": "",
+        "trackCount": 24,
+        "firstLastTracks": [
+          "01",
+          "24"
+        ]
+      },
+      "notes": [
+        "Use originalalbum metadata to replace the current typo/URL album value. Existing previously organized folder OverClocked ReMix/http---sf2.ocremix.org - Blood on the Ashpalt is not removed by this spec."
+      ]
+    }
+  ],
+  "blocked": []
+}
