@@ -18,8 +18,10 @@ interface FixTagsRow {
   newAlbumartists?: string[]
   newArtists?: string[]
   newProducers?: string[]
+  newTrackNumber?: number
   producers?: string[]
   title: string
+  trackNumber?: number | string
   artist: string
 }
 
@@ -32,7 +34,9 @@ export interface FixTagsJsonOutputRow {
   newAlbumartists?: string[]
   newArtists?: string[]
   newProducers?: string[]
+  newTrackNumber?: number
   producers?: string[]
+  trackNumber?: number | string
 }
 
 export type FixTagsJsonOutput = FixTagsJsonOutputRow[]
@@ -52,6 +56,7 @@ interface ParsedTagFixSource {
   producers: string[]
   sourcePath: string
   title: string
+  trackNumber: number | null
   artist: string
 }
 
@@ -66,6 +71,7 @@ interface PlannedTagFix {
     albumArtists?: string[]
     artists?: string[]
     producers?: string[]
+    trackNumber?: number
   }
 }
 
@@ -145,6 +151,10 @@ function validateAlbumOptions(command: Command, albumStrategy: AlbumStrategy, se
   }
 }
 
+function getEffectiveAlbum(parsedTagFixSource: ParsedTagFixSource, albumStrategy: AlbumStrategy, setAlbum: string | undefined): string {
+  return setAlbum ?? (albumStrategy === 'grouping' ? parsedTagFixSource.grouping : parsedTagFixSource.album)
+}
+
 function getAction(destinationStrategy: DestinationStrategy, destinationExists: boolean, execute: boolean, hasChanges: boolean): string {
   if (destinationExists && destinationStrategy === 'ignore') {
     return execute ? 'ignored' : 'would ignore'
@@ -182,10 +192,11 @@ export function registerFixTagsCommand(program: Command): void {
     .option('--album-artists-strategy <strategy>', 'how to update albumartists: no change, aggregate, blank', 'no change')
     .option('--set-album-artist <albumArtist>', 'set album artist metadata to the provided value')
     .option('--producer-strategy <strategy>', 'how to update producers: no change, blank, aggregate, copy-from-album-artists', 'no change')
+    .option('--reset-track', 'reset track number metadata from each song file alphabetical index within its album')
     .option('--swap-artist-albumartist', 'swap artist and albumartist metadata')
     .option('--execute', 'copy files and write tag changes to destination files')
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
-    .action(async (options: { albumArtistsStrategy?: string, albumStrategy?: string, destDir: string, destinationStrategy?: string, execute?: boolean, format?: string, limit?: string, producerStrategy?: string, setAlbum?: string, setAlbumArtist?: string, sourceDir: string, swapArtistAlbumartist?: boolean }) => {
+    .action(async (options: { albumArtistsStrategy?: string, albumStrategy?: string, destDir: string, destinationStrategy?: string, execute?: boolean, format?: string, limit?: string, producerStrategy?: string, resetTrack?: boolean, setAlbum?: string, setAlbumArtist?: string, sourceDir: string, swapArtistAlbumartist?: boolean }) => {
       const limit = parseLimit(fixTagsCommand, options.limit)
       const outputFormat = parseOutputFormat(fixTagsCommand, options.format)
       const destinationStrategy = parseDestinationStrategy(fixTagsCommand, options.destinationStrategy)
@@ -194,6 +205,7 @@ export function registerFixTagsCommand(program: Command): void {
       const producerStrategy = parseProducerStrategy(fixTagsCommand, options.producerStrategy)
       const setAlbum = options.setAlbum
       const setAlbumArtist = options.setAlbumArtist
+      const resetTrack = options.resetTrack === true
       const swapArtistAlbumartist = options.swapArtistAlbumartist === true
 
       validateAlbumOptions(fixTagsCommand, albumStrategy, setAlbum)
@@ -225,6 +237,7 @@ export function registerFixTagsCommand(program: Command): void {
           const grouping = metadata.common.grouping ?? ''
           const producers = metadata.common.producer ?? []
           const title = metadata.common.title ?? ''
+          const trackNumber = metadata.common.track.no
           const artist = metadata.common.artist ?? ''
 
           return {
@@ -238,6 +251,7 @@ export function registerFixTagsCommand(program: Command): void {
             producers,
             sourcePath,
             title,
+            trackNumber,
           }
         })),
       )
@@ -267,6 +281,28 @@ export function registerFixTagsCommand(program: Command): void {
         producersByAlbum.set(album, uniqueSorted(producers))
       }
 
+      const resetTrackNumbersBySourcePath = new Map<string, number>()
+
+      if (resetTrack) {
+        const sourcesByAlbum = new Map<string, ParsedTagFixSource[]>()
+
+        for (const parsedTagFixSource of parsedTagFixSources) {
+          const album = getEffectiveAlbum(parsedTagFixSource, albumStrategy, setAlbum)
+          const albumSources = sourcesByAlbum.get(album) ?? []
+
+          albumSources.push(parsedTagFixSource)
+          sourcesByAlbum.set(album, albumSources)
+        }
+
+        for (const albumSources of sourcesByAlbum.values()) {
+          const sortedAlbumSources = [...albumSources].sort((left, right) => left.filename.localeCompare(right.filename))
+
+          sortedAlbumSources.forEach((parsedTagFixSource, index) => {
+            resetTrackNumbersBySourcePath.set(parsedTagFixSource.sourcePath, index + 1)
+          })
+        }
+      }
+
       const plannedTagFixes = await Promise.all(
         parsedTagFixSources.map(async (parsedTagFixSource): Promise<PlannedTagFix> => {
           const albumArtists = (() => {
@@ -294,11 +330,13 @@ export function registerFixTagsCommand(program: Command): void {
               : []
           const shouldUpdateProducers = producerStrategy !== 'no change'
           const album = setAlbum ?? (albumStrategy === 'grouping' ? parsedTagFixSource.grouping : undefined)
+          const trackNumber = resetTrackNumbersBySourcePath.get(parsedTagFixSource.sourcePath)
           const hasAlbumArtistsChanges = shouldUpdateAlbumArtists && !areStringArraysEqual(parsedTagFixSource.albumArtists, albumArtists)
           const hasArtistsChanges = swapArtistAlbumartist && !areStringArraysEqual(parsedTagFixSource.artists, parsedTagFixSource.albumArtists)
           const hasAlbumChanges = shouldUpdateAlbum && album !== undefined && parsedTagFixSource.album !== album
           const hasProducerChanges = shouldUpdateProducers && !areStringArraysEqual(parsedTagFixSource.producers, producers)
-          const hasChanges = hasAlbumChanges || hasAlbumArtistsChanges || hasArtistsChanges || hasProducerChanges
+          const hasTrackNumberChanges = trackNumber !== undefined && parsedTagFixSource.trackNumber !== trackNumber
+          const hasChanges = hasAlbumChanges || hasAlbumArtistsChanges || hasArtistsChanges || hasProducerChanges || hasTrackNumberChanges
           const destinationExists = await pathExists(parsedTagFixSource.destinationPath)
           const action = getAction(destinationStrategy, destinationExists, options.execute === true, hasChanges)
           const albumArtistsRow = (() => {
@@ -324,6 +362,7 @@ export function registerFixTagsCommand(program: Command): void {
             ...(shouldUpdateAlbumArtists ? { albumArtists } : {}),
             ...(artists === undefined ? {} : { artists }),
             ...(shouldUpdateProducers ? { producers } : {}),
+            ...(trackNumber === undefined ? {} : { trackNumber }),
           }
 
           return {
@@ -338,6 +377,12 @@ export function registerFixTagsCommand(program: Command): void {
               filename: parsedTagFixSource.filename,
               grouping: parsedTagFixSource.grouping,
               title: parsedTagFixSource.title,
+              ...(trackNumber === undefined
+                ? {}
+                : {
+                    newTrackNumber: trackNumber,
+                    trackNumber: parsedTagFixSource.trackNumber ?? '',
+                  }),
               ...(album === undefined ? {} : { newAlbum: album }),
               ...albumArtistsRow,
               ...(shouldUpdateProducers
@@ -411,6 +456,11 @@ export function registerFixTagsCommand(program: Command): void {
         if (producerStrategy !== 'no change') {
           row.newProducers = requireFixTagsJsonField('newProducers', plannedTagFix.row.newProducers)
           row.producers = requireFixTagsJsonField('producers', plannedTagFix.row.producers)
+        }
+
+        if (resetTrack) {
+          row.newTrackNumber = requireFixTagsJsonField('newTrackNumber', plannedTagFix.row.newTrackNumber)
+          row.trackNumber = requireFixTagsJsonField('trackNumber', plannedTagFix.row.trackNumber)
         }
 
         return row

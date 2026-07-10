@@ -14,6 +14,7 @@ export interface AudioTagFix {
   albumArtists?: string[]
   artists?: string[]
   producers?: string[]
+  trackNumber?: number
 }
 
 function writeProducers(audioFile: File, filePath: string, producers: string[]): void {
@@ -98,6 +99,10 @@ export function writeAudioTagFix(filePath: string, tagFix: AudioTagFix): void {
 
     if (tagFix.producers !== undefined) {
       writeProducers(audioFile, filePath, tagFix.producers)
+    }
+
+    if (tagFix.trackNumber !== undefined) {
+      audioFile.tag.track = tagFix.trackNumber
     }
 
     audioFile.save()
