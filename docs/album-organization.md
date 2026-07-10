@@ -38,3 +38,12 @@ Use each candidate's listed dry-run mode. Candidates promoted from sidecar folde
 - Blocked candidates: 34
 
 This spec covers the current OC ReMix-style source folders in `etc/1-source-files`. Run every listed dry-run with `--ignore-non-audio-files --artist-filename-strategy albumartist`, execute only candidates that resolve under `OverClocked ReMix/`, and copy each candidate's `albumArt.likelyAlbumArtFiles` into the resolved destination album folder after the audio copy succeeds. MP3/mp3s alternates are blocked when a FLAC/flacs source resolves to the same destination; same-quality FLAC disc folders that collapse into the same `OverClocked ReMix/<Album>` destination are blocked until multi-disc merge handling is designed; Blood on the Asphalt, Chrono Symphonic, and Super Metroid entries remain blocked until metadata is repaired.
+
+## Missing OC Remix source-album processing spec
+
+- Spec: `specs/2026-07-09/process-missing-ocremix-source-albums/`
+- Source analysis: `reports/album-organization-audit/2026-07-09-new-source-files-audit/missing-albums-spec-analysis-20260709-191046/`
+- Executable workflows: 3
+- Blocked workflows: 11
+
+This spec uses staged `fix-tags` repairs before organization: `--set-album-artist "OverClocked ReMix"` for missing album-artist metadata, and `--set-album "Xenogears - Humans + Gears"` for Xenogears so the organized album folder matches the source folder name. It plans Blood on the Asphalt, Super Metroid, and corrected Xenogears as executable workflows, while leaving Chrono track-number repairs and partial multi-disc replacement workflows blocked.
