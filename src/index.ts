@@ -10,8 +10,12 @@ program
   .name('harmonia-aquila')
   .description('Analyze local music files')
 
-registerSummarizeSourceDirCommand(program)
-registerFixTagsCommand(program)
-registerOrganizeFilesCommand(program)
+const manageAlbumsCommand = program
+  .command('manage-albums')
+  .description('Manage album files')
+
+registerSummarizeSourceDirCommand(manageAlbumsCommand)
+registerFixTagsCommand(manageAlbumsCommand)
+registerOrganizeFilesCommand(manageAlbumsCommand)
 
 await program.parseAsync()
