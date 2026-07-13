@@ -18,7 +18,8 @@ An audiobook is valid only when it is an M4B file whose exact filename follows:
 Performer - Title.m4b
 ```
 
-`Performer` and `Title` must exactly match the embedded M4B metadata fields.
+`Performer` must exactly match the embedded artist. `Title` uses the embedded
+album when present and otherwise falls back to the embedded title.
 For example, embedded performer `Thomas Sowell` and title
 `Basic Economics, 5th Edition` require:
 
@@ -30,25 +31,26 @@ Use `manage-audiobooks` for all audiobook operations. The validator reads the
 embedded metadata, rejects non-M4B files, rejects missing performer or title
 metadata, and rejects filename mismatches.
 
-## Merge MP3 source groups into M4B
+## Merge M4B or MP3 source groups into M4B
 
-Use `merge` when a source tree contains MP3 audiobook tracks. It groups
-tracks within the same source directory by their embedded `artist` and `album`
-metadata, merges each group through `m4b-tool`, and writes:
+Use `merge` when a source tree contains M4B or MP3 audiobook tracks. It groups
+tracks within the same source directory by their embedded `artist` and
+album-first title metadata, merges each group through `m4b-tool`, and writes:
 
 ```text
 Performer - Album.m4b
 ```
 
 The command sets the output M4B's performer and title to these values, then
-validates that the filename exactly matches its metadata. It rejects MP3 files
-without both fields rather than inferring a name from a directory or filename.
+validates that the filename exactly matches its metadata. It rejects M4B and
+MP3 files without both fields rather than inferring a name from a directory or
+filename.
 
 Plan the merge before writing any files:
 
 ```sh
 harmonia-aquila manage-audiobooks merge \
-  --source-dir "$MP3_SOURCE_DIR" \
+  --source-dir "$AUDIOBOOK_SOURCE_DIR" \
   --dest-dir "$M4B_STAGE_DIR" \
   --jobs 16 \
   --format json
@@ -59,7 +61,7 @@ destination-collision errors, execute the merge:
 
 ```sh
 harmonia-aquila manage-audiobooks merge \
-  --source-dir "$MP3_SOURCE_DIR" \
+  --source-dir "$AUDIOBOOK_SOURCE_DIR" \
   --dest-dir "$M4B_STAGE_DIR" \
   --jobs 16 \
   --execute \
@@ -169,8 +171,8 @@ file.
 
 ## Safety rules
 
-- Never treat `.mp3`, `.m4a`, `.flac`, or any other extension as an audiobook
-  input for this workflow.
+- Outside the explicit `merge` and `convert-file` workflows, never treat
+  `.mp3`, `.m4a`, `.flac`, or any non-M4B extension as an audiobook input.
 - Never rename or move an audiobook before validation succeeds.
 - Never use a filename that only approximately matches metadata; capitalization,
   punctuation, spacing, performer, and title must all match exactly.

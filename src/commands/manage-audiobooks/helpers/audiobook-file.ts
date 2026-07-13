@@ -27,10 +27,10 @@ export async function readAudiobookFile(fileName: string): Promise<AudiobookFile
 
   const metadata = await parseFile(sourcePath)
   const performer = metadata.common.artist ?? ''
-  const title = metadata.common.title ?? ''
+  const title = metadata.common.album ?? metadata.common.title ?? ''
   const missingFields = [
     performer === '' ? 'performer' : undefined,
-    title === '' ? 'title' : undefined,
+    title === '' ? 'album or title' : undefined,
   ].filter((field): field is string => field !== undefined)
 
   if (missingFields.length > 0) {

@@ -8,6 +8,8 @@ import { parseOutputFormat, pathExists, writeRows } from '../../command-utils.js
 import { readAudiobookFile } from './helpers/audiobook-file.js'
 import { mergeWithM4bTool, parseM4bToolJobs } from './helpers/m4b-tool.js'
 
+const MERGEABLE_AUDIO_EXTENSIONS = new Set(['.m4b', '.mp3'])
+
 interface AudiobookGroup {
   performer: string
   sourcePaths: string[]
@@ -34,7 +36,7 @@ function getGroupKey(parentDirectory: string, performer: string, title: string):
   return JSON.stringify([parentDirectory, performer, title])
 }
 
-async function findMp3Files(directory: string): Promise<string[]> {
+async function findMergeableAudiobookFiles(directory: string): Promise<string[]> {
   const directoryEntries = await readdir(directory, { withFileTypes: true })
   const files: string[] = []
 
@@ -42,9 +44,9 @@ async function findMp3Files(directory: string): Promise<string[]> {
     const entryPath = join(directory, directoryEntry.name)
 
     if (directoryEntry.isDirectory()) {
-      files.push(...await findMp3Files(entryPath))
+      files.push(...await findMergeableAudiobookFiles(entryPath))
     }
-    else if (directoryEntry.isFile() && extname(directoryEntry.name).toLowerCase() === '.mp3') {
+    else if (directoryEntry.isFile() && MERGEABLE_AUDIO_EXTENSIONS.has(extname(directoryEntry.name).toLowerCase())) {
       files.push(entryPath)
     }
   }
@@ -54,16 +56,16 @@ async function findMp3Files(directory: string): Promise<string[]> {
 
 async function getAudiobookGroups(sourceDirectory: string): Promise<AudiobookGroup[]> {
   const groups = new Map<string, AudiobookGroup>()
-  const mp3Files = await findMp3Files(sourceDirectory)
+  const audiobookFiles = await findMergeableAudiobookFiles(sourceDirectory)
 
-  if (mp3Files.length === 0) {
-    throw new Error(`"${sourceDirectory}" contains no MP3 files`)
+  if (audiobookFiles.length === 0) {
+    throw new Error(`"${sourceDirectory}" contains no M4B or MP3 files`)
   }
 
-  for (const sourcePath of mp3Files) {
+  for (const sourcePath of audiobookFiles) {
     const metadata = await parseFile(sourcePath)
     const performer = metadata.common.artist ?? ''
-    const title = metadata.common.album ?? ''
+    const title = metadata.common.album ?? metadata.common.title ?? ''
 
     if (performer === '' || title === '') {
       const missingFields = [
@@ -98,8 +100,8 @@ function destinationFilename(group: AudiobookGroup): string {
 export function registerMergeAudiobooksCommand(program: Command): void {
   const mergeAudiobooksCommand = program
     .command('merge')
-    .description('Merge MP3 audiobook groups into metadata-named M4B files')
-    .requiredOption('--source-dir <sourceDir>', 'directory to recursively scan for MP3 audiobook files')
+    .description('Merge M4B or MP3 audiobook groups into metadata-named M4B files')
+    .requiredOption('--source-dir <sourceDir>', 'directory to recursively scan for M4B or MP3 audiobook files')
     .requiredOption('--dest-dir <destDir>', 'directory for converted M4B files')
     .option('--jobs <jobs>', 'm4b-tool merge jobs per audiobook', '16')
     .option('--execute', 'run m4b-tool merges')
