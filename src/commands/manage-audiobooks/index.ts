@@ -2,6 +2,7 @@ import type { Command } from 'commander'
 
 import { registerCopyAndRenameAudiobookCommand } from './copy-and-rename.js'
 import { registerCrawlAudiobooksCommand } from './crawl.js'
+import { registerMergeAudiobooksCommand } from './merge.js'
 import { registerValidateAudiobookCommand } from './validate.js'
 
 export function registerManageAudiobooksCommand(program: Command): void {
@@ -12,4 +13,5 @@ export function registerManageAudiobooksCommand(program: Command): void {
   registerValidateAudiobookCommand(manageAudiobooksCommand)
   registerCopyAndRenameAudiobookCommand(manageAudiobooksCommand)
   registerCrawlAudiobooksCommand(manageAudiobooksCommand)
+  registerMergeAudiobooksCommand(manageAudiobooksCommand)
 }
