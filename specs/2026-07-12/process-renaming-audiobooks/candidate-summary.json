@@ -1,0 +1,332 @@
+{
+  "sourceDirectory": "etc/audiobooks/1-source-files/renaming",
+  "destinationDirectory": "etc/audiobooks/3-renamed-files",
+  "crawlCommandArgs": [
+    "manage-audiobooks",
+    "crawl",
+    "--dir-name",
+    "etc/audiobooks/1-source-files/renaming",
+    "--format",
+    "json"
+  ],
+  "crawlResults": [
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Sai Goddam, Ogi Ogas - A Billion Wicked Thoughts: What the World's Largest Experiment Reveals About Human Desire.m4b",
+      "filename": "A Billion Wicked Thoughts What the Worlds Largest Experiment Reveals About Human Desire.m4b",
+      "path": "A Billion Wicked Thoughts What the Worlds Largest Experiment Reveals About Human Desire.m4b",
+      "performer": "Sai Goddam, Ogi Ogas",
+      "reason": "A Billion Wicked Thoughts What the Worlds Largest Experiment Reveals About Human Desire.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "A Billion Wicked Thoughts: What the World's Largest Experiment Reveals About Human Desire"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Abigail Shrier - Bad Therapy: Why the Kids Aren't Growing Up.m4b",
+      "filename": "Abigail Shrier - Bad Therapy Why the Kids Aren't Growing Up.m4b",
+      "path": "Abigail Shrier - Bad Therapy Why The Kids Aren't Growing Up/Abigail Shrier - Bad Therapy Why the Kids Aren't Growing Up.m4b",
+      "performer": "Abigail Shrier",
+      "reason": "Abigail Shrier - Bad Therapy Why the Kids Aren't Growing Up.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "Bad Therapy: Why the Kids Aren't Growing Up"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Dan Schilling, Lori Longfritz - Alone at Dawn: Medal of Honor Recipient John Chapman and the Untold Story of the World's Deadliest Special Operations Force.m4b",
+      "filename": "Alone at Dawn.m4b",
+      "path": "Alone at Dawn - Dan Schilling (M4B)/Alone at Dawn.m4b",
+      "performer": "Dan Schilling, Lori Longfritz",
+      "reason": "Alone at Dawn.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "Alone at Dawn: Medal of Honor Recipient John Chapman and the Untold Story of the World's Deadliest Special Operations Force"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Thomas Sowell - Barbarians Inside the Gates and Other Controversial Essays.m4b",
+      "filename": "Barbarians Inside the Gates and Other Controversial Essays.m4b",
+      "path": "Barbarians Inside the Gates and Other Controversial Essays.m4b",
+      "performer": "Thomas Sowell",
+      "reason": "Barbarians Inside the Gates and Other Controversial Essays.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "Barbarians Inside the Gates and Other Controversial Essays"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Tim Hornbaker - Death of the Territories: Expansion, Betrayal and the War That Changed Pro Wrestling Forever (Unabridged).m4b",
+      "filename": "Death of the Territories.m4b",
+      "path": "Death of the Territories - Tim Hornbaker (M4B)/Death of the Territories.m4b",
+      "performer": "Tim Hornbaker",
+      "reason": "Death of the Territories.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "Death of the Territories: Expansion, Betrayal and the War That Changed Pro Wrestling Forever (Unabridged)"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Jonathan Haidt, Greg Lukianoff - The Coddling of the American Mind.m4b",
+      "filename": "Haidt, Lukianoff  - The Coddling of the American Mind.m4b",
+      "path": "Haidt, Lukianoff  - The Coddling of the American Mind/Haidt, Lukianoff  - The Coddling of the American Mind.m4b",
+      "performer": "Jonathan Haidt, Greg Lukianoff",
+      "reason": "Haidt, Lukianoff  - The Coddling of the American Mind.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "The Coddling of the American Mind"
+    },
+    {
+      "category": "invalid-other",
+      "expectedFilename": "",
+      "filename": "How To Win Friends & Influence People.m4b",
+      "path": "How To Win Friends & Influence People.m4b",
+      "performer": "",
+      "reason": "How To Win Friends & Influence People.m4b is missing required metadata: title",
+      "reasonCode": "missing-metadata",
+      "title": ""
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Jonathan Haidt - The Anxious Generation.m4b",
+      "filename": "Jonathan Haidt - The Anxious Generation (2024).m4b",
+      "path": "Jonathan Haidt - The Anxious Generation (2024).m4b",
+      "performer": "Jonathan Haidt",
+      "reason": "Jonathan Haidt - The Anxious Generation (2024).m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "The Anxious Generation"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Thomas Sowell - Marxism: Philosophy and Economics (Unabridged).m4b",
+      "filename": "Marxism - Philosophy and Economics.m4b",
+      "path": "Marxism by Thomas Sowell/Marxism - Philosophy and Economics.m4b",
+      "performer": "Thomas Sowell",
+      "reason": "Marxism - Philosophy and Economics.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "Marxism: Philosophy and Economics (Unabridged)"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Michael Lewis - Flash Boys: A Wall Street Revolt.m4b",
+      "filename": "Flash Boys A Wall Street Revolt.m4b",
+      "path": "Michael Lewis - Flash Boys A Wall Street Revolt/Flash Boys A Wall Street Revolt.m4b",
+      "performer": "Michael Lewis",
+      "reason": "Flash Boys A Wall Street Revolt.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "Flash Boys: A Wall Street Revolt"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Michael Lewis - Moneyball: The Art of Winning an Unfair Game.m4b",
+      "filename": "Moneyball The Art of Winning an Unfair Game.m4b",
+      "path": "Michael Lewis - Moneyball The Art of Winning an Unfair Game/Moneyball The Art of Winning an Unfair Game.m4b",
+      "performer": "Michael Lewis",
+      "reason": "Moneyball The Art of Winning an Unfair Game.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "Moneyball: The Art of Winning an Unfair Game"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Michael Shellenberger - San Fransicko: Why Progressives Ruin Cities.m4b",
+      "filename": "San Fransicko - Why Progressives Ruin Cities.m4b",
+      "path": "Michael Shellenberger - San Fransicko/San Fransicko - Why Progressives Ruin Cities.m4b",
+      "performer": "Michael Shellenberger",
+      "reason": "San Fransicko - Why Progressives Ruin Cities.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "San Fransicko: Why Progressives Ruin Cities"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Neil Gorsuch, Janie Nitze - Over Ruled: The Human Toll of Too Much Law.m4b",
+      "filename": "Neil Gorsuch And Janie Nitze - Over Ruled.m4b",
+      "path": "Neil Gorsuch And Janie Nitze - Over Ruled.m4b",
+      "performer": "Neil Gorsuch, Janie Nitze",
+      "reason": "Neil Gorsuch And Janie Nitze - Over Ruled.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "Over Ruled: The Human Toll of Too Much Law"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Julius Evola - Revolt Against the Modern World: Politics, Religion, and Social Order in the Kali Yuga.m4b",
+      "filename": "Revolt Against the Modern World.m4b",
+      "path": "Revolt Against the Modern World (2022)/Revolt Against the Modern World.m4b",
+      "performer": "Julius Evola",
+      "reason": "Revolt Against the Modern World.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "Revolt Against the Modern World: Politics, Religion, and Social Order in the Kali Yuga"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Julius Evola, Joscelyn Godwin - translator, Constance Fontana - translator - Ride the Tiger: A Survival Manual for the Aristocrats of the Soul.m4b",
+      "filename": "Ride the Tiger_ A Survival Manual for the Aristocrats of the Soul.m4b",
+      "path": "Ride the Tiger_ A Survival Manual for the Aristocrats of the Soul/Ride the Tiger_ A Survival Manual for the Aristocrats of the Soul.m4b",
+      "performer": "Julius Evola, Joscelyn Godwin - translator, Constance Fontana - translator",
+      "reason": "Ride the Tiger_ A Survival Manual for the Aristocrats of the Soul.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "Ride the Tiger: A Survival Manual for the Aristocrats of the Soul"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Abigail Shrier - Irreversible Damage: The Transgender Craze Seducing Our Daughters.m4b",
+      "filename": "Shrier, Abigail - Irreversible Damage, The Transgender Craze Seducing Our Daughters.m4b",
+      "path": "Shrier, Abigail - Irreversible Damage, The Transgender Craze Seducing Our Daughters.m4b",
+      "performer": "Abigail Shrier",
+      "reason": "Shrier, Abigail - Irreversible Damage, The Transgender Craze Seducing Our Daughters.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "Irreversible Damage: The Transgender Craze Seducing Our Daughters"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Steven L. Kent - The Ultimate History of Video Games, Volume 1.m4b",
+      "filename": "The Ultimate History of Video Games, Volume 1.m4b",
+      "path": "Steven L. Kent - The Ultimate History of Video Games, Volume 1/The Ultimate History of Video Games, Volume 1.m4b",
+      "performer": "Steven L. Kent",
+      "reason": "The Ultimate History of Video Games, Volume 1.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "The Ultimate History of Video Games, Volume 1"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Steven L. Kent - The Ultimate History of Video Games, Volume 2.m4b",
+      "filename": "The Ultimate History of Video Games, Volume 2.m4b",
+      "path": "Steven L. Kent - The Ultimate History of Video Games, Volume 2/The Ultimate History of Video Games, Volume 2.m4b",
+      "performer": "Steven L. Kent",
+      "reason": "The Ultimate History of Video Games, Volume 2.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "The Ultimate History of Video Games, Volume 2"
+    },
+    {
+      "category": "invalid-filename",
+      "expectedFilename": "Jeff Lowenfels, Wayne Lewis - Teaming with Microbes: The Organic Gardener's Guide to the Soil Food Web.m4b",
+      "filename": "Teaming with Microbes The Organic Gardener's Guide to the Soil Food Web.m4b",
+      "path": "Teaming With Microbes - Jeff Lowenfels (M4B)/Teaming with Microbes The Organic Gardener's Guide to the Soil Food Web.m4b",
+      "performer": "Jeff Lowenfels, Wayne Lewis",
+      "reason": "Teaming with Microbes The Organic Gardener's Guide to the Soil Food Web.m4b does not match metadata",
+      "reasonCode": "filename-mismatch",
+      "title": "Teaming with Microbes: The Organic Gardener's Guide to the Soil Food Web"
+    }
+  ],
+  "copyAndRenameDryRuns": [
+    {
+      "action": "would copy",
+      "destination": "Sai Goddam, Ogi Ogas - A Billion Wicked Thoughts: What the World's Largest Experiment Reveals About Human Desire.m4b",
+      "filename": "A Billion Wicked Thoughts What the Worlds Largest Experiment Reveals About Human Desire.m4b",
+      "performer": "Sai Goddam, Ogi Ogas",
+      "title": "A Billion Wicked Thoughts: What the World's Largest Experiment Reveals About Human Desire"
+    },
+    {
+      "action": "would copy",
+      "destination": "Abigail Shrier - Bad Therapy: Why the Kids Aren't Growing Up.m4b",
+      "filename": "Abigail Shrier - Bad Therapy Why the Kids Aren't Growing Up.m4b",
+      "performer": "Abigail Shrier",
+      "title": "Bad Therapy: Why the Kids Aren't Growing Up"
+    },
+    {
+      "action": "would copy",
+      "destination": "Dan Schilling, Lori Longfritz - Alone at Dawn: Medal of Honor Recipient John Chapman and the Untold Story of the World's Deadliest Special Operations Force.m4b",
+      "filename": "Alone at Dawn.m4b",
+      "performer": "Dan Schilling, Lori Longfritz",
+      "title": "Alone at Dawn: Medal of Honor Recipient John Chapman and the Untold Story of the World's Deadliest Special Operations Force"
+    },
+    {
+      "action": "would copy",
+      "destination": "Thomas Sowell - Barbarians Inside the Gates and Other Controversial Essays.m4b",
+      "filename": "Barbarians Inside the Gates and Other Controversial Essays.m4b",
+      "performer": "Thomas Sowell",
+      "title": "Barbarians Inside the Gates and Other Controversial Essays"
+    },
+    {
+      "action": "would copy",
+      "destination": "Tim Hornbaker - Death of the Territories: Expansion, Betrayal and the War That Changed Pro Wrestling Forever (Unabridged).m4b",
+      "filename": "Death of the Territories.m4b",
+      "performer": "Tim Hornbaker",
+      "title": "Death of the Territories: Expansion, Betrayal and the War That Changed Pro Wrestling Forever (Unabridged)"
+    },
+    {
+      "action": "would copy",
+      "destination": "Jonathan Haidt, Greg Lukianoff - The Coddling of the American Mind.m4b",
+      "filename": "Haidt, Lukianoff  - The Coddling of the American Mind.m4b",
+      "performer": "Jonathan Haidt, Greg Lukianoff",
+      "title": "The Coddling of the American Mind"
+    },
+    {
+      "action": "would copy",
+      "destination": "Jonathan Haidt - The Anxious Generation.m4b",
+      "filename": "Jonathan Haidt - The Anxious Generation (2024).m4b",
+      "performer": "Jonathan Haidt",
+      "title": "The Anxious Generation"
+    },
+    {
+      "action": "would copy",
+      "destination": "Thomas Sowell - Marxism: Philosophy and Economics (Unabridged).m4b",
+      "filename": "Marxism - Philosophy and Economics.m4b",
+      "performer": "Thomas Sowell",
+      "title": "Marxism: Philosophy and Economics (Unabridged)"
+    },
+    {
+      "action": "would copy",
+      "destination": "Michael Lewis - Flash Boys: A Wall Street Revolt.m4b",
+      "filename": "Flash Boys A Wall Street Revolt.m4b",
+      "performer": "Michael Lewis",
+      "title": "Flash Boys: A Wall Street Revolt"
+    },
+    {
+      "action": "would copy",
+      "destination": "Michael Lewis - Moneyball: The Art of Winning an Unfair Game.m4b",
+      "filename": "Moneyball The Art of Winning an Unfair Game.m4b",
+      "performer": "Michael Lewis",
+      "title": "Moneyball: The Art of Winning an Unfair Game"
+    },
+    {
+      "action": "would copy",
+      "destination": "Michael Shellenberger - San Fransicko: Why Progressives Ruin Cities.m4b",
+      "filename": "San Fransicko - Why Progressives Ruin Cities.m4b",
+      "performer": "Michael Shellenberger",
+      "title": "San Fransicko: Why Progressives Ruin Cities"
+    },
+    {
+      "action": "would copy",
+      "destination": "Neil Gorsuch, Janie Nitze - Over Ruled: The Human Toll of Too Much Law.m4b",
+      "filename": "Neil Gorsuch And Janie Nitze - Over Ruled.m4b",
+      "performer": "Neil Gorsuch, Janie Nitze",
+      "title": "Over Ruled: The Human Toll of Too Much Law"
+    },
+    {
+      "action": "would copy",
+      "destination": "Julius Evola - Revolt Against the Modern World: Politics, Religion, and Social Order in the Kali Yuga.m4b",
+      "filename": "Revolt Against the Modern World.m4b",
+      "performer": "Julius Evola",
+      "title": "Revolt Against the Modern World: Politics, Religion, and Social Order in the Kali Yuga"
+    },
+    {
+      "action": "would copy",
+      "destination": "Julius Evola, Joscelyn Godwin - translator, Constance Fontana - translator - Ride the Tiger: A Survival Manual for the Aristocrats of the Soul.m4b",
+      "filename": "Ride the Tiger_ A Survival Manual for the Aristocrats of the Soul.m4b",
+      "performer": "Julius Evola, Joscelyn Godwin - translator, Constance Fontana - translator",
+      "title": "Ride the Tiger: A Survival Manual for the Aristocrats of the Soul"
+    },
+    {
+      "action": "would copy",
+      "destination": "Abigail Shrier - Irreversible Damage: The Transgender Craze Seducing Our Daughters.m4b",
+      "filename": "Shrier, Abigail - Irreversible Damage, The Transgender Craze Seducing Our Daughters.m4b",
+      "performer": "Abigail Shrier",
+      "title": "Irreversible Damage: The Transgender Craze Seducing Our Daughters"
+    },
+    {
+      "action": "would copy",
+      "destination": "Steven L. Kent - The Ultimate History of Video Games, Volume 1.m4b",
+      "filename": "The Ultimate History of Video Games, Volume 1.m4b",
+      "performer": "Steven L. Kent",
+      "title": "The Ultimate History of Video Games, Volume 1"
+    },
+    {
+      "action": "would copy",
+      "destination": "Steven L. Kent - The Ultimate History of Video Games, Volume 2.m4b",
+      "filename": "The Ultimate History of Video Games, Volume 2.m4b",
+      "performer": "Steven L. Kent",
+      "title": "The Ultimate History of Video Games, Volume 2"
+    },
+    {
+      "action": "would copy",
+      "destination": "Jeff Lowenfels, Wayne Lewis - Teaming with Microbes: The Organic Gardener's Guide to the Soil Food Web.m4b",
+      "filename": "Teaming with Microbes The Organic Gardener's Guide to the Soil Food Web.m4b",
+      "performer": "Jeff Lowenfels, Wayne Lewis",
+      "title": "Teaming with Microbes: The Organic Gardener's Guide to the Soil Food Web"
+    }
+  ]
+}
