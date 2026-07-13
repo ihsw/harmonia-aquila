@@ -5,7 +5,7 @@ import { basename, join, relative, resolve } from 'node:path'
 
 import { parseOutputFormat, pathExists, writeRows } from '../../command-utils.js'
 
-import { getAudiobookFile } from './audiobook-file.js'
+import { getAudiobookFile } from './helpers/audiobook-file.js'
 
 export interface CopyAndRenameAudiobookJsonOutputRow {
   action: string

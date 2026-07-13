@@ -3,15 +3,15 @@ import { parseFile } from 'music-metadata'
 import { resolve } from 'node:path'
 import pLimit from 'p-limit'
 
+import { parseOutputFormat, writeRows } from '../../command-utils.js'
+
 import {
   formatAudioBitrate,
   formatAudioDuration,
   formatAudioSampleRate,
   getAudioFiles,
   parseLimit,
-  parseOutputFormat,
-  writeRows,
-} from '../../command-utils.js'
+} from './helpers/utils.js'
 
 export interface SummarizeSourceDirJsonOutputRow {
   album: string

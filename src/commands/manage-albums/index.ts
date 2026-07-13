@@ -1,8 +1,8 @@
 import type { Command } from 'commander'
 
-import { registerFixTagsCommand } from './manage-albums/fix-tags.js'
-import { registerOrganizeFilesCommand } from './manage-albums/organize-files.js'
-import { registerSummarizeSourceDirCommand } from './manage-albums/summarize-source-dir.js'
+import { registerFixTagsCommand } from './fix-tags.js'
+import { registerOrganizeFilesCommand } from './organize-files.js'
+import { registerSummarizeSourceDirCommand } from './summarize-source-dir.js'
 
 export function registerManageAlbumsCommand(program: Command): void {
   const manageAlbumsCommand = program

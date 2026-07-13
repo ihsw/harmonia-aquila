@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { basename, extname } from 'node:path'
 
-import { getSupportedAudioExtensions, isSupportedAudioExtension } from './command-utils.js'
+import { getSupportedAudioExtensions, isSupportedAudioExtension } from './utils.js'
 
 export interface SetMetadataRecord {
   album: string

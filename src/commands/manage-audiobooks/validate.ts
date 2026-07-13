@@ -2,7 +2,7 @@ import type { Command } from 'commander'
 
 import { parseOutputFormat, writeRows } from '../../command-utils.js'
 
-import { getAudiobookFile } from './audiobook-file.js'
+import { getAudiobookFile } from './helpers/audiobook-file.js'
 
 export interface ValidateAudiobookJsonOutputRow {
   filename: string

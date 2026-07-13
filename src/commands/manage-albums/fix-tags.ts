@@ -4,9 +4,11 @@ import { copyFile, mkdir } from 'node:fs/promises'
 import { dirname, relative, resolve } from 'node:path'
 import pLimit from 'p-limit'
 
-import { writeAudioTagFix } from '../../audio-tags.js'
-import { getAudioFiles, parseLimit, parseOutputFormat, pathExists, writeRows } from '../../command-utils.js'
-import { parseSetMetadataFile, reconcileSetMetadata, type SetMetadataRecord } from '../../set-metadata.js'
+import { parseOutputFormat, pathExists, writeRows } from '../../command-utils.js'
+
+import { writeAudioTagFix } from './helpers/audio-tags.js'
+import { parseSetMetadataFile, reconcileSetMetadata, type SetMetadataRecord } from './helpers/set-metadata.js'
+import { getAudioFiles, parseLimit } from './helpers/utils.js'
 
 interface FixTagsRow {
   action: string
