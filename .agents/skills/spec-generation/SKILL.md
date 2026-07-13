@@ -1,3 +1,8 @@
+---
+name: spec-generation
+description: Generate requirements, design, and task specifications for this repository.
+---
+
 # Skill: Spec Generation
 
 Authoritative procedure for generating specs in this repository. Use this
@@ -193,4 +198,3 @@ When unsure, study these as exemplars:
 | `specs/2026-04-30/refactor-code-check-ui-containers/` | Pattern-shift refactor; has before/after code blocks and a component-by-component mapping table. |
 | `specs/2026-05-08/migrate-code-check-api-handlers/` | Strict "no edits in `apps/web-ui`" boundary; rich FR-4 error-string parity table. |
 | `specs/2026-05-09/wire-web-ui-code-check-handlers/` | Closes the loop on a prior additive spec; demonstrates cross-spec cross-references and an FR-7a "permitted exception" clause. |
-
