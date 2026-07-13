@@ -60,17 +60,30 @@ export async function mergeWithM4bTool(options: M4bToolMergeOptions): Promise<vo
   ]
 
   await new Promise<void>((resolvePromise, rejectPromise) => {
-    const process = spawn('docker', dockerArguments, { stdio: 'inherit' })
+    const childProcess = spawn('docker', dockerArguments, { stdio: ['ignore', 'pipe', 'pipe'] })
+    let standardOutput = ''
+    let standardError = ''
 
-    process.once('error', (error) => {
+    childProcess.stdout.on('data', (chunk: Buffer) => {
+      standardOutput += chunk.toString()
+    })
+    childProcess.stderr.on('data', (chunk: Buffer) => {
+      standardError += chunk.toString()
+      globalThis.process.stderr.write(chunk)
+    })
+    childProcess.once('error', (error) => {
       rejectPromise(new Error('Unable to start Docker for m4b-tool conversion', { cause: error }))
     })
-    process.once('exit', (code, signal) => {
+    childProcess.once('exit', (code, signal) => {
       if (code === 0) {
         resolvePromise()
       }
       else {
-        rejectPromise(new Error(`m4b-tool conversion failed with ${signal === null ? (code === null ? 'no exit code' : `exit code ${String(code)}`) : `signal ${signal}`}`))
+        const processResult = signal === null
+          ? (code === null ? 'no exit code' : `exit code ${String(code)}`)
+          : `signal ${signal}`
+        const output = `${standardOutput}${standardError}`.trim()
+        rejectPromise(new Error(`m4b-tool conversion failed with ${processResult}${output === '' ? '' : `: ${output}`}`))
       }
     })
   })
