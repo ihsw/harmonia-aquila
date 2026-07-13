@@ -11,18 +11,18 @@ export interface AudiobookFile {
   title: string
 }
 
-export async function getAudiobookFile(command: Command, fileName: string): Promise<AudiobookFile> {
+export async function readAudiobookFile(fileName: string): Promise<AudiobookFile> {
   const sourcePath = resolve(fileName)
   const filename = basename(sourcePath)
 
   if (extname(filename).toLowerCase() !== '.m4b') {
-    command.error(`"${fileName}" must be an M4B file`)
+    throw new Error(`"${fileName}" must be an M4B file`)
   }
 
   const fileStats = await stat(sourcePath)
 
   if (!fileStats.isFile()) {
-    command.error(`"${fileName}" is not a file`)
+    throw new Error(`"${fileName}" is not a file`)
   }
 
   const metadata = await parseFile(sourcePath)
@@ -34,7 +34,7 @@ export async function getAudiobookFile(command: Command, fileName: string): Prom
   ].filter((field): field is string => field !== undefined)
 
   if (missingFields.length > 0) {
-    command.error(`${filename} is missing required metadata: ${missingFields.join(', ')}`)
+    throw new Error(`${filename} is missing required metadata: ${missingFields.join(', ')}`)
   }
 
   return {
@@ -43,5 +43,15 @@ export async function getAudiobookFile(command: Command, fileName: string): Prom
     performer,
     sourcePath,
     title,
+  }
+}
+
+export async function getAudiobookFile(command: Command, fileName: string): Promise<AudiobookFile> {
+  try {
+    return await readAudiobookFile(fileName)
+  }
+  catch (error) {
+    command.error(error instanceof Error ? error.message : String(error))
+    throw new Error('unreachable')
   }
 }
