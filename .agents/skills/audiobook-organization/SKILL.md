@@ -30,6 +30,47 @@ Use `manage-audiobooks` for all audiobook operations. The validator reads the
 embedded metadata, rejects non-M4B files, rejects missing performer or title
 metadata, and rejects filename mismatches.
 
+## Merge MP3 source groups into M4B
+
+Use `merge` when a source tree contains MP3 audiobook tracks. It groups
+tracks within the same source directory by their embedded `artist` and `album`
+metadata, merges each group through `m4b-tool`, and writes:
+
+```text
+Performer - Album.m4b
+```
+
+The command sets the output M4B's performer and title to these values, then
+validates that the filename exactly matches its metadata. It rejects MP3 files
+without both fields rather than inferring a name from a directory or filename.
+
+Plan the merge before writing any files:
+
+```sh
+harmonia-aquila manage-audiobooks merge \
+  --source-dir "$MP3_SOURCE_DIR" \
+  --dest-dir "$M4B_STAGE_DIR" \
+  --jobs 16 \
+  --format json
+```
+
+After reviewing the proposed destinations and resolving any missing-metadata or
+destination-collision errors, execute the merge:
+
+```sh
+harmonia-aquila manage-audiobooks merge \
+  --source-dir "$MP3_SOURCE_DIR" \
+  --dest-dir "$M4B_STAGE_DIR" \
+  --jobs 16 \
+  --execute \
+  --format json
+```
+
+The source directory is mounted read-only inside the `m4b-tool` Docker
+container. `--jobs` is passed to `m4b-tool merge` and defaults to `16`. Merging
+requires Docker and pulls
+`sandreas/m4b-tool:latest` when the image is unavailable locally.
+
 ## Validate one audiobook
 
 ```sh
