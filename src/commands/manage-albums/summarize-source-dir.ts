@@ -11,7 +11,7 @@ import {
   parseLimit,
   parseOutputFormat,
   writeRows,
-} from '../command-utils.js'
+} from '../../command-utils.js'
 
 export interface SummarizeSourceDirJsonOutputRow {
   album: string

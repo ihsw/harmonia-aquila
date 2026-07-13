@@ -4,7 +4,7 @@ import { copyFile, mkdir } from 'node:fs/promises'
 import { dirname, extname, join, relative, resolve } from 'node:path'
 import pLimit from 'p-limit'
 
-import { getAudioFiles, parseLimit, parseOutputFormat, pathExists, writeRows } from '../command-utils.js'
+import { getAudioFiles, parseLimit, parseOutputFormat, pathExists, writeRows } from '../../command-utils.js'
 
 export interface OrganizeFilesJsonOutputRow {
   action: string

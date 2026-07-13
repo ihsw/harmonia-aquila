@@ -2,20 +2,12 @@
 
 import { program } from 'commander'
 
-import { registerFixTagsCommand } from './commands/fix-tags.js'
-import { registerOrganizeFilesCommand } from './commands/organize-files.js'
-import { registerSummarizeSourceDirCommand } from './commands/summarize-source-dir.js'
+import { registerManageAlbumsCommand } from './commands/manage-albums.js'
 
 program
   .name('harmonia-aquila')
   .description('Analyze local music files')
 
-const manageAlbumsCommand = program
-  .command('manage-albums')
-  .description('Manage album files')
-
-registerSummarizeSourceDirCommand(manageAlbumsCommand)
-registerFixTagsCommand(manageAlbumsCommand)
-registerOrganizeFilesCommand(manageAlbumsCommand)
+registerManageAlbumsCommand(program)
 
 await program.parseAsync()
