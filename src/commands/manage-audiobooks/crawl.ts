@@ -8,6 +8,7 @@ import { parseOutputFormat, writeRows } from '../../command-utils.js'
 import { readAudiobookFile } from './helpers/audiobook-file.js'
 
 type CrawlAudiobookCategory = 'invalid-filename' | 'invalid-other' | 'valid'
+type CrawlAudiobookReasonCode = 'filename-mismatch' | 'missing-metadata' | 'valid' | 'validation-failed'
 
 export interface CrawlAudiobookJsonOutputRow {
   category: CrawlAudiobookCategory
@@ -16,6 +17,7 @@ export interface CrawlAudiobookJsonOutputRow {
   path: string
   performer: string
   reason: string
+  reasonCode: CrawlAudiobookReasonCode
   title: string
 }
 
@@ -41,6 +43,14 @@ async function findM4bFiles(directory: string): Promise<string[]> {
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
+}
+
+function getReasonCode(error: unknown): CrawlAudiobookReasonCode {
+  if (error instanceof Error && error.message.includes('is missing required metadata:')) {
+    return 'missing-metadata'
+  }
+
+  return 'validation-failed'
 }
 
 export function registerCrawlAudiobooksCommand(program: Command): void {
@@ -76,6 +86,7 @@ export function registerCrawlAudiobooksCommand(program: Command): void {
                 path,
                 performer: audiobookFile.performer,
                 reason: `${audiobookFile.filename} does not match metadata`,
+                reasonCode: 'filename-mismatch',
                 title: audiobookFile.title,
               }
             }
@@ -87,6 +98,7 @@ export function registerCrawlAudiobooksCommand(program: Command): void {
               path,
               performer: audiobookFile.performer,
               reason: '',
+              reasonCode: 'valid',
               title: audiobookFile.title,
             }
           }
@@ -98,6 +110,7 @@ export function registerCrawlAudiobooksCommand(program: Command): void {
               path,
               performer: '',
               reason: getErrorMessage(error),
+              reasonCode: getReasonCode(error),
               title: '',
             }
           }
