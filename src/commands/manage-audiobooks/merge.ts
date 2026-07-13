@@ -1,14 +1,12 @@
 import type { Command } from 'commander'
 import { parseFile } from 'music-metadata'
-import { spawn } from 'node:child_process'
 import { mkdir, readdir } from 'node:fs/promises'
 import { extname, join, relative, resolve } from 'node:path'
 
 import { parseOutputFormat, pathExists, writeRows } from '../../command-utils.js'
 
 import { readAudiobookFile } from './helpers/audiobook-file.js'
-
-const M4B_TOOL_IMAGE = 'sandreas/m4b-tool:latest'
+import { mergeWithM4bTool, parseM4bToolJobs } from './helpers/m4b-tool.js'
 
 interface AudiobookGroup {
   performer: string
@@ -97,69 +95,6 @@ function destinationFilename(group: AudiobookGroup): string {
   return `${group.performer} - ${group.title}.m4b`
 }
 
-function parseJobs(command: Command, jobsOption: string): number {
-  const jobs = Number(jobsOption)
-
-  if (!Number.isInteger(jobs) || jobs < 1) {
-    command.error('--jobs must be a positive integer')
-  }
-
-  return jobs
-}
-
-async function runM4bTool(sourceDirectory: string, destinationDirectory: string, group: AudiobookGroup, jobs: number): Promise<void> {
-  const uid = process.getuid?.()
-  const gid = process.getgid?.()
-
-  if (uid === undefined || gid === undefined) {
-    throw new Error('m4b-tool conversion requires a POSIX user and group ID')
-  }
-
-  const sourceArguments = group.sourcePaths.map(sourcePath => (
-    `/source/${relative(sourceDirectory, sourcePath)}`
-  ))
-  const destination = `/dest/${destinationFilename(group)}`
-  const dockerArguments = [
-    'run',
-    '--rm',
-    '-u',
-    `${String(uid)}:${String(gid)}`,
-    '-v',
-    `${sourceDirectory}:/source:ro`,
-    '-v',
-    `${destinationDirectory}:/dest`,
-    M4B_TOOL_IMAGE,
-    'merge',
-    '--jobs',
-    String(jobs),
-    '--output-file',
-    destination,
-    '--artist',
-    group.performer,
-    '--name',
-    group.title,
-    '--album',
-    group.title,
-    ...sourceArguments,
-  ]
-
-  await new Promise<void>((resolvePromise, rejectPromise) => {
-    const process = spawn('docker', dockerArguments, { stdio: 'inherit' })
-
-    process.once('error', (error) => {
-      rejectPromise(new Error('Unable to start Docker for m4b-tool conversion', { cause: error }))
-    })
-    process.once('exit', (code, signal) => {
-      if (code === 0) {
-        resolvePromise()
-      }
-      else {
-        rejectPromise(new Error(`m4b-tool conversion failed with ${signal === null ? (code === null ? 'no exit code' : `exit code ${String(code)}`) : `signal ${signal}`}`))
-      }
-    })
-  })
-}
-
 export function registerMergeAudiobooksCommand(program: Command): void {
   const mergeAudiobooksCommand = program
     .command('merge')
@@ -171,7 +106,7 @@ export function registerMergeAudiobooksCommand(program: Command): void {
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
     .action(async (options: MergeOptions) => {
       const outputFormat = parseOutputFormat(mergeAudiobooksCommand, options.format)
-      const jobs = parseJobs(mergeAudiobooksCommand, options.jobs)
+      const jobs = parseM4bToolJobs(mergeAudiobooksCommand, options.jobs)
       const sourceDirectory = resolve(options.sourceDir)
       const destinationDirectory = resolve(options.destDir)
       const groups = await getAudiobookGroups(sourceDirectory)
@@ -203,7 +138,15 @@ export function registerMergeAudiobooksCommand(program: Command): void {
         await mkdir(destinationDirectory, { recursive: true })
 
         for (const group of groups) {
-          await runM4bTool(sourceDirectory, destinationDirectory, group, jobs)
+          await mergeWithM4bTool({
+            destinationDirectory,
+            destinationFilename: destinationFilename(group),
+            jobs,
+            performer: group.performer,
+            sourceDirectory,
+            sourcePaths: group.sourcePaths,
+            title: group.title,
+          })
           const destinationPath = join(destinationDirectory, destinationFilename(group))
           const audiobookFile = await readAudiobookFile(destinationPath)
 

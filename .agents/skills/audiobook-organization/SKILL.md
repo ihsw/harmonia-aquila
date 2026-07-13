@@ -71,6 +71,40 @@ container. `--jobs` is passed to `m4b-tool merge` and defaults to `16`. Merging
 requires Docker and pulls
 `sandreas/m4b-tool:latest` when the image is unavailable locally.
 
+## Convert one audiobook file into M4B
+
+Use `convert-file` for a standalone audiobook file, usually an MP3. It reads
+the embedded `artist` and `album` tags, then produces and validates:
+
+```text
+Performer - Album.m4b
+```
+
+Plan the conversion before writing:
+
+```sh
+harmonia-aquila manage-audiobooks convert-file \
+  --file-name "$AUDIOBOOK_FILE" \
+  --dest-dir "$M4B_STAGE_DIR" \
+  --jobs 16 \
+  --format json
+```
+
+After reviewing its metadata-derived filename, add `--execute`:
+
+```sh
+harmonia-aquila manage-audiobooks convert-file \
+  --file-name "$AUDIOBOOK_FILE" \
+  --dest-dir "$M4B_STAGE_DIR" \
+  --jobs 16 \
+  --execute \
+  --format json
+```
+
+`--jobs` defaults to `16`. The source file is mounted read-only and remains
+unchanged. The command rejects sources without an embedded artist and album,
+and it refuses to overwrite an existing destination.
+
 ## Validate one audiobook
 
 ```sh

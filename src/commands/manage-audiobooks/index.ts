@@ -1,5 +1,6 @@
 import type { Command } from 'commander'
 
+import { registerConvertAudiobookFileCommand } from './convert-file.js'
 import { registerCopyAndRenameAudiobookCommand } from './copy-and-rename.js'
 import { registerCrawlAudiobooksCommand } from './crawl.js'
 import { registerMergeAudiobooksCommand } from './merge.js'
@@ -14,4 +15,5 @@ export function registerManageAudiobooksCommand(program: Command): void {
   registerCopyAndRenameAudiobookCommand(manageAudiobooksCommand)
   registerCrawlAudiobooksCommand(manageAudiobooksCommand)
   registerMergeAudiobooksCommand(manageAudiobooksCommand)
+  registerConvertAudiobookFileCommand(manageAudiobooksCommand)
 }
