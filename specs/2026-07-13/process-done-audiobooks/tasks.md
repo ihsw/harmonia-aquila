@@ -17,52 +17,52 @@
 
 ### 1.1 Establish the current state
 
-- [ ] Run `npm run build` and `npm run lint`; stop on a new failure.
-- [ ] Re-run the metadata audit and confirm the §2 action manifests still
+- [x] Run `npm run build` and `npm run lint`; stop on a new failure.
+- [x] Re-run the metadata audit and confirm the §2 action manifests still
       match, including zero `convert-file` candidates.
-- [ ] Confirm every listed destination is absent before its execution.
+- [x] Confirm every listed destination is absent before its execution.
 
 ## Phase 2 — Copy unique M4Bs
 
 ### 2.1 Process the §2.1 manifest
 
-- [ ] For every one of the 16 §2.1 sources, run and save the
+- [x] For every one of the 16 §2.1 sources, run and save the
       `copy-and-rename` dry-run JSON.
-- [ ] Compare each dry-run destination to the manifest; stop on a mismatch.
-- [ ] Execute each successful copy without overwrite behavior and save JSON.
-- [ ] Validate every copied destination and save its JSON result.
+- [x] Compare each dry-run destination to the manifest; stop on a mismatch.
+- [x] Execute each successful copy without overwrite behavior and save JSON.
+- [x] Validate every copied destination and save its JSON result.
 
-## Phase 3 — Merge MP3 sets
+## Phase 3 — Merge M4B and MP3 sets
 
 ### 3.1 Process the §2.2 manifest
 
-- [ ] For every one of the five §2.2 directories, run and save the
+- [x] For every one of the five §2.2 directories, run and save the
       `merge --jobs 4` dry-run JSON.
-- [ ] Compare each destination to the manifest; stop on a mismatch.
-- [ ] Execute each approved merge and save JSON; stop processing that set on a
+- [x] Compare each destination to the manifest; stop on a mismatch.
+- [x] Execute each approved merge and save JSON; stop processing that set on a
       failure.
-- [ ] Validate every merged M4B and save its JSON result.
+- [x] Validate every merged M4B and save its JSON result.
 
 ## Phase 4 — Preserve unsuitable inputs
 
 ### 4.1 Confirm exclusions
 
-- [ ] Do not run an action on any missing-metadata input in §2.4.
-- [ ] Confirm all 38 missing-metadata files remain in their source paths.
+- [x] Do not run an action on any missing-metadata input in §2.4.
+- [x] Confirm all 38 missing-metadata files remain in their source paths.
 
 ## Phase 5 — Copy already-valid M4Bs
 
 ### 5.1 Copy and validate the §2.4 valid sources
 
-- [ ] For each already-valid M4B in §2.4, confirm the same-named destination
+- [x] For each already-valid M4B in §2.4, confirm the same-named destination
       is absent, then run the documented `cp --no-clobber --preserve=all`
       command.
-- [ ] Validate both copied destinations and save their JSON results.
+- [x] Validate both copied destinations and save their JSON results.
 
 ## Phase 6 — Closeout
 
 ### 5.1 Confirm and retain evidence
 
-- [ ] Confirm 23 new destinations exist and validate successfully.
-- [ ] Confirm all source files remain in `etc/audiobooks/1-source-files/done/`.
-- [ ] Retain audit, dry-run, execution, and validation JSON records for review.
+- [x] Confirm 23 new destinations exist and validate successfully.
+- [x] Confirm all source files remain in `etc/audiobooks/1-source-files/done/`.
+- [x] Retain audit, dry-run, execution, and validation JSON records for review.
