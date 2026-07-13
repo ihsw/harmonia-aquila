@@ -1,5 +1,6 @@
 import type { Command } from 'commander'
 
+import { registerCopyAndRenameAudiobookCommand } from './manage-audiobooks/copy-and-rename.js'
 import { registerValidateAudiobookCommand } from './manage-audiobooks/validate.js'
 
 export function registerManageAudiobooksCommand(program: Command): void {
@@ -8,4 +9,5 @@ export function registerManageAudiobooksCommand(program: Command): void {
     .description('Manage audiobook files')
 
   registerValidateAudiobookCommand(manageAudiobooksCommand)
+  registerCopyAndRenameAudiobookCommand(manageAudiobooksCommand)
 }

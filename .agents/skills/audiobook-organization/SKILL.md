@@ -43,6 +43,33 @@ A successful JSON result contains `filename`, `performer`, `title`, and
 or move it until the metadata or filename discrepancy is deliberately
 resolved.
 
+## Copy a metadata-derived filename
+
+For an M4B with complete metadata but an invalid filename, plan a copy into a
+separate staging directory:
+
+```sh
+harmonia-aquila manage-audiobooks copy-and-rename \
+  --file-name "$AUDIOBOOK_FILE" \
+  --dest-dir "$STAGING_DIR" \
+  --format json
+```
+
+The dry run reports the destination `Performer - Title.m4b` name. Add
+`--execute` only after reviewing it:
+
+```sh
+harmonia-aquila manage-audiobooks copy-and-rename \
+  --file-name "$AUDIOBOOK_FILE" \
+  --dest-dir "$STAGING_DIR" \
+  --execute \
+  --format json
+```
+
+This command refuses source files that already have a valid filename and
+refuses to overwrite an existing destination. It always preserves the source
+file.
+
 ## Batch validation workflow
 
 1. Preserve the original audiobook tree as read-only and create separate

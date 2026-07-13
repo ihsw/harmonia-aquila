@@ -1,9 +1,8 @@
 import type { Command } from 'commander'
-import { parseFile } from 'music-metadata'
-import { stat } from 'node:fs/promises'
-import { basename, extname, resolve } from 'node:path'
 
 import { parseOutputFormat, writeRows } from '../../command-utils.js'
+
+import { getAudiobookFile } from './audiobook-file.js'
 
 export interface ValidateAudiobookJsonOutputRow {
   filename: string
@@ -22,41 +21,16 @@ export function registerValidateAudiobookCommand(program: Command): void {
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
     .action(async (options: { fileName: string, format?: string }) => {
       const outputFormat = parseOutputFormat(validateAudiobookCommand, options.format)
-      const filePath = resolve(options.fileName)
-      const filename = basename(filePath)
+      const audiobookFile = await getAudiobookFile(validateAudiobookCommand, options.fileName)
 
-      if (extname(filename).toLowerCase() !== '.m4b') {
-        validateAudiobookCommand.error(`"${options.fileName}" must be an M4B file`)
-      }
-
-      const fileStats = await stat(filePath)
-
-      if (!fileStats.isFile()) {
-        validateAudiobookCommand.error(`"${options.fileName}" is not a file`)
-      }
-
-      const metadata = await parseFile(filePath)
-      const performer = metadata.common.artist ?? ''
-      const title = metadata.common.title ?? ''
-      const missingFields = [
-        performer === '' ? 'performer' : undefined,
-        title === '' ? 'title' : undefined,
-      ].filter((field): field is string => field !== undefined)
-
-      if (missingFields.length > 0) {
-        validateAudiobookCommand.error(`${filename} is missing required metadata: ${missingFields.join(', ')}`)
-      }
-
-      const expectedFilename = `${performer} - ${title}.m4b`
-
-      if (filename !== expectedFilename) {
-        validateAudiobookCommand.error(`${filename} does not match metadata; expected "${expectedFilename}"`)
+      if (audiobookFile.filename !== audiobookFile.expectedFilename) {
+        validateAudiobookCommand.error(`${audiobookFile.filename} does not match metadata; expected "${audiobookFile.expectedFilename}"`)
       }
 
       const rows: ValidateAudiobookJsonOutput = [{
-        filename,
-        performer,
-        title,
+        filename: audiobookFile.filename,
+        performer: audiobookFile.performer,
+        title: audiobookFile.title,
         valid: true,
       }]
 
