@@ -22,18 +22,19 @@
 - [ ] Confirm none of the 19 expected destination filenames already exists in
       `etc/audiobooks/3-renamed-files/`.
 
-## Phase 2 — Convert each manifest row
+## Phase 2 — Convert the four-way batch
 
-### 2.1 Process one audiobook at a time
+### 2.1 Dry run and execute all listed sources
 
-- [ ] For each row in `design.md` §2, set `SOURCE` to the exact source path and
-      run the dry-run command from `design.md` §3. Save the JSON output.
-- [ ] Compare the dry-run `destination`, `performer`, and `title` to the
-      manifest; stop if any value differs.
-- [ ] Rerun that same command with `--execute`; save the JSON output before
-      proceeding to the next row.
-- [ ] Run the corresponding `validate` command from `design.md` §3 and save
-      its JSON result. Stop if `valid` is not `true`.
+- [ ] Run the complete 19-file dry-run command from `design.md` §3 with
+      `--concurrency 4`; save its JSON output.
+- [ ] Compare all 19 dry-run `destination`, `performer`, and `title` values to
+      the manifest; stop if any value differs.
+- [ ] Rerun that exact 19-file command with `--execute`; save the JSON output.
+      Stop and preserve output for review if the batch reports any failure.
+- [ ] After a successful batch, run the validation command from `design.md` §3
+      for every expected destination and save each JSON result. Stop if any
+      result has `valid` other than `true`.
 
 > Note: the source filename `Graham Greene - The Confidential Agent .mp3`
 > intentionally contains a trailing space before `.mp3`; its expected

@@ -36,17 +36,18 @@ source file or overwriting an existing destination.
 
 ## 4. Functional Requirements
 
-- **FR-1** The workflow MUST use `manage-audiobooks convert-file` with
-  `--jobs 4` for each listed source MP3.
-- **FR-2** Each source MUST first complete a successful dry run whose reported
-  `would convert` destination matches the manifest in `design.md`.
-- **FR-3** Each successful dry run MUST be rerun with `--execute` to create its
-  M4B in `etc/audiobooks/3-renamed-files/`.
+- **FR-1** The workflow MUST pass all 19 listed source MP3s as repeated
+  `--file-name` options to one `manage-audiobooks convert-file` invocation
+  with `--jobs 4` and `--concurrency 4`.
+- **FR-2** The batch MUST first complete a successful dry run whose 19
+  `would convert` rows match the manifest in `design.md`.
+- **FR-3** The successful dry-run command MUST be rerun with `--execute` to
+  create its M4Bs in `etc/audiobooks/3-renamed-files/`.
 - **FR-4** Each created M4B MUST pass `manage-audiobooks validate` immediately
   after conversion.
-- **FR-5** The workflow MUST stop at the first dry-run, conversion, or
-  validation failure; it MUST NOT process later rows until the failure is
-  reviewed.
+- **FR-5** A failed dry run MUST prevent execution. If the parallel execution
+  reports any failed conversion, the workflow MUST stop before validation and
+  retain all created destinations for review.
 - **FR-6** The source MP3s MUST remain present and unmodified.
 
 ## 5. Non-Functional Requirements
