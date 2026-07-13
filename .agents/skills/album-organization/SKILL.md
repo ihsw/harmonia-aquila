@@ -15,12 +15,18 @@ Harmonia Aquila works on one flat source directory at a time and supports `.flac
 
 Prefer JSON output for large collections because it can be saved, diffed, queried, and checked for duplicate songs before anything is copied or changed.
 
+All album operations use the `manage-albums` supercommand. Invoke them as
+`harmonia-aquila manage-albums <subcommand>`; the former root-level command
+paths are no longer supported.
+
 ## Core commands
 
 ### Inspect a candidate album folder
 
 ```sh
-harmonia-aquila summarize-source-dir --dir-name "$SOURCE_DIR" --format json
+harmonia-aquila manage-albums summarize-source-dir \
+  --dir-name "$SOURCE_DIR" \
+  --format json
 ```
 
 Use this before copying or fixing tags. Review:
@@ -35,7 +41,7 @@ For very large batches, use `--limit <count>` during initial probing, then rerun
 ### Normalize album tags into a clean staging destination
 
 ```sh
-harmonia-aquila fix-tags \
+harmonia-aquila manage-albums fix-tags \
   --source-dir "$SOURCE_DIR" \
   --dest-dir "$TAGGED_STAGE_DIR" \
   --album-strategy grouping \
@@ -58,7 +64,7 @@ Useful strategies:
 ### Organize clean files into the final folder structure
 
 ```sh
-harmonia-aquila organize-files \
+harmonia-aquila manage-albums organize-files \
   --source-dir "$TAGGED_STAGE_DIR" \
   --dest-dir "$ORGANIZED_DIR" \
   --artist-filename-strategy artist \
@@ -86,16 +92,16 @@ Add `--execute` only after the planned destinations are collision-free and human
 
 1. Create working directories outside the original source, for example `audit/`, `tagged-stage/`, `organized/`, and `quarantine/`.
 2. Split the large folder into candidate album folders that contain only `.flac` and `.mp3` files.
-3. Run `summarize-source-dir --format json` for each candidate and save the output with the batch name.
+3. Run `harmonia-aquila manage-albums summarize-source-dir --format json` for each candidate and save the output with the batch name.
 4. Identify duplicates before copying:
    - Same normalized `trackNumber` plus same or similar `title`.
    - Same `title` with different extension, bitrate, or sample rate.
    - Same song appearing under `title` in one file and `subtitle` in another.
-   - Same destination predicted by `organize-files`.
+   - Same destination predicted by `harmonia-aquila manage-albums organize-files`.
 5. Prefer the highest-quality complete copy when duplicates conflict. Usually prefer FLAC over MP3, higher bitrate over lower bitrate, and complete metadata over blank metadata.
 6. Quarantine uncertain duplicates instead of deleting them.
-7. Use `fix-tags` into a staging directory to normalize album-level metadata.
-8. Use `organize-files` from staging into the final organized directory.
+7. Use `harmonia-aquila manage-albums fix-tags` into a staging directory to normalize album-level metadata.
+8. Use `harmonia-aquila manage-albums organize-files` from staging into the final organized directory.
 9. Keep command JSON outputs as audit artifacts until the organized library has been reviewed.
 
 ## Safety rules
@@ -104,7 +110,7 @@ Add `--execute` only after the planned destinations are collision-free and human
 - Never use the original messy folder as the destination.
 - Resolve duplicate destination errors deliberately; do not work around them with overwrite behavior.
 - Preserve excluded or suspicious files in quarantine until a human review is complete.
-- If metadata is too incomplete for `organize-files`, repair tags first rather than inventing filenames from partial data.
+- If metadata is too incomplete for `harmonia-aquila manage-albums organize-files`, repair tags first rather than inventing filenames from partial data.
 
 ## Expected outcome
 
