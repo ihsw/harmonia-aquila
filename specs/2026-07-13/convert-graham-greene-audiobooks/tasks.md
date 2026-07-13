@@ -17,22 +17,22 @@
 
 ### 1.1 Confirm the executable baseline
 
-- [ ] Run `npm run build` and `npm run lint`; stop on any new failure.
-- [ ] Confirm the 19 source MP3s in `design.md` §2 exist.
-- [ ] Confirm none of the 19 expected destination filenames already exists in
+- [x] Run `npm run build` and `npm run lint`; stop on any new failure.
+- [x] Confirm the 19 source MP3s in `design.md` §2 exist.
+- [x] Confirm none of the 19 expected destination filenames already exists in
       `etc/audiobooks/3-renamed-files/`.
 
 ## Phase 2 — Convert the four-way batch
 
 ### 2.1 Dry run and execute all listed sources
 
-- [ ] Run the complete 19-file dry-run command from `design.md` §3 with
+- [x] Run the complete 19-file dry-run command from `design.md` §3 with
       `--concurrency 4`; save its JSON output.
-- [ ] Compare all 19 dry-run `destination`, `performer`, and `title` values to
+- [x] Compare all 19 dry-run `destination`, `performer`, and `title` values to
       the manifest; stop if any value differs.
-- [ ] Rerun that exact 19-file command with `--execute`; save the JSON output.
+- [x] Rerun that exact 19-file command with `--execute`; save the JSON output.
       Stop and preserve output for review if the batch reports any failure.
-- [ ] After a successful batch, run the validation command from `design.md` §3
+- [x] After a successful batch, run the validation command from `design.md` §3
       for every expected destination and save each JSON result. Stop if any
       result has `valid` other than `true`.
 
@@ -44,7 +44,7 @@
 
 ### 3.1 Confirm outcomes and preserve evidence
 
-- [ ] Confirm all 19 expected M4B destinations from `design.md` §2 exist.
-- [ ] Confirm all 19 source MP3s remain in place.
-- [ ] Retain the dry-run, execution, and validation JSON outputs for human
+- [x] Confirm all 19 expected M4B destinations from `design.md` §2 exist.
+- [x] Confirm all 19 source MP3s remain in place.
+- [x] Retain the dry-run, execution, and validation JSON outputs for human
       review (NFR-4).
