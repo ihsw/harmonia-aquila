@@ -1,38 +1,41 @@
 import type { Command } from 'commander'
 import { parseFile } from 'music-metadata'
-import { stat } from 'node:fs/promises'
+import { constants } from 'node:fs'
+import { copyFile, mkdir, stat } from 'node:fs/promises'
 import { basename, dirname, extname, resolve } from 'node:path'
 
-import { parseOutputFormat, writeRows } from '../../command-utils.js'
+import { parseOutputFormat, pathExists, writeRows } from '../../command-utils.js'
 
 import { setM4bToolMetadata } from './helpers/m4b-tool.js'
 
 interface SetMetadataOptions {
   author: string
+  destFilepath: string
   execute?: boolean
-  fileName: string
   format?: string
   narrator?: string
+  sourceFilepath: string
   title: string
 }
 
 interface SetMetadataRow {
   action: 'set metadata' | 'would set metadata'
   author: string
-  filename: string
+  destination: string
   narrator: string
+  source: string
   title: string
 }
 
-async function getM4bSourcePath(fileName: string): Promise<string> {
-  const sourcePath = resolve(fileName)
+async function getM4bFilePath(filePath: string): Promise<string> {
+  const sourcePath = resolve(filePath)
 
   if (extname(sourcePath).toLowerCase() !== '.m4b') {
-    throw new Error(`"${fileName}" must be an M4B file`)
+    throw new Error(`"${filePath}" must be an M4B file`)
   }
 
   if (!(await stat(sourcePath)).isFile()) {
-    throw new Error(`"${fileName}" is not a file`)
+    throw new Error(`"${filePath}" is not a file`)
   }
 
   return sourcePath
@@ -53,8 +56,9 @@ async function assertMetadataWasSet(sourcePath: string, author: string, narrator
 export function registerSetAudiobookMetadataCommand(program: Command): void {
   const setMetadataCommand = program
     .command('set-metadata')
-    .description('Set missing M4B audiobook metadata')
-    .requiredOption('--file-name <fileName>', 'M4B file whose metadata to set')
+    .description('Copy an M4B and set missing metadata on the copy')
+    .requiredOption('--source-filepath <sourceFilepath>', 'source M4B file to preserve')
+    .requiredOption('--dest-filepath <destFilepath>', 'new M4B file to receive metadata')
     .requiredOption('--title <title>', 'audiobook title; stored as album metadata')
     .requiredOption('--author <author>', 'audiobook author; stored as artist metadata')
     .option('--narrator <narrator>', 'audiobook narrator; stored as writer metadata')
@@ -62,32 +66,48 @@ export function registerSetAudiobookMetadataCommand(program: Command): void {
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
     .action(async (options: SetMetadataOptions) => {
       const outputFormat = parseOutputFormat(setMetadataCommand, options.format)
-      const sourcePath = await getM4bSourcePath(options.fileName)
+      const sourcePath = await getM4bFilePath(options.sourceFilepath)
+      const destinationPath = resolve(options.destFilepath)
       const narrator = options.narrator ?? options.author
 
+      if (sourcePath === destinationPath) {
+        setMetadataCommand.error('--dest-filepath must differ from --source-filepath')
+      }
+
+      if (extname(destinationPath).toLowerCase() !== '.m4b') {
+        setMetadataCommand.error(`"${options.destFilepath}" must be an M4B file`)
+      }
+
+      if (await pathExists(destinationPath)) {
+        setMetadataCommand.error(`Destination file already exists: ${basename(destinationPath)}`)
+      }
+
       if (options.execute === true) {
+        await mkdir(dirname(destinationPath), { recursive: true })
+        await copyFile(sourcePath, destinationPath, constants.COPYFILE_EXCL)
         await setM4bToolMetadata({
           author: options.author,
           narrator,
-          sourceDirectory: dirname(sourcePath),
-          sourcePath,
+          sourceDirectory: dirname(destinationPath),
+          sourcePath: destinationPath,
           title: options.title,
         })
-        await assertMetadataWasSet(sourcePath, options.author, narrator, options.title)
+        await assertMetadataWasSet(destinationPath, options.author, narrator, options.title)
       }
 
       const rows: SetMetadataRow[] = [{
         action: options.execute === true ? 'set metadata' : 'would set metadata',
         author: options.author,
-        filename: basename(sourcePath),
+        destination: basename(destinationPath),
         narrator,
+        source: basename(sourcePath),
         title: options.title,
       }]
 
       writeRows(
         outputFormat,
         rows,
-        options.execute === true ? undefined : 'Dry run: no metadata was changed. Pass --execute to run m4b-tool.',
+        options.execute === true ? undefined : 'Dry run: no files or metadata were changed. Pass --execute to run m4b-tool.',
       )
     })
 }

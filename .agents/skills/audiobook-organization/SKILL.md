@@ -124,7 +124,8 @@ Review the intended mapping before writing:
 
 ```sh
 harmonia-aquila manage-audiobooks set-metadata \
-  --file-name "$AUDIOBOOK_FILE" \
+  --source-filepath "$SOURCE_M4B" \
+  --dest-filepath "$DESTINATION_M4B" \
   --title "$TITLE" \
   --author "$AUTHOR" \
   --format json
@@ -134,7 +135,8 @@ Add `--execute` only after review:
 
 ```sh
 harmonia-aquila manage-audiobooks set-metadata \
-  --file-name "$AUDIOBOOK_FILE" \
+  --source-filepath "$SOURCE_M4B" \
+  --dest-filepath "$DESTINATION_M4B" \
   --title "$TITLE" \
   --author "$AUTHOR" \
   --narrator "$NARRATOR" \
@@ -142,9 +144,11 @@ harmonia-aquila manage-audiobooks set-metadata \
   --format json
 ```
 
-The command writes the source M4B in place. It confirms the resulting album,
-artist, and writer metadata, but it does not rename the file; use
-`copy-and-rename` afterward when a metadata-derived filename is needed.
+The command creates the destination with exclusive copy semantics, then writes
+metadata only to that copy. It preserves the source M4B and refuses to
+overwrite an existing destination. It confirms the resulting album, artist,
+and writer metadata, but it does not derive a filename; provide the intended
+destination pathname explicitly.
 
 ## Validate one audiobook
 
