@@ -1,7 +1,7 @@
 import type { Command } from 'commander'
 import { parseFile } from 'music-metadata'
 import { mkdir, readdir } from 'node:fs/promises'
-import { extname, join, relative, resolve } from 'node:path'
+import { basename, extname, join, relative, resolve } from 'node:path'
 
 import { parseOutputFormat, pathExists, writeRows } from '../../command-utils.js'
 
@@ -11,20 +11,25 @@ import { mergeWithM4bTool, parseM4bToolJobs } from './helpers/m4b-tool.js'
 const MERGEABLE_AUDIO_EXTENSIONS = new Set(['.m4b', '.mp3'])
 
 interface AudiobookGroup {
-  performer: string
+  destinationFilename: string
+  metadata?: {
+    performer: string
+    title: string
+  }
   sourcePaths: string[]
-  title: string
 }
 
 interface MergeAudiobookRow {
   action: 'merged' | 'would merge'
   destination: string
-  performer: string
+  metadataBypassed: boolean
+  performer: string | null
   sourceFiles: number
-  title: string
+  title: string | null
 }
 
 interface MergeOptions {
+  bypassMetadata?: boolean
   destDir: string
   execute?: boolean
   format?: string
@@ -54,13 +59,21 @@ async function findMergeableAudiobookFiles(directory: string): Promise<string[]>
   return files
 }
 
-async function getAudiobookGroups(sourceDirectory: string): Promise<AudiobookGroup[]> {
-  const groups = new Map<string, AudiobookGroup>()
+async function getAudiobookGroups(sourceDirectory: string, bypassMetadata: boolean): Promise<AudiobookGroup[]> {
   const audiobookFiles = await findMergeableAudiobookFiles(sourceDirectory)
 
   if (audiobookFiles.length === 0) {
     throw new Error(`"${sourceDirectory}" contains no M4B or MP3 files`)
   }
+
+  if (bypassMetadata) {
+    return [{
+      destinationFilename: `${basename(sourceDirectory)}.m4b`,
+      sourcePaths: audiobookFiles,
+    }]
+  }
+
+  const groups = new Map<string, AudiobookGroup>()
 
   for (const sourcePath of audiobookFiles) {
     const metadata = await parseFile(sourcePath)
@@ -80,7 +93,11 @@ async function getAudiobookGroups(sourceDirectory: string): Promise<AudiobookGro
     const group = groups.get(groupKey)
 
     if (group === undefined) {
-      groups.set(groupKey, { performer, sourcePaths: [sourcePath], title })
+      groups.set(groupKey, {
+        destinationFilename: `${performer} - ${title}.m4b`,
+        metadata: { performer, title },
+        sourcePaths: [sourcePath],
+      })
     }
     else {
       group.sourcePaths.push(sourcePath)
@@ -88,22 +105,22 @@ async function getAudiobookGroups(sourceDirectory: string): Promise<AudiobookGro
   }
 
   return [...groups.values()].sort((left, right) => (
-    left.performer.localeCompare(right.performer)
-    || left.title.localeCompare(right.title)
+    left.destinationFilename.localeCompare(right.destinationFilename)
   ))
 }
 
 function destinationFilename(group: AudiobookGroup): string {
-  return `${group.performer} - ${group.title}.m4b`
+  return group.destinationFilename
 }
 
 export function registerMergeAudiobooksCommand(program: Command): void {
   const mergeAudiobooksCommand = program
     .command('merge')
-    .description('Merge M4B or MP3 audiobook groups into metadata-named M4B files')
+    .description('Merge M4B or MP3 audiobook groups into M4B files')
     .requiredOption('--source-dir <sourceDir>', 'directory to recursively scan for M4B or MP3 audiobook files')
     .requiredOption('--dest-dir <destDir>', 'directory for converted M4B files')
     .option('--jobs <jobs>', 'm4b-tool merge jobs per audiobook', '16')
+    .option('--bypass-metadata', 'merge all source files into one source-folder-named M4B without metadata checks')
     .option('--execute', 'run m4b-tool merges')
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
     .action(async (options: MergeOptions) => {
@@ -111,7 +128,7 @@ export function registerMergeAudiobooksCommand(program: Command): void {
       const jobs = parseM4bToolJobs(mergeAudiobooksCommand, options.jobs)
       const sourceDirectory = resolve(options.sourceDir)
       const destinationDirectory = resolve(options.destDir)
-      const groups = await getAudiobookGroups(sourceDirectory)
+      const groups = await getAudiobookGroups(sourceDirectory, options.bypassMetadata === true)
       const destinations = new Set<string>()
 
       for (const group of groups) {
@@ -131,9 +148,10 @@ export function registerMergeAudiobooksCommand(program: Command): void {
       const rows: MergeAudiobookRow[] = groups.map(group => ({
         action: options.execute === true ? 'merged' : 'would merge',
         destination: destinationFilename(group),
-        performer: group.performer,
+        metadataBypassed: group.metadata === undefined,
+        performer: group.metadata?.performer ?? null,
         sourceFiles: group.sourcePaths.length,
-        title: group.title,
+        title: group.metadata?.title ?? null,
       }))
 
       if (options.execute === true) {
@@ -144,16 +162,23 @@ export function registerMergeAudiobooksCommand(program: Command): void {
             destinationDirectory,
             destinationFilename: destinationFilename(group),
             jobs,
-            performer: group.performer,
             sourceDirectory,
             sourcePaths: group.sourcePaths,
-            title: group.title,
+            ...(group.metadata === undefined
+              ? {}
+              : {
+                  performer: group.metadata.performer,
+                  title: group.metadata.title,
+                }),
           })
-          const destinationPath = join(destinationDirectory, destinationFilename(group))
-          const audiobookFile = await readAudiobookFile(destinationPath)
 
-          if (audiobookFile.filename !== audiobookFile.expectedFilename) {
-            throw new Error(`${audiobookFile.filename} does not match metadata; expected "${audiobookFile.expectedFilename}"`)
+          if (group.metadata !== undefined) {
+            const destinationPath = join(destinationDirectory, destinationFilename(group))
+            const audiobookFile = await readAudiobookFile(destinationPath)
+
+            if (audiobookFile.filename !== audiobookFile.expectedFilename) {
+              throw new Error(`${audiobookFile.filename} does not match metadata; expected "${audiobookFile.expectedFilename}"`)
+            }
           }
         }
       }

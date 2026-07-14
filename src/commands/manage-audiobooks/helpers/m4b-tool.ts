@@ -8,10 +8,10 @@ export interface M4bToolMergeOptions {
   destinationDirectory: string
   destinationFilename: string
   jobs: number
-  performer: string
+  performer?: string
   sourceDirectory: string
   sourcePaths: readonly string[]
-  title: string
+  title?: string
 }
 
 export interface M4bToolMetadataOptions {
@@ -93,12 +93,16 @@ export async function mergeWithM4bTool(options: M4bToolMergeOptions): Promise<vo
     String(options.jobs),
     '--output-file',
     `/dest/${options.destinationFilename}`,
-    '--artist',
-    options.performer,
-    '--name',
-    options.title,
-    '--album',
-    options.title,
+    ...(options.performer === undefined || options.title === undefined
+      ? []
+      : [
+          '--artist',
+          options.performer,
+          '--name',
+          options.title,
+          '--album',
+          options.title,
+        ]),
     ...sourceArguments,
   ]
 
