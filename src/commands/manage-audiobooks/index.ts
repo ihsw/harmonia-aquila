@@ -4,6 +4,7 @@ import { registerConvertAudiobookFileCommand } from './convert-file.js'
 import { registerCopyAndRenameAudiobookCommand } from './copy-and-rename.js'
 import { registerCrawlAudiobooksCommand } from './crawl.js'
 import { registerMergeAudiobooksCommand } from './merge.js'
+import { registerSetAudiobookMetadataCommand } from './set-metadata.js'
 import { registerValidateAudiobookCommand } from './validate.js'
 
 export function registerManageAudiobooksCommand(program: Command): void {
@@ -16,4 +17,5 @@ export function registerManageAudiobooksCommand(program: Command): void {
   registerCrawlAudiobooksCommand(manageAudiobooksCommand)
   registerMergeAudiobooksCommand(manageAudiobooksCommand)
   registerConvertAudiobookFileCommand(manageAudiobooksCommand)
+  registerSetAudiobookMetadataCommand(manageAudiobooksCommand)
 }

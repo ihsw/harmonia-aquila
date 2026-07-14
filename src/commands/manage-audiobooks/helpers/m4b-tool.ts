@@ -14,6 +14,14 @@ export interface M4bToolMergeOptions {
   title: string
 }
 
+export interface M4bToolMetadataOptions {
+  author: string
+  narrator: string
+  sourceDirectory: string
+  sourcePath: string
+  title: string
+}
+
 export function parseM4bToolJobs(command: Command, jobsOption: string): number {
   const jobs = Number(jobsOption)
 
@@ -24,41 +32,7 @@ export function parseM4bToolJobs(command: Command, jobsOption: string): number {
   return jobs
 }
 
-export async function mergeWithM4bTool(options: M4bToolMergeOptions): Promise<void> {
-  const uid = process.getuid?.()
-  const gid = process.getgid?.()
-
-  if (uid === undefined || gid === undefined) {
-    throw new Error('m4b-tool conversion requires a POSIX user and group ID')
-  }
-
-  const sourceArguments = options.sourcePaths.map(sourcePath => (
-    `/source/${relative(options.sourceDirectory, sourcePath)}`
-  ))
-  const dockerArguments = [
-    'run',
-    '--rm',
-    '-u',
-    `${String(uid)}:${String(gid)}`,
-    '-v',
-    `${options.sourceDirectory}:/source:ro`,
-    '-v',
-    `${options.destinationDirectory}:/dest`,
-    M4B_TOOL_IMAGE,
-    'merge',
-    '--jobs',
-    String(options.jobs),
-    '--output-file',
-    `/dest/${options.destinationFilename}`,
-    '--artist',
-    options.performer,
-    '--name',
-    options.title,
-    '--album',
-    options.title,
-    ...sourceArguments,
-  ]
-
+async function runM4bTool(dockerArguments: string[]): Promise<void> {
   await new Promise<void>((resolvePromise, rejectPromise) => {
     const childProcess = spawn('docker', dockerArguments, { stdio: ['ignore', 'pipe', 'pipe'] })
     let standardOutput = ''
@@ -83,8 +57,72 @@ export async function mergeWithM4bTool(options: M4bToolMergeOptions): Promise<vo
           ? (code === null ? 'no exit code' : `exit code ${String(code)}`)
           : `signal ${signal}`
         const output = `${standardOutput}${standardError}`.trim()
-        rejectPromise(new Error(`m4b-tool conversion failed with ${processResult}${output === '' ? '' : `: ${output}`}`))
+        rejectPromise(new Error(`m4b-tool operation failed with ${processResult}${output === '' ? '' : `: ${output}`}`))
       }
     })
   })
+}
+
+function getM4bToolUser(): string {
+  const uid = process.getuid?.()
+  const gid = process.getgid?.()
+
+  if (uid === undefined || gid === undefined) {
+    throw new Error('m4b-tool requires a POSIX user and group ID')
+  }
+
+  return `${String(uid)}:${String(gid)}`
+}
+
+export async function mergeWithM4bTool(options: M4bToolMergeOptions): Promise<void> {
+  const sourceArguments = options.sourcePaths.map(sourcePath => (
+    `/source/${relative(options.sourceDirectory, sourcePath)}`
+  ))
+  const dockerArguments = [
+    'run',
+    '--rm',
+    '-u',
+    getM4bToolUser(),
+    '-v',
+    `${options.sourceDirectory}:/source:ro`,
+    '-v',
+    `${options.destinationDirectory}:/dest`,
+    M4B_TOOL_IMAGE,
+    'merge',
+    '--jobs',
+    String(options.jobs),
+    '--output-file',
+    `/dest/${options.destinationFilename}`,
+    '--artist',
+    options.performer,
+    '--name',
+    options.title,
+    '--album',
+    options.title,
+    ...sourceArguments,
+  ]
+
+  await runM4bTool(dockerArguments)
+}
+
+export async function setM4bToolMetadata(options: M4bToolMetadataOptions): Promise<void> {
+  const dockerArguments = [
+    'run',
+    '--rm',
+    '-u',
+    getM4bToolUser(),
+    '-v',
+    `${options.sourceDirectory}:/source`,
+    M4B_TOOL_IMAGE,
+    'meta',
+    `/source/${relative(options.sourceDirectory, options.sourcePath)}`,
+    '--album',
+    options.title,
+    '--artist',
+    options.author,
+    '--writer',
+    options.narrator,
+  ]
+
+  await runM4bTool(dockerArguments)
 }

@@ -114,6 +114,38 @@ read-only and remain unchanged. The command rejects sources without an embedded
 artist and album, duplicate metadata-derived destinations, and existing
 destinations.
 
+## Set missing M4B metadata
+
+Use `set-metadata` only when the required metadata has been deliberately
+established. It writes the title as `album`, author as `artist`, and narrator
+as `writer`. When `--narrator` is omitted, its value defaults to `--author`.
+
+Review the intended mapping before writing:
+
+```sh
+harmonia-aquila manage-audiobooks set-metadata \
+  --file-name "$AUDIOBOOK_FILE" \
+  --title "$TITLE" \
+  --author "$AUTHOR" \
+  --format json
+```
+
+Add `--execute` only after review:
+
+```sh
+harmonia-aquila manage-audiobooks set-metadata \
+  --file-name "$AUDIOBOOK_FILE" \
+  --title "$TITLE" \
+  --author "$AUTHOR" \
+  --narrator "$NARRATOR" \
+  --execute \
+  --format json
+```
+
+The command writes the source M4B in place. It confirms the resulting album,
+artist, and writer metadata, but it does not rename the file; use
+`copy-and-rename` afterward when a metadata-derived filename is needed.
+
 ## Validate one audiobook
 
 ```sh
