@@ -1,12 +1,11 @@
 import type { Command } from 'commander'
 import { parseFile } from 'music-metadata'
+import { File } from 'node-taglib-sharp'
 import { constants } from 'node:fs'
 import { copyFile, mkdir, stat } from 'node:fs/promises'
 import { basename, dirname, extname, resolve } from 'node:path'
 
 import { parseOutputFormat, pathExists, writeRows } from '../../command-utils.js'
-
-import { setM4bToolMetadata } from './helpers/m4b-tool.js'
 
 interface SetMetadataOptions {
   author: string
@@ -53,6 +52,20 @@ async function assertMetadataWasSet(sourcePath: string, author: string, narrator
   }
 }
 
+function writeMetadata(filePath: string, author: string, narrator: string, title: string): void {
+  const audioFile = File.createFromPath(filePath)
+
+  try {
+    audioFile.tag.album = title
+    audioFile.tag.composers = [narrator]
+    audioFile.tag.performers = [author]
+    audioFile.save()
+  }
+  finally {
+    audioFile.dispose()
+  }
+}
+
 export function registerSetAudiobookMetadataCommand(program: Command): void {
   const setMetadataCommand = program
     .command('set-metadata')
@@ -85,13 +98,7 @@ export function registerSetAudiobookMetadataCommand(program: Command): void {
       if (options.execute === true) {
         await mkdir(dirname(destinationPath), { recursive: true })
         await copyFile(sourcePath, destinationPath, constants.COPYFILE_EXCL)
-        await setM4bToolMetadata({
-          author: options.author,
-          narrator,
-          sourceDirectory: dirname(destinationPath),
-          sourcePath: destinationPath,
-          title: options.title,
-        })
+        writeMetadata(destinationPath, options.author, narrator, options.title)
         await assertMetadataWasSet(destinationPath, options.author, narrator, options.title)
       }
 

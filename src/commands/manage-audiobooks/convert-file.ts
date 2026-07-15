@@ -11,30 +11,62 @@ import { mergeWithM4bTool, parseM4bToolJobs } from './helpers/m4b-tool.js'
 
 interface ConvertibleAudiobookFile {
   expectedFilename: string
+  narrator?: string
   performer: string
   sourcePath: string
   title: string
 }
 
 interface ConvertFileOptions {
+  author?: string
   concurrency: string
   destDir: string
   execute?: boolean
   fileName: string[]
   format?: string
   jobs: string
+  narrator?: string
+  title?: string
 }
 
 interface ConvertFileRow {
   action: 'converted' | 'would convert'
   destination: string
+  narrator?: string
   performer: string
   source: string
   title: string
 }
 
+interface ExplicitAudiobookMetadata {
+  author: string
+  narrator: string
+  title: string
+}
+
 function collectFileName(fileName: string, fileNames: string[]): string[] {
   return [...fileNames, fileName]
+}
+
+function parseExplicitMetadata(command: Command, options: ConvertFileOptions): ExplicitAudiobookMetadata | undefined {
+  const providedOptionCount = [options.author, options.title, options.narrator]
+    .filter(option => option !== undefined)
+    .length
+
+  if (providedOptionCount === 0) {
+    return undefined
+  }
+
+  if (providedOptionCount !== 3 || options.author === undefined || options.title === undefined || options.narrator === undefined) {
+    command.error('--author, --title, and --narrator must be provided together')
+    return undefined
+  }
+
+  return {
+    author: options.author,
+    narrator: options.narrator,
+    title: options.title,
+  }
 }
 
 function parseConcurrency(command: Command, concurrencyOption: string): number {
@@ -51,12 +83,25 @@ function toError(reason: unknown): Error {
   return reason instanceof Error ? reason : new Error(String(reason))
 }
 
-async function readConvertibleAudiobookFile(fileName: string): Promise<ConvertibleAudiobookFile> {
+async function readConvertibleAudiobookFile(
+  fileName: string,
+  explicitMetadata: ExplicitAudiobookMetadata | undefined,
+): Promise<ConvertibleAudiobookFile> {
   const sourcePath = resolve(fileName)
   const sourceStats = await stat(sourcePath)
 
   if (!sourceStats.isFile()) {
     throw new Error(`"${fileName}" is not a file`)
+  }
+
+  if (explicitMetadata !== undefined) {
+    return {
+      expectedFilename: `${explicitMetadata.author} - ${explicitMetadata.title}.m4b`,
+      narrator: explicitMetadata.narrator,
+      performer: explicitMetadata.author,
+      sourcePath,
+      title: explicitMetadata.title,
+    }
   }
 
   const metadata = await parseFile(sourcePath)
@@ -105,6 +150,9 @@ export function registerConvertAudiobookFileCommand(program: Command): void {
     .description('Convert audiobook files into metadata-named M4B files')
     .option('--file-name <fileName>', 'audiobook file to convert; repeat for additional files', collectFileName, [])
     .requiredOption('--dest-dir <destDir>', 'directory for the converted M4B file')
+    .option('--author <author>', 'author override; requires --title and --narrator')
+    .option('--title <title>', 'title override; requires --author and --narrator')
+    .option('--narrator <narrator>', 'narrator override; requires --author and --title')
     .option('--jobs <jobs>', 'm4b-tool merge jobs', '16')
     .option('--concurrency <concurrency>', 'maximum simultaneous file conversions', '4')
     .option('--execute', 'run m4b-tool merge')
@@ -114,7 +162,10 @@ export function registerConvertAudiobookFileCommand(program: Command): void {
       const concurrency = parseConcurrency(convertFileCommand, options.concurrency)
       const jobs = parseM4bToolJobs(convertFileCommand, options.jobs)
       const destinationDirectory = resolve(options.destDir)
-      const audiobookFiles = await Promise.all(options.fileName.map(readConvertibleAudiobookFile))
+      const explicitMetadata = parseExplicitMetadata(convertFileCommand, options)
+      const audiobookFiles = await Promise.all(
+        options.fileName.map(fileName => readConvertibleAudiobookFile(fileName, explicitMetadata)),
+      )
       const destinations = new Set<string>()
 
       if (audiobookFiles.length === 0) {
@@ -152,6 +203,7 @@ export function registerConvertAudiobookFileCommand(program: Command): void {
       const rows: ConvertFileRow[] = audiobookFiles.map(audiobookFile => ({
         action: options.execute === true ? 'converted' : 'would convert',
         destination: audiobookFile.expectedFilename,
+        ...(audiobookFile.narrator === undefined ? {} : { narrator: audiobookFile.narrator }),
         performer: audiobookFile.performer,
         source: basename(audiobookFile.sourcePath),
         title: audiobookFile.title,
