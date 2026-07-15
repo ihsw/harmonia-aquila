@@ -12,9 +12,9 @@
 > - **No edits outside <scope path>** for the duration of this spec
 >   (NFR-<n>). If a real bug surfaces elsewhere, STOP and surface it;
 >   do not patch silently.
-> - After **every** file modification, run `<lint command>` and fix any
->   reported issues before moving on (NFR-1). Do this per-edit, not
->   per-task.
+> - After **every** source code file modification (for example, a `.ts` edit),
+>   run `<lint command>` and fix any reported issues before moving on (NFR-1).
+>   Do this per source-code edit, not per-task.
 > - Mark the matching `- [x]` checkbox **immediately** when each task
 >   is finished, so progress is resumable.
 
@@ -75,4 +75,3 @@
   > Audit notes:
   > - <observation that informs later tasks>
 -->
-

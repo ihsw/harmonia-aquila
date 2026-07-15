@@ -79,7 +79,7 @@ ordering, schema choices, mock strategy, etc.>
 
 ## 9. Verification
 
-After every file edit:
+After every source code file edit:
 1. `<lint command>` (NFR-1)
 
 Once at end of spec:
@@ -92,4 +92,3 @@ Once at end of spec:
 
 1. <Decision needing user sign-off, with the recommended option and the
    alternative.>
-

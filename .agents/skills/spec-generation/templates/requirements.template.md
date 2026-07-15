@@ -47,10 +47,11 @@ ideally including the externally observable invariants that MUST hold
 
 ## 5. Non-Functional Requirements
 
-- **NFR-1 (lint after every edit)** After every modification of any file
-  under `<scope path>`, the appropriate lint command MUST be run and any
-  reported issues fixed before moving on. This applies per-edit, not
-  per-task. <!-- Mandatory per AGENTS.md. -->
+- **NFR-1 (lint after every source code edit)** After every modification of a
+  source code file (for example, a `.ts` file) under `<scope path>`, the
+  appropriate lint command MUST be run and any reported issues fixed before
+  moving on. This applies per source-code edit, not per-task. <!-- Mandatory
+  per AGENTS.md. -->
 - **NFR-2 (typecheck)** `npm run build:ts` (or workspace equivalent)
   MUST exit 0 after the spec is complete.
 - **NFR-3 (tests)** `npm test` MUST exit 0 after the spec is complete.
@@ -75,4 +76,3 @@ ideally including the externally observable invariants that MUST hold
 2. <Lint, typecheck, tests all exit 0 in the affected workspace.>
 3. <`git diff --stat` matches the expected file list.>
 4. <Optional: manual smoke check, e.g. `curl` against a dev server.>
-
