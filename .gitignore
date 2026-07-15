@@ -5,3 +5,5 @@ build
 etc
 reports
 !reports/.gitkeep
+.audit
+!.audit/.gitkeep
