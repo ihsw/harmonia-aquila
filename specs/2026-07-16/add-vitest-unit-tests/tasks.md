@@ -17,77 +17,77 @@
 
 ### 1.1 Record the baseline
 
-- [ ] Run `npm run lint`, `npm run build`, and `npm test`; record their exit
+- [x] Run `npm run lint`, `npm run build`, and `npm test`; record their exit
       statuses, including the expected placeholder-test failure.
-- [ ] Inspect the installed package and lockfile state before dependency edits.
+- [x] Inspect the installed package and lockfile state before dependency edits.
 
 ## Phase 2 — Establish Vitest infrastructure
 
 ### 2.1 Add the local test runner
 
-- [ ] Add Vitest as a development dependency with npm and update
+- [x] Add Vitest as a development dependency with npm and update
       `package-lock.json` (FR-1).
-- [ ] Replace the placeholder `test` script and add the `test:watch` script
+- [x] Replace the placeholder `test` script and add the `test:watch` script
       (FR-1, FR-2).
 
 ### 2.2 Configure discovery
 
-- [ ] Create `vitest.config.ts` for Node-based `src/**/*.test.ts` discovery
+- [x] Create `vitest.config.ts` for Node-based `src/**/*.test.ts` discovery
       and generated/dependency directory exclusions (FR-3).
-- [ ] Run `npm run build` and `npm test`; resolve configuration or ESM errors.
+- [x] Run `npm run build` and `npm test`; resolve configuration or ESM errors.
 
 ## Phase 3 — Add shared and album coverage
 
 ### 3.1 Create test utilities
 
-- [ ] Add typed temporary-directory and metadata-fixture helpers under the
+- [x] Add typed temporary-directory and metadata-fixture helpers under the
       selected test layout; do not introduce real media fixtures (NFR-5).
-- [ ] Add `command-utils` tests for JSON output, invalid format, and path
+- [x] Add `command-utils` tests for JSON output, invalid format, and path
       existence (FR-4).
-- [ ] Run `npm run lint` after each `src/**/*.ts` edit.
+- [x] Run `npm run lint` after each `src/**/*.ts` edit.
 
 ### 3.2 Cover album operations
 
-- [ ] Add helper tests for file discovery, extension enforcement, and limits
+- [x] Add helper tests for file discovery, extension enforcement, and limits
       (FR-5).
-- [ ] Add summarize, fix-tags, and organize-files tests matching the coverage
+- [x] Add summarize, fix-tags, and organize-files tests matching the coverage
       matrix in `design.md` §5 (FR-5).
-- [ ] Extract only narrow typed seams required by those tests and verify
+- [x] Extract only narrow typed seams required by those tests and verify
       Commander JSON/error parity (FR-9, NFR-8).
-- [ ] Run `npm run lint` after each `src/**/*.ts` edit.
+- [x] Run `npm run lint` after each `src/**/*.ts` edit.
 
 ## Phase 4 — Add audiobook coverage
 
 ### 4.1 Mock external boundaries
 
-- [ ] Add typed Vitest mocks for `music-metadata`, `node-taglib-sharp`, and
+- [x] Add typed Vitest mocks for `music-metadata`, `node-taglib-sharp`, and
       the m4b-tool helper; reset mocks between tests (FR-7, FR-8).
-- [ ] Run `npm run lint` after each `src/**/*.ts` edit.
+- [x] Run `npm run lint` after each `src/**/*.ts` edit.
 
 ### 4.2 Cover audiobook operations
 
-- [ ] Add tests for validate, copy-and-rename, and crawl using the coverage
+- [x] Add tests for validate, copy-and-rename, and crawl using the coverage
       matrix in `design.md` §5 (FR-6).
-- [ ] Add merge and convert-file tests proving dry runs do not invoke the
+- [x] Add merge and convert-file tests proving dry runs do not invoke the
       m4b-tool boundary (FR-6, FR-8).
-- [ ] Add set-metadata plan and invalid-destination tests without native writes
+- [x] Add set-metadata plan and invalid-destination tests without native writes
       (FR-6, FR-7).
-- [ ] Run `npm run lint` after each `src/**/*.ts` edit.
+- [x] Run `npm run lint` after each `src/**/*.ts` edit.
 
 ## Phase 5 — Verify and document
 
 ### 5.1 Complete automated verification
 
-- [ ] Run `npm run lint` — exit 0.
-- [ ] Run `npm run build` — exit 0.
-- [ ] Run `npm test` — exit 0.
-- [ ] Confirm the suite needs neither Docker, network access, nor real media
+- [x] Run `npm run lint` — exit 0.
+- [x] Run `npm run build` — exit 0.
+- [x] Run `npm test` — exit 0.
+- [x] Confirm the suite needs neither Docker, network access, nor real media
       files (NFR-5).
 
 ### 5.2 Document the workflow
 
-- [ ] Add `docs/testing.md` with full-suite, watch-mode, and focused-test
+- [x] Add `docs/testing.md` with full-suite, watch-mode, and focused-test
       commands that do not use `npx` (FR-10).
-- [ ] Compare `git --no-pager diff -- docs/mcp-server.md` with the Phase 1
+- [x] Compare `git --no-pager diff -- docs/mcp-server.md` with the Phase 1
       baseline; verify this work added no MCP-design changes. Confirm `etc/**`
       remains unchanged (NFR-7).
