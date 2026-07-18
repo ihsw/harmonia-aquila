@@ -4,8 +4,10 @@ import { UserInputError } from '../../lib/errors.js'
 import { serveWeb } from '../../web/main.js'
 
 interface WebServeOptions {
+  destDir?: string
   host: string
   port: string
+  sourceDir?: string
 }
 
 function parsePort(portOption: string): number {
@@ -18,17 +20,31 @@ function parsePort(portOption: string): number {
   return port
 }
 
+function requiredOption(command: Command, value: string | undefined, optionName: string): string {
+  if (value === undefined || value.trim() === '') {
+    command.error(`${optionName} is required`)
+  }
+
+  return value
+}
+
 export function registerWebServeCommand(program: Command): void {
   const serveCommand = program
     .command('serve')
     .description('Start the Harmonia Aquila web server')
     .option('--host <host>', 'host to bind', '127.0.0.1')
     .option('--port <port>', 'port to bind', '3000')
+    .option('--source-dir <dir>', 'source directory root for web routes')
+    .option('--dest-dir <dir>', 'destination directory root for web routes')
     .action(async (options: WebServeOptions) => {
       let port: number
+      let sourceDir: string
+      let destDir: string
 
       try {
         port = parsePort(options.port)
+        sourceDir = requiredOption(serveCommand, options.sourceDir, '--source-dir')
+        destDir = requiredOption(serveCommand, options.destDir, '--dest-dir')
       }
       catch (error) {
         if (error instanceof UserInputError) {
@@ -38,6 +54,6 @@ export function registerWebServeCommand(program: Command): void {
         throw error
       }
 
-      await serveWeb({ host: options.host, port })
+      await serveWeb({ destDir, host: options.host, port, sourceDir })
     })
 }

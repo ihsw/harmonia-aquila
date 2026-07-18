@@ -57,6 +57,12 @@ export function requiredString(record: BodyRecord | QueryRecord, key: string): s
   return value
 }
 
+export function rejectPresent(record: BodyRecord, key: string, message: string): void {
+  if (record[key] !== undefined) {
+    throw new UserInputError(message)
+  }
+}
+
 export function stringArray(record: BodyRecord, key: string): string[] {
   const value = record[key]
 

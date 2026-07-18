@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common'
+import { Body, Controller, Get, Inject, Post, Query } from '@nestjs/common'
 
 import { convertAudiobookFiles } from '../lib/audiobooks/convert-file.js'
 import { copyAndRenameAudiobook } from '../lib/audiobooks/copy-and-rename.js'
@@ -8,14 +8,19 @@ import { setAudiobookMetadata } from '../lib/audiobooks/set-metadata.js'
 import { validateAudiobook } from '../lib/audiobooks/validate.js'
 
 import { throwHttpError } from './http-errors.js'
-import { bodyRecord, optionalBoolean, optionalEntry, optionalString, type QueryRecord, requiredString, stringArray } from './request-options.js'
+import { WebPathResolver } from './path-resolver.js'
+import { bodyRecord, optionalBoolean, optionalEntry, optionalString, type QueryRecord, rejectPresent, requiredString, stringArray } from './request-options.js'
 
 @Controller('manage-audiobooks')
 export class ManageAudiobooksController {
+  public constructor(@Inject(WebPathResolver) private readonly pathResolver: WebPathResolver) {}
+
   @Get('validate')
   public async validate(@Query() query: QueryRecord): Promise<unknown> {
     try {
-      return await validateAudiobook({ fileName: requiredString(query, 'fileName') })
+      return await validateAudiobook({
+        fileName: await this.pathResolver.resolveSource(requiredString(query, 'fileName'), 'fileName'),
+      })
     }
     catch (error) {
       throwHttpError(error)
@@ -25,7 +30,9 @@ export class ManageAudiobooksController {
   @Get('crawl')
   public async crawl(@Query() query: QueryRecord): Promise<unknown> {
     try {
-      return await crawlAudiobooks({ dirName: requiredString(query, 'dirName') })
+      return await crawlAudiobooks({
+        dirName: await this.pathResolver.resolveSource(requiredString(query, 'dirName'), 'dirName'),
+      })
     }
     catch (error) {
       throwHttpError(error)
@@ -36,10 +43,11 @@ export class ManageAudiobooksController {
   public async copyAndRename(@Body() rawBody: unknown): Promise<unknown> {
     try {
       const body = bodyRecord(rawBody)
+      rejectPresent(body, 'destDir', 'destDir is configured by web serve --dest-dir')
 
       return await copyAndRenameAudiobook({
-        destDir: requiredString(body, 'destDir'),
-        fileName: requiredString(body, 'fileName'),
+        destDir: this.pathResolver.destDir,
+        fileName: await this.pathResolver.resolveSource(requiredString(body, 'fileName'), 'fileName'),
         ...optionalEntry('execute', optionalBoolean(body.execute)),
       })
     }
@@ -52,11 +60,14 @@ export class ManageAudiobooksController {
   public async convertFile(@Body() rawBody: unknown): Promise<unknown> {
     try {
       const body = bodyRecord(rawBody)
+      rejectPresent(body, 'destDir', 'destDir is configured by web serve --dest-dir')
 
       return await convertAudiobookFiles({
         concurrency: optionalString(body, 'concurrency') ?? '4',
-        destDir: requiredString(body, 'destDir'),
-        fileName: stringArray(body, 'fileName'),
+        destDir: this.pathResolver.destDir,
+        fileName: await Promise.all(
+          stringArray(body, 'fileName').map(fileName => this.pathResolver.resolveSource(fileName, 'fileName')),
+        ),
         jobs: optionalString(body, 'jobs') ?? '16',
         ...optionalEntry('author', optionalString(body, 'author')),
         ...optionalEntry('execute', optionalBoolean(body.execute)),
@@ -73,11 +84,13 @@ export class ManageAudiobooksController {
   public async merge(@Body() rawBody: unknown): Promise<unknown> {
     try {
       const body = bodyRecord(rawBody)
+      rejectPresent(body, 'destDir', 'destDir is configured by web serve --dest-dir')
+      rejectPresent(body, 'sourceDir', 'sourceDir is configured by web serve --source-dir')
 
       return await mergeAudiobooks({
-        destDir: requiredString(body, 'destDir'),
+        destDir: this.pathResolver.destDir,
         jobs: optionalString(body, 'jobs') ?? '16',
-        sourceDir: requiredString(body, 'sourceDir'),
+        sourceDir: this.pathResolver.sourceDir,
         ...optionalEntry('bypassMetadata', optionalBoolean(body.bypassMetadata)),
         ...optionalEntry('execute', optionalBoolean(body.execute)),
       })
@@ -94,8 +107,8 @@ export class ManageAudiobooksController {
 
       return await setAudiobookMetadata({
         author: requiredString(body, 'author'),
-        destFilepath: requiredString(body, 'destFilepath'),
-        sourceFilepath: requiredString(body, 'sourceFilepath'),
+        destFilepath: await this.pathResolver.resolveDest(requiredString(body, 'destFilepath'), 'destFilepath'),
+        sourceFilepath: await this.pathResolver.resolveSource(requiredString(body, 'sourceFilepath'), 'sourceFilepath'),
         title: requiredString(body, 'title'),
         ...optionalEntry('execute', optionalBoolean(body.execute)),
         ...optionalEntry('narrator', optionalString(body, 'narrator')),
