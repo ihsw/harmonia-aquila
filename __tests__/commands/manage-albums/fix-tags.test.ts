@@ -9,7 +9,7 @@ vi.mock('music-metadata', () => ({
   parseFile: vi.fn(),
 }))
 
-vi.mock('../../../src/commands/manage-albums/helpers/audio-tags.js', () => ({
+vi.mock('../../../src/lib/albums/audio-tags.js', () => ({
   writeAudioTagFix: vi.fn(),
 }))
 

@@ -4,11 +4,11 @@ import { dirname, relative, resolve } from 'node:path'
 import pLimit from 'p-limit'
 
 import { pathExists } from '../../command-utils.js'
-import { writeAudioTagFix } from '../../commands/manage-albums/helpers/audio-tags.js'
 import { parseSetMetadataFile, reconcileSetMetadata, type SetMetadataRecord } from '../../commands/manage-albums/helpers/set-metadata.js'
 import { getErrorMessage, UserInputError } from '../errors.js'
 
 import { getAudioFiles, parseLimit } from './audio-files.js'
+import { writeAudioTagFix } from './audio-tags.js'
 
 interface FixTagsRow {
   action: string
