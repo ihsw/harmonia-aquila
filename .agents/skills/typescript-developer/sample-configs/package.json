@@ -1,0 +1,28 @@
+{
+  "name": "typescript-cli-sample",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./build/dist/index.js",
+  "bin": {
+    "typescript-cli-sample": "./build/dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint ./src ./__tests__",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "commander": "^15.0.0",
+    "p-limit": "^7.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^24.0.0",
+    "eslint": "^9.0.0",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^4.0.0"
+  }
+}
