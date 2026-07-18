@@ -1,0 +1,3 @@
+[submodule "extern/bruno-starter-guide"]
+	path = extern/bruno-starter-guide
+	url = git@github.com:bruno-collections/bruno-starter-guide.git
