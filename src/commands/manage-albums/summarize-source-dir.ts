@@ -1,36 +1,14 @@
 import type { Command } from 'commander'
-import { parseFile } from 'music-metadata'
-import { resolve } from 'node:path'
-import pLimit from 'p-limit'
 
 import { parseOutputFormat, writeRows } from '../../command-utils.js'
-
 import {
-  formatAudioBitrate,
-  formatAudioDuration,
-  formatAudioSampleRate,
-  getAudioFiles,
-  parseLimit,
-} from './helpers/utils.js'
+  summarizeAlbumSourceDir,
+  type SummarizeSourceDirJsonOutput,
+  type SummarizeSourceDirOptions,
+} from '../../lib/albums/summarize-source-dir.js'
+import { UserInputError } from '../../lib/errors.js'
 
-export interface SummarizeSourceDirJsonOutputRow {
-  album: string
-  grouping: string
-  artist: string
-  albumartist: string
-  bitrate: string
-  duration: string
-  filename: string
-  originalalbum: string
-  sampleRate: string
-  title: string
-  year: number | string
-  subtitle: string
-  publisher: string
-  label: string
-}
-
-export type SummarizeSourceDirJsonOutput = SummarizeSourceDirJsonOutputRow[]
+export type { SummarizeSourceDirJsonOutput, SummarizeSourceDirJsonOutputRow } from '../../lib/albums/summarize-source-dir.js'
 
 export function registerSummarizeSourceDirCommand(program: Command): void {
   const summarizeSourceDirCommand = program
@@ -40,38 +18,20 @@ export function registerSummarizeSourceDirCommand(program: Command): void {
     .option('--limit <count>', 'maximum number of files to list')
     .option('--ignore-non-audio-files', 'ignore non-audio files in the source directory')
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
-    .action(async (options: { dirName: string, format?: string, ignoreNonAudioFiles?: boolean, limit?: string }) => {
-      const limit = parseLimit(summarizeSourceDirCommand, options.limit)
+    .action(async (options: SummarizeSourceDirOptions & { format?: string }) => {
       const outputFormat = parseOutputFormat(summarizeSourceDirCommand, options.format)
-      const { files, targetDirectory } = await getAudioFiles(
-        summarizeSourceDirCommand,
-        options.dirName,
-        { ignoreNonAudioFiles: options.ignoreNonAudioFiles === true },
-      )
-      const filesToSummarize = limit === undefined ? files : files.slice(0, limit)
-      const parseMetadata = pLimit(16)
-      const metadataRows: SummarizeSourceDirJsonOutput = await Promise.all(
-        filesToSummarize.map(file => parseMetadata(async (): Promise<SummarizeSourceDirJsonOutputRow> => {
-          const metadata = await parseFile(resolve(targetDirectory, file.name))
+      let metadataRows: SummarizeSourceDirJsonOutput
 
-          return {
-            album: metadata.common.album ?? '',
-            albumartist: metadata.common.albumartist ?? '',
-            artist: metadata.common.artist ?? '',
-            bitrate: formatAudioBitrate(metadata.format.bitrate),
-            duration: formatAudioDuration(metadata.format.duration),
-            filename: file.name,
-            grouping: metadata.common.grouping ?? '',
-            label: metadata.common.label?.[0] ?? '',
-            originalalbum: metadata.common.originalalbum ?? '',
-            publisher: metadata.common.publisher?.[0] ?? '',
-            sampleRate: formatAudioSampleRate(metadata.format.sampleRate),
-            subtitle: metadata.common.subtitle?.[0] ?? '',
-            title: metadata.common.title ?? '',
-            year: metadata.common.year ?? '',
-          }
-        })),
-      )
+      try {
+        metadataRows = await summarizeAlbumSourceDir(options)
+      }
+      catch (error) {
+        if (error instanceof UserInputError) {
+          summarizeSourceDirCommand.error(error.message)
+        }
+
+        throw error
+      }
 
       writeRows(outputFormat, metadataRows)
     })

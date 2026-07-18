@@ -2,20 +2,20 @@ import { Command } from 'commander'
 import { parseFile } from 'music-metadata'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
-import { mergeWithM4bTool } from '../../../src/commands/manage-audiobooks/helpers/m4b-tool.js'
 import { registerMergeAudiobooksCommand } from '../../../src/commands/manage-audiobooks/merge.js'
+import { mergeWithM4bTool } from '../../../src/lib/audiobooks/m4b-tool.js'
 import { createTempDir, createTempFile, makeAudioMetadata, removeTempDir } from '../../test-helpers.js'
 
 vi.mock('music-metadata', () => ({
   parseFile: vi.fn(),
 }))
 
-vi.mock('../../../src/commands/manage-audiobooks/helpers/m4b-tool.js', () => ({
+vi.mock('../../../src/lib/audiobooks/m4b-tool.js', () => ({
   mergeWithM4bTool: vi.fn(),
-  parseM4bToolJobs: vi.fn().mockImplementation((cmd: Command, value: string) => {
+  parseM4bToolJobs: vi.fn().mockImplementation((value: string) => {
     const n = Number(value)
     if (!Number.isInteger(n) || n < 1) {
-      cmd.error('--jobs must be a positive integer')
+      throw new Error('--jobs must be a positive integer')
     }
     return n
   }),

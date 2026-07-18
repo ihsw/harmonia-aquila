@@ -1,0 +1,133 @@
+import { spawn } from 'node:child_process'
+import { relative } from 'node:path'
+
+import { UserInputError } from '../errors.js'
+
+const M4B_TOOL_IMAGE = 'sandreas/m4b-tool:latest'
+
+export interface M4bToolMergeOptions {
+  destinationDirectory: string
+  destinationFilename: string
+  jobs: number
+  performer?: string
+  sourceDirectory: string
+  sourcePaths: readonly string[]
+  title?: string
+}
+
+export interface M4bToolMetadataOptions {
+  author: string
+  narrator: string
+  sourceDirectory: string
+  sourcePath: string
+  title: string
+}
+
+export function parseM4bToolJobs(jobsOption: string): number {
+  const jobs = Number(jobsOption)
+
+  if (!Number.isInteger(jobs) || jobs < 1) {
+    throw new UserInputError('--jobs must be a positive integer')
+  }
+
+  return jobs
+}
+
+async function runM4bTool(dockerArguments: string[]): Promise<void> {
+  await new Promise<void>((resolvePromise, rejectPromise) => {
+    const childProcess = spawn('docker', dockerArguments, { stdio: ['ignore', 'pipe', 'pipe'] })
+    let standardOutput = ''
+    let standardError = ''
+
+    childProcess.stdout.on('data', (chunk: Buffer) => {
+      standardOutput += chunk.toString()
+    })
+    childProcess.stderr.on('data', (chunk: Buffer) => {
+      standardError += chunk.toString()
+      globalThis.process.stderr.write(chunk)
+    })
+    childProcess.once('error', (error) => {
+      rejectPromise(new Error('Unable to start Docker for m4b-tool conversion', { cause: error }))
+    })
+    childProcess.once('exit', (code, signal) => {
+      if (code === 0) {
+        resolvePromise()
+      }
+      else {
+        const processResult = signal === null
+          ? (code === null ? 'no exit code' : `exit code ${String(code)}`)
+          : `signal ${signal}`
+        const output = `${standardOutput}${standardError}`.trim()
+        rejectPromise(new Error(`m4b-tool operation failed with ${processResult}${output === '' ? '' : `: ${output}`}`))
+      }
+    })
+  })
+}
+
+function getM4bToolUser(): string {
+  const uid = process.getuid?.()
+  const gid = process.getgid?.()
+
+  if (uid === undefined || gid === undefined) {
+    throw new Error('m4b-tool requires a POSIX user and group ID')
+  }
+
+  return `${String(uid)}:${String(gid)}`
+}
+
+export async function mergeWithM4bTool(options: M4bToolMergeOptions): Promise<void> {
+  const sourceArguments = options.sourcePaths.map(sourcePath => (
+    `/source/${relative(options.sourceDirectory, sourcePath)}`
+  ))
+  const dockerArguments = [
+    'run',
+    '--rm',
+    '-u',
+    getM4bToolUser(),
+    '-v',
+    `${options.sourceDirectory}:/source:ro`,
+    '-v',
+    `${options.destinationDirectory}:/dest`,
+    M4B_TOOL_IMAGE,
+    'merge',
+    '--jobs',
+    String(options.jobs),
+    '--output-file',
+    `/dest/${options.destinationFilename}`,
+    ...(options.performer === undefined || options.title === undefined
+      ? []
+      : [
+          '--artist',
+          options.performer,
+          '--name',
+          options.title,
+          '--album',
+          options.title,
+        ]),
+    ...sourceArguments,
+  ]
+
+  await runM4bTool(dockerArguments)
+}
+
+export async function setM4bToolMetadata(options: M4bToolMetadataOptions): Promise<void> {
+  const dockerArguments = [
+    'run',
+    '--rm',
+    '-u',
+    getM4bToolUser(),
+    '-v',
+    `${options.sourceDirectory}:/source`,
+    M4B_TOOL_IMAGE,
+    'meta',
+    `/source/${relative(options.sourceDirectory, options.sourcePath)}`,
+    '--album',
+    options.title,
+    '--artist',
+    options.author,
+    '--writer',
+    options.narrator,
+  ]
+
+  await runM4bTool(dockerArguments)
+}

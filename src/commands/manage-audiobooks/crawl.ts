@@ -1,57 +1,14 @@
 import type { Command } from 'commander'
-import { readdir, stat } from 'node:fs/promises'
-import { basename, extname, relative, resolve } from 'node:path'
-import pLimit from 'p-limit'
 
 import { parseOutputFormat, writeRows } from '../../command-utils.js'
+import {
+  type CrawlAudiobookJsonOutput,
+  type CrawlAudiobookOptions,
+  crawlAudiobooks,
+} from '../../lib/audiobooks/crawl.js'
+import { UserInputError } from '../../lib/errors.js'
 
-import { readAudiobookFile } from './helpers/audiobook-file.js'
-
-type CrawlAudiobookCategory = 'invalid-filename' | 'invalid-other' | 'valid'
-type CrawlAudiobookReasonCode = 'filename-mismatch' | 'missing-metadata' | 'valid' | 'validation-failed'
-
-export interface CrawlAudiobookJsonOutputRow {
-  category: CrawlAudiobookCategory
-  expectedFilename: string
-  filename: string
-  path: string
-  performer: string
-  reason: string
-  reasonCode: CrawlAudiobookReasonCode
-  title: string
-}
-
-export type CrawlAudiobookJsonOutput = CrawlAudiobookJsonOutputRow[]
-
-async function findM4bFiles(directory: string): Promise<string[]> {
-  const directoryEntries = await readdir(directory, { withFileTypes: true })
-  const files: string[] = []
-
-  for (const directoryEntry of directoryEntries.sort((left, right) => left.name.localeCompare(right.name))) {
-    const entryPath = resolve(directory, directoryEntry.name)
-
-    if (directoryEntry.isDirectory()) {
-      files.push(...await findM4bFiles(entryPath))
-    }
-    else if (directoryEntry.isFile() && extname(directoryEntry.name).toLowerCase() === '.m4b') {
-      files.push(entryPath)
-    }
-  }
-
-  return files
-}
-
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
-}
-
-function getReasonCode(error: unknown): CrawlAudiobookReasonCode {
-  if (error instanceof Error && error.message.includes('is missing required metadata:')) {
-    return 'missing-metadata'
-  }
-
-  return 'validation-failed'
-}
+export type { CrawlAudiobookJsonOutput, CrawlAudiobookJsonOutputRow } from '../../lib/audiobooks/crawl.js'
 
 export function registerCrawlAudiobooksCommand(program: Command): void {
   const crawlAudiobooksCommand = program
@@ -59,63 +16,20 @@ export function registerCrawlAudiobooksCommand(program: Command): void {
     .description('Recursively categorize M4B files by metadata and filename validity')
     .requiredOption('--dir-name <dirName>', 'directory to crawl for M4B files')
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
-    .action(async (options: { dirName: string, format?: string }) => {
+    .action(async (options: CrawlAudiobookOptions & { format?: string }) => {
       const outputFormat = parseOutputFormat(crawlAudiobooksCommand, options.format)
-      const rootDirectory = resolve(options.dirName)
-      const directoryStats = await stat(rootDirectory)
+      let rows: CrawlAudiobookJsonOutput
 
-      if (!directoryStats.isDirectory()) {
-        crawlAudiobooksCommand.error(`"${options.dirName}" is not a directory`)
+      try {
+        rows = await crawlAudiobooks(options)
       }
+      catch (error) {
+        if (error instanceof UserInputError) {
+          crawlAudiobooksCommand.error(error.message)
+        }
 
-      const m4bFiles = await findM4bFiles(rootDirectory)
-      const readMetadata = pLimit(16)
-      const rows: CrawlAudiobookJsonOutput = await Promise.all(
-        m4bFiles.map(filePath => readMetadata(async (): Promise<CrawlAudiobookJsonOutputRow> => {
-          const filename = basename(filePath)
-          const path = relative(rootDirectory, filePath)
-
-          try {
-            const audiobookFile = await readAudiobookFile(filePath)
-
-            if (audiobookFile.filename !== audiobookFile.expectedFilename) {
-              return {
-                category: 'invalid-filename',
-                expectedFilename: audiobookFile.expectedFilename,
-                filename,
-                path,
-                performer: audiobookFile.performer,
-                reason: `${audiobookFile.filename} does not match metadata`,
-                reasonCode: 'filename-mismatch',
-                title: audiobookFile.title,
-              }
-            }
-
-            return {
-              category: 'valid',
-              expectedFilename: audiobookFile.expectedFilename,
-              filename,
-              path,
-              performer: audiobookFile.performer,
-              reason: '',
-              reasonCode: 'valid',
-              title: audiobookFile.title,
-            }
-          }
-          catch (error) {
-            return {
-              category: 'invalid-other',
-              expectedFilename: '',
-              filename,
-              path,
-              performer: '',
-              reason: getErrorMessage(error),
-              reasonCode: getReasonCode(error),
-              title: '',
-            }
-          }
-        })),
-      )
+        throw error
+      }
 
       writeRows(outputFormat, rows)
     })

@@ -1,17 +1,14 @@
 import type { Command } from 'commander'
 
 import { parseOutputFormat, writeRows } from '../../command-utils.js'
+import {
+  validateAudiobook,
+  type ValidateAudiobookJsonOutput,
+  type ValidateAudiobookOptions,
+} from '../../lib/audiobooks/validate.js'
+import { UserInputError } from '../../lib/errors.js'
 
-import { getAudiobookFile } from './helpers/audiobook-file.js'
-
-export interface ValidateAudiobookJsonOutputRow {
-  filename: string
-  performer: string
-  title: string
-  valid: true
-}
-
-export type ValidateAudiobookJsonOutput = ValidateAudiobookJsonOutputRow[]
+export type { ValidateAudiobookJsonOutput, ValidateAudiobookJsonOutputRow } from '../../lib/audiobooks/validate.js'
 
 export function registerValidateAudiobookCommand(program: Command): void {
   const validateAudiobookCommand = program
@@ -19,20 +16,20 @@ export function registerValidateAudiobookCommand(program: Command): void {
     .description('Validate an M4B filename against its performer and title metadata')
     .requiredOption('--file-name <fileName>', 'M4B file to validate')
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
-    .action(async (options: { fileName: string, format?: string }) => {
+    .action(async (options: ValidateAudiobookOptions & { format?: string }) => {
       const outputFormat = parseOutputFormat(validateAudiobookCommand, options.format)
-      const audiobookFile = await getAudiobookFile(validateAudiobookCommand, options.fileName)
+      let rows: ValidateAudiobookJsonOutput
 
-      if (audiobookFile.filename !== audiobookFile.expectedFilename) {
-        validateAudiobookCommand.error(`${audiobookFile.filename} does not match metadata; expected "${audiobookFile.expectedFilename}"`)
+      try {
+        rows = await validateAudiobook(options)
       }
+      catch (error) {
+        if (error instanceof UserInputError) {
+          validateAudiobookCommand.error(error.message)
+        }
 
-      const rows: ValidateAudiobookJsonOutput = [{
-        filename: audiobookFile.filename,
-        performer: audiobookFile.performer,
-        title: audiobookFile.title,
-        valid: true,
-      }]
+        throw error
+      }
 
       writeRows(outputFormat, rows)
     })

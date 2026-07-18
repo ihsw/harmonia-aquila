@@ -1,21 +1,14 @@
 import type { Command } from 'commander'
-import { constants } from 'node:fs'
-import { copyFile, mkdir } from 'node:fs/promises'
-import { basename, join, relative, resolve } from 'node:path'
 
-import { parseOutputFormat, pathExists, writeRows } from '../../command-utils.js'
+import { parseOutputFormat, writeRows } from '../../command-utils.js'
+import {
+  copyAndRenameAudiobook,
+  type CopyAndRenameAudiobookJsonOutput,
+  type CopyAndRenameAudiobookOptions,
+} from '../../lib/audiobooks/copy-and-rename.js'
+import { UserInputError } from '../../lib/errors.js'
 
-import { getAudiobookFile } from './helpers/audiobook-file.js'
-
-export interface CopyAndRenameAudiobookJsonOutputRow {
-  action: string
-  destination: string
-  filename: string
-  performer: string
-  title: string
-}
-
-export type CopyAndRenameAudiobookJsonOutput = CopyAndRenameAudiobookJsonOutputRow[]
+export type { CopyAndRenameAudiobookJsonOutput, CopyAndRenameAudiobookJsonOutputRow } from '../../lib/audiobooks/copy-and-rename.js'
 
 export function registerCopyAndRenameAudiobookCommand(program: Command): void {
   const copyAndRenameAudiobookCommand = program
@@ -25,37 +18,20 @@ export function registerCopyAndRenameAudiobookCommand(program: Command): void {
     .requiredOption('--dest-dir <destDir>', 'directory to copy the renamed M4B into')
     .option('--execute', 'copy the file')
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
-    .action(async (options: { destDir: string, execute?: boolean, fileName: string, format?: string }) => {
+    .action(async (options: CopyAndRenameAudiobookOptions & { format?: string }) => {
       const outputFormat = parseOutputFormat(copyAndRenameAudiobookCommand, options.format)
-      const audiobookFile = await getAudiobookFile(copyAndRenameAudiobookCommand, options.fileName)
+      let rows: CopyAndRenameAudiobookJsonOutput
 
-      if (audiobookFile.filename === audiobookFile.expectedFilename) {
-        copyAndRenameAudiobookCommand.error(`${audiobookFile.filename} already matches metadata`)
+      try {
+        rows = await copyAndRenameAudiobook(options)
       }
+      catch (error) {
+        if (error instanceof UserInputError) {
+          copyAndRenameAudiobookCommand.error(error.message)
+        }
 
-      if (basename(audiobookFile.expectedFilename) !== audiobookFile.expectedFilename) {
-        copyAndRenameAudiobookCommand.error(`${audiobookFile.filename} metadata cannot form a valid filename`)
+        throw error
       }
-
-      const destinationDirectory = resolve(options.destDir)
-      const destinationPath = join(destinationDirectory, audiobookFile.expectedFilename)
-
-      if (await pathExists(destinationPath)) {
-        copyAndRenameAudiobookCommand.error(`Destination file already exists: ${relative(destinationDirectory, destinationPath)}`)
-      }
-
-      if (options.execute === true) {
-        await mkdir(destinationDirectory, { recursive: true })
-        await copyFile(audiobookFile.sourcePath, destinationPath, constants.COPYFILE_EXCL)
-      }
-
-      const rows: CopyAndRenameAudiobookJsonOutput = [{
-        action: options.execute === true ? 'copied' : 'would copy',
-        destination: relative(destinationDirectory, destinationPath),
-        filename: audiobookFile.filename,
-        performer: audiobookFile.performer,
-        title: audiobookFile.title,
-      }]
 
       writeRows(
         outputFormat,

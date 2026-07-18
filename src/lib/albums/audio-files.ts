@@ -1,0 +1,109 @@
+import type { Dirent } from 'node:fs'
+import { readdir, stat } from 'node:fs/promises'
+import { extname, resolve } from 'node:path'
+
+import { UserInputError } from '../errors.js'
+
+const SUPPORTED_AUDIO_EXTENSIONS = ['.flac', '.mp3'] as const
+const SUPPORTED_AUDIO_EXTENSION_SET = new Set<string>(SUPPORTED_AUDIO_EXTENSIONS)
+const SUPPORTED_AUDIO_EXTENSIONS_DISPLAY = SUPPORTED_AUDIO_EXTENSIONS.join(', ')
+
+export interface AudioFilesResult {
+  files: Dirent[]
+  targetDirectory: string
+}
+
+export interface GetAudioFilesOptions {
+  ignoreNonAudioFiles?: boolean
+}
+
+export function getSupportedAudioExtensions(): readonly string[] {
+  return SUPPORTED_AUDIO_EXTENSIONS
+}
+
+export function isSupportedAudioExtension(extension: string): boolean {
+  return SUPPORTED_AUDIO_EXTENSION_SET.has(extension.toLowerCase())
+}
+
+function isSupportedAudioFile(file: Dirent): boolean {
+  return file.isFile() && isSupportedAudioExtension(extname(file.name))
+}
+
+export async function getAudioFiles(dirName: string, options: GetAudioFilesOptions = {}): Promise<AudioFilesResult> {
+  const targetDirectory = resolve(dirName)
+  const directoryStats = await stat(targetDirectory)
+
+  if (!directoryStats.isDirectory()) {
+    throw new UserInputError(`"${dirName}" is not a directory`)
+  }
+
+  const directoryEntries = await readdir(targetDirectory, { withFileTypes: true })
+  const files = directoryEntries.filter(isSupportedAudioFile)
+  const invalidFiles = directoryEntries.filter(file => !isSupportedAudioFile(file))
+
+  if (options.ignoreNonAudioFiles !== true && invalidFiles.length > 0) {
+    throw new UserInputError(
+      `"${dirName}" must contain only supported audio files (${SUPPORTED_AUDIO_EXTENSIONS_DISPLAY}). Invalid entries: ${invalidFiles
+        .map(file => file.name)
+        .join(', ')}`,
+    )
+  }
+
+  return { files, targetDirectory }
+}
+
+export function parseLimit(limitOption: string | undefined): number | undefined {
+  const limit = limitOption === undefined ? undefined : Number(limitOption)
+
+  if (limit !== undefined && (!Number.isInteger(limit) || limit < 0)) {
+    throw new UserInputError('--limit must be a non-negative integer')
+  }
+
+  return limit
+}
+
+export function formatAudioDuration(durationInSeconds: number | undefined): string {
+  if (durationInSeconds === undefined) {
+    return ''
+  }
+
+  const totalSeconds = Math.round(durationInSeconds)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  const formattedMinutes = minutes.toString()
+  const paddedSeconds = seconds.toString().padStart(2, '0')
+
+  if (hours > 0) {
+    const formattedHours = hours.toString()
+    const paddedMinutes = minutes.toString().padStart(2, '0')
+
+    return `${formattedHours}:${paddedMinutes}:${paddedSeconds}`
+  }
+
+  return `${formattedMinutes}:${paddedSeconds}`
+}
+
+export function formatAudioBitrate(bitrateInBitsPerSecond: number | undefined): string {
+  if (bitrateInBitsPerSecond === undefined) {
+    return ''
+  }
+
+  const bitrateInKilobitsPerSecond = bitrateInBitsPerSecond / 1000
+
+  return `${new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: 1,
+  }).format(bitrateInKilobitsPerSecond)} kbps`
+}
+
+export function formatAudioSampleRate(sampleRateInHertz: number | undefined): string {
+  if (sampleRateInHertz === undefined) {
+    return ''
+  }
+
+  const sampleRateInKilohertz = sampleRateInHertz / 1000
+
+  return `${new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: 1,
+  }).format(sampleRateInKilohertz)} kHz`
+}

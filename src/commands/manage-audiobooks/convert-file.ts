@@ -1,147 +1,15 @@
 import type { Command } from 'commander'
-import { parseFile } from 'music-metadata'
-import { mkdir, stat } from 'node:fs/promises'
-import { basename, dirname, join, resolve } from 'node:path'
-import pLimit from 'p-limit'
 
-import { parseOutputFormat, pathExists, writeRows } from '../../command-utils.js'
-
-import { readAudiobookFile } from './helpers/audiobook-file.js'
-import { mergeWithM4bTool, parseM4bToolJobs } from './helpers/m4b-tool.js'
-
-interface ConvertibleAudiobookFile {
-  expectedFilename: string
-  narrator?: string
-  performer: string
-  sourcePath: string
-  title: string
-}
-
-interface ConvertFileOptions {
-  author?: string
-  concurrency: string
-  destDir: string
-  execute?: boolean
-  fileName: string[]
-  format?: string
-  jobs: string
-  narrator?: string
-  title?: string
-}
-
-interface ConvertFileRow {
-  action: 'converted' | 'would convert'
-  destination: string
-  narrator?: string
-  performer: string
-  source: string
-  title: string
-}
-
-interface ExplicitAudiobookMetadata {
-  author: string
-  narrator: string
-  title: string
-}
+import { parseOutputFormat, writeRows } from '../../command-utils.js'
+import {
+  convertAudiobookFiles,
+  type ConvertFileOptions,
+  type ConvertFileRow,
+} from '../../lib/audiobooks/convert-file.js'
+import { UserInputError } from '../../lib/errors.js'
 
 function collectFileName(fileName: string, fileNames: string[]): string[] {
   return [...fileNames, fileName]
-}
-
-function parseExplicitMetadata(command: Command, options: ConvertFileOptions): ExplicitAudiobookMetadata | undefined {
-  const providedOptionCount = [options.author, options.title, options.narrator]
-    .filter(option => option !== undefined)
-    .length
-
-  if (providedOptionCount === 0) {
-    return undefined
-  }
-
-  if (providedOptionCount !== 3 || options.author === undefined || options.title === undefined || options.narrator === undefined) {
-    command.error('--author, --title, and --narrator must be provided together')
-    return undefined
-  }
-
-  return {
-    author: options.author,
-    narrator: options.narrator,
-    title: options.title,
-  }
-}
-
-function parseConcurrency(command: Command, concurrencyOption: string): number {
-  const concurrency = Number(concurrencyOption)
-
-  if (!Number.isInteger(concurrency) || concurrency < 1) {
-    command.error('--concurrency must be a positive integer')
-  }
-
-  return concurrency
-}
-
-function toError(reason: unknown): Error {
-  return reason instanceof Error ? reason : new Error(String(reason))
-}
-
-async function readConvertibleAudiobookFile(
-  fileName: string,
-  explicitMetadata: ExplicitAudiobookMetadata | undefined,
-): Promise<ConvertibleAudiobookFile> {
-  const sourcePath = resolve(fileName)
-  const sourceStats = await stat(sourcePath)
-
-  if (!sourceStats.isFile()) {
-    throw new Error(`"${fileName}" is not a file`)
-  }
-
-  if (explicitMetadata !== undefined) {
-    return {
-      expectedFilename: `${explicitMetadata.author} - ${explicitMetadata.title}.m4b`,
-      narrator: explicitMetadata.narrator,
-      performer: explicitMetadata.author,
-      sourcePath,
-      title: explicitMetadata.title,
-    }
-  }
-
-  const metadata = await parseFile(sourcePath)
-  const performer = metadata.common.artist ?? ''
-  const title = metadata.common.album ?? ''
-  const missingFields = [
-    performer === '' ? 'performer' : undefined,
-    title === '' ? 'album title' : undefined,
-  ].filter((field): field is string => field !== undefined)
-
-  if (missingFields.length > 0) {
-    throw new Error(`${basename(sourcePath)} is missing required metadata: ${missingFields.join(', ')}`)
-  }
-
-  return {
-    expectedFilename: `${performer} - ${title}.m4b`,
-    performer,
-    sourcePath,
-    title,
-  }
-}
-
-async function convertAudiobookFile(audiobookFile: ConvertibleAudiobookFile, destinationDirectory: string, jobs: number): Promise<void> {
-  const destinationPath = join(destinationDirectory, audiobookFile.expectedFilename)
-
-  await mergeWithM4bTool({
-    destinationDirectory,
-    destinationFilename: audiobookFile.expectedFilename,
-    jobs,
-    performer: audiobookFile.performer,
-    sourceDirectory: dirname(audiobookFile.sourcePath),
-    sourcePaths: [audiobookFile.sourcePath],
-    title: audiobookFile.title,
-  })
-
-  const convertedAudiobookFile = await readAudiobookFile(destinationPath)
-
-  if (convertedAudiobookFile.filename !== convertedAudiobookFile.expectedFilename) {
-    throw new Error(`${convertedAudiobookFile.filename} does not match metadata; expected "${convertedAudiobookFile.expectedFilename}"`)
-  }
 }
 
 export function registerConvertAudiobookFileCommand(program: Command): void {
@@ -157,58 +25,20 @@ export function registerConvertAudiobookFileCommand(program: Command): void {
     .option('--concurrency <concurrency>', 'maximum simultaneous file conversions', '4')
     .option('--execute', 'run m4b-tool merge')
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
-    .action(async (options: ConvertFileOptions) => {
+    .action(async (options: ConvertFileOptions & { format?: string }) => {
       const outputFormat = parseOutputFormat(convertFileCommand, options.format)
-      const concurrency = parseConcurrency(convertFileCommand, options.concurrency)
-      const jobs = parseM4bToolJobs(convertFileCommand, options.jobs)
-      const destinationDirectory = resolve(options.destDir)
-      const explicitMetadata = parseExplicitMetadata(convertFileCommand, options)
-      const audiobookFiles = await Promise.all(
-        options.fileName.map(fileName => readConvertibleAudiobookFile(fileName, explicitMetadata)),
-      )
-      const destinations = new Set<string>()
+      let rows: ConvertFileRow[]
 
-      if (audiobookFiles.length === 0) {
-        convertFileCommand.error('at least one --file-name is required')
+      try {
+        rows = await convertAudiobookFiles(options)
       }
-
-      for (const audiobookFile of audiobookFiles) {
-        if (destinations.has(audiobookFile.expectedFilename)) {
-          convertFileCommand.error(`Multiple source files resolve to "${audiobookFile.expectedFilename}"`)
+      catch (error) {
+        if (error instanceof UserInputError) {
+          convertFileCommand.error(error.message)
         }
-        destinations.add(audiobookFile.expectedFilename)
 
-        if (await pathExists(join(destinationDirectory, audiobookFile.expectedFilename))) {
-          convertFileCommand.error(`Destination file already exists: ${audiobookFile.expectedFilename}`)
-        }
+        throw error
       }
-
-      if (options.execute === true) {
-        await mkdir(destinationDirectory, { recursive: true })
-        const limit = pLimit(concurrency)
-        const results = await Promise.allSettled(
-          audiobookFiles.map(audiobookFile => limit(async () => (
-            convertAudiobookFile(audiobookFile, destinationDirectory, jobs)
-          ))),
-        )
-        const errors = results
-          .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
-          .map(result => toError(result.reason))
-
-        if (errors.length > 0) {
-          throw new AggregateError(errors, `${String(errors.length)} audiobook conversion(s) failed`)
-        }
-      }
-
-      const rows: ConvertFileRow[] = audiobookFiles.map(audiobookFile => ({
-        action: options.execute === true ? 'converted' : 'would convert',
-        destination: audiobookFile.expectedFilename,
-        ...(audiobookFile.narrator === undefined ? {} : { narrator: audiobookFile.narrator }),
-        performer: audiobookFile.performer,
-        source: basename(audiobookFile.sourcePath),
-        title: audiobookFile.title,
-      }))
-
       writeRows(
         outputFormat,
         rows,
