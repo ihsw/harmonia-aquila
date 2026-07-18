@@ -34,6 +34,7 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
+    "@nestjs/common": "^11.1.28",
     "commander": "^15.0.0",
     "music-metadata": "^11.13.0",
     "node-taglib-sharp": "^6.0.3",
