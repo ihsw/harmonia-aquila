@@ -108,7 +108,7 @@ The installed CLI reports `bru run [paths...]` and supports request/folder paths
 If collection auto-detection fails from the repository root, run the command from `collections/harmonia-aquila-web/` with the request path relative to that collection:
 
 ```sh
-(cd collections/harmonia-aquila-web && ../../../node_modules/.bin/bru run manage-albums/summarize-source-dir.yml --env local --bail)
+(cd collections/harmonia-aquila-web && ../../node_modules/.bin/bru run manage-albums/summarize-source-dir.yml --env local --bail)
 ```
 
 Do not use `npx`. Do not require external network access.

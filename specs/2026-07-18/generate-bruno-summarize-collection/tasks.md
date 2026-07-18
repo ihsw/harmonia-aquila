@@ -26,62 +26,64 @@
 
 ### 1.1 Confirm references and baseline inputs
 
-- [ ] Inspect `extern/bruno-starter-guide/opencollection.yml`, one request YAML, and `environments/local.yml`.
-- [ ] Run `./node_modules/.bin/bru run --help` and confirm supported `--env`, `--env-var`, and `--bail` options.
-- [ ] Confirm `etc/1-source-files/` and `etc/2-destination-files/` exist and do not modify their contents.
-- [ ] Do **not** run whole-codebase `npm run lint` as a pre-flight baseline; reserve it for final verification only if TypeScript changes are approved and made.
+- [x] Inspect `extern/bruno-starter-guide/opencollection.yml`, one request YAML, and `environments/local.yml`.
+- [x] Run `./node_modules/.bin/bru run --help` and confirm supported `--env`, `--env-var`, and `--bail` options.
+- [x] Confirm `etc/1-source-files/` and `etc/2-destination-files/` exist and do not modify their contents.
+- [x] Do **not** run whole-codebase `npm run lint` as a pre-flight baseline; reserve it for final verification only if TypeScript changes are approved and made.
 
 ## Phase 2 — Create Bruno collection
 
 ### 2.1 Create collection metadata
 
-- [ ] Create `collections/harmonia-aquila-web/opencollection.yml` using the starter-guide OpenCollection metadata shape.
-- [ ] Keep the collection name specific to Harmonia Aquila Web.
-- [ ] Do not copy images, solutions, or starter-guide challenge files.
+- [x] Create `collections/harmonia-aquila-web/opencollection.yml` using the starter-guide OpenCollection metadata shape.
+- [x] Keep the collection name specific to Harmonia Aquila Web.
+- [x] Do not copy images, solutions, or starter-guide challenge files.
 
 ### 2.2 Create local environment
 
-- [ ] Create `collections/harmonia-aquila-web/environments/local.yml`.
-- [ ] Add `baseUrl` with default `http://127.0.0.1:3000`.
-- [ ] Add `summarizeDirName` with default `.` and `ignoreNonAudioFiles` with default `'true'`.
+- [x] Create `collections/harmonia-aquila-web/environments/local.yml`.
+- [x] Add `baseUrl` with default `http://127.0.0.1:3000`.
+- [x] Add `summarizeDirName` with default `.` and `ignoreNonAudioFiles` with default `'true'`.
 
 ### 2.3 Create summarize request
 
-- [ ] Create `collections/harmonia-aquila-web/manage-albums/summarize-source-dir.yml`.
-- [ ] Configure `GET {{baseUrl}}/manage-albums/summarize-source-dir?dirName={{summarizeDirName}}&ignoreNonAudioFiles={{ignoreNonAudioFiles}}`.
-- [ ] Add a status `200` assertion.
-- [ ] Add a runtime test that the response body is a JSON array.
+- [x] Create `collections/harmonia-aquila-web/manage-albums/summarize-source-dir.yml`.
+- [x] Configure `GET {{baseUrl}}/manage-albums/summarize-source-dir?dirName={{summarizeDirName}}&ignoreNonAudioFiles={{ignoreNonAudioFiles}}`.
+- [x] Add a status `200` assertion.
+- [x] Add a runtime test that the response body is a JSON array.
 
 ## Phase 3 — Live verification
 
 ### 3.1 Build and start web server
 
-- [ ] Run `npm run build` — exit 0.
-- [ ] Start `npm run web:serve -- --source-dir etc/1-source-files --dest-dir etc/2-destination-files --host 127.0.0.1 --port 3000` and capture the specific PID.
-- [ ] Wait for `curl --fail "http://127.0.0.1:3000/manage-albums/summarize-source-dir?dirName=.&ignoreNonAudioFiles=true"` to exit 0.
+- [x] Run `npm run build` — exit 0.
+- [x] Start `npm run web:serve -- --source-dir etc/1-source-files --dest-dir etc/2-destination-files --host 127.0.0.1 --port 3000` and capture the specific PID.
+- [x] Wait for `curl --fail "http://127.0.0.1:3000/manage-albums/summarize-source-dir?dirName=.&ignoreNonAudioFiles=true"` to exit 0.
 
 ### 3.2 Run Bruno collection
 
-- [ ] Run `./node_modules/.bin/bru run collections/harmonia-aquila-web/manage-albums/summarize-source-dir.yml --env local --bail` — exit 0.
-- [ ] If collection auto-detection fails, run from `collections/harmonia-aquila-web/` using the relative request path and record the reason in a task note.
-- [ ] If port `3000` is occupied, restart on another local port and pass `--env-var baseUrl=http://127.0.0.1:<port>`.
+- [x] Run `cd collections/harmonia-aquila-web && ../../node_modules/.bin/bru run manage-albums/summarize-source-dir.yml --env local --bail` — exit 0.
+- [x] If collection auto-detection fails, run from `collections/harmonia-aquila-web/` using the relative request path and record the reason in a task note.
+- [x] If port `3000` is occupied, restart on another local port and pass `--env-var baseUrl=http://127.0.0.1:<port>`.
+
+> note: `./node_modules/.bin/bru run collections/harmonia-aquila-web/manage-albums/summarize-source-dir.yml --env local --bail` failed with `You can run only at the root of a collection`, so verification used the collection-root fallback.
 
 ### 3.3 Stop server and check fixture safety
 
-- [ ] Stop the captured `web serve` PID using `kill <PID>`.
-- [ ] Confirm no files changed under `etc/1-source-files/**` or `etc/2-destination-files/**`.
+- [x] Stop the captured `web serve` PID using `kill <PID>`.
+- [x] Confirm no files changed under `etc/1-source-files/**` or `etc/2-destination-files/**`.
 
 ## Phase 4 — Final verification
 
 ### 4.1 Scope and status checks
 
-- [ ] `git --no-pager diff --stat -- extern src __tests__ package.json package-lock.json` shows no unintended files.
-- [ ] `git --no-pager diff --stat -- collections/harmonia-aquila-web` lists only the new Bruno collection files.
-- [ ] If TypeScript files were approved and modified, run final whole-codebase `npm run lint`, `npm run build`, and `npm test`.
+- [x] `git --no-pager diff --stat -- extern src __tests__ package.json package-lock.json` shows no unintended files.
+- [x] `git --no-pager diff --stat -- collections/harmonia-aquila-web` lists only the new Bruno collection files.
+- [x] If TypeScript files were approved and modified, run final whole-codebase `npm run lint`, `npm run build`, and `npm test`.
 
 ## Phase 5 — Documentation
 
 ### 5.1 Update directly related docs only
 
-- [ ] If an existing Bruno/API usage document exists, add the collection path and `bru run` command.
-- [ ] If no usage document exists, do not create broad new docs unless the user requests them; the collection files and this spec are sufficient.
+- [x] If an existing Bruno/API usage document exists, add the collection path and `bru run` command.
+- [x] If no usage document exists, do not create broad new docs unless the user requests them; the collection files and this spec are sufficient.

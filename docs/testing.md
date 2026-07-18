@@ -31,6 +31,22 @@ Any file glob or path that matches `__tests__/**/*.test.ts` works:
 ./node_modules/.bin/vitest run __tests__/commands/manage-audiobooks/
 ```
 
+## Running the Bruno Web Smoke Test
+
+Build and start the local web server against the live example directories:
+
+```sh
+npm run build
+npm run web:serve -- --source-dir etc/1-source-files --dest-dir etc/2-destination-files --host 127.0.0.1 --port 3000
+```
+
+In another shell, run the Bruno collection from its collection root:
+
+```sh
+cd collections/harmonia-aquila-web
+../../node_modules/.bin/bru run manage-albums/summarize-source-dir.yml --env local --bail
+```
+
 ## Hermetic Rules
 
 The test suite is fully hermetic:
