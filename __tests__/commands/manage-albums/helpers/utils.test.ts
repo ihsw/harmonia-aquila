@@ -1,8 +1,6 @@
 import { Command } from 'commander'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { createTempDir, createTempFile, removeTempDir } from '../../../test-helpers.js'
-
 import {
   formatAudioBitrate,
   formatAudioDuration,
@@ -11,7 +9,8 @@ import {
   getSupportedAudioExtensions,
   isSupportedAudioExtension,
   parseLimit,
-} from './utils.js'
+} from '../../../../src/commands/manage-albums/helpers/utils.js'
+import { createTempDir, createTempFile, removeTempDir } from '../../../test-helpers.js'
 
 function makeCmd(): Command {
   const cmd = new Command()

@@ -2,16 +2,15 @@ import { Command } from 'commander'
 import { parseFile } from 'music-metadata'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
+import { mergeWithM4bTool } from '../../../src/commands/manage-audiobooks/helpers/m4b-tool.js'
+import { registerMergeAudiobooksCommand } from '../../../src/commands/manage-audiobooks/merge.js'
 import { createTempDir, createTempFile, makeAudioMetadata, removeTempDir } from '../../test-helpers.js'
-
-import { mergeWithM4bTool } from './helpers/m4b-tool.js'
-import { registerMergeAudiobooksCommand } from './merge.js'
 
 vi.mock('music-metadata', () => ({
   parseFile: vi.fn(),
 }))
 
-vi.mock('./helpers/m4b-tool.js', () => ({
+vi.mock('../../../src/commands/manage-audiobooks/helpers/m4b-tool.js', () => ({
   mergeWithM4bTool: vi.fn(),
   parseM4bToolJobs: vi.fn().mockImplementation((cmd: Command, value: string) => {
     const n = Number(value)

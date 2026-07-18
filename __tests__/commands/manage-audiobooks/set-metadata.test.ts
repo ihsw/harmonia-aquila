@@ -3,9 +3,8 @@ import { parseFile } from 'music-metadata'
 import { File as TaglibFile } from 'node-taglib-sharp'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
+import { registerSetAudiobookMetadataCommand } from '../../../src/commands/manage-audiobooks/set-metadata.js'
 import { createTempDir, createTempFile, removeTempDir } from '../../test-helpers.js'
-
-import { registerSetAudiobookMetadataCommand } from './set-metadata.js'
 
 vi.mock('music-metadata', () => ({
   parseFile: vi.fn(),

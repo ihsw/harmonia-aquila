@@ -12,6 +12,15 @@ export default defineConfig(
     tseslint.configs.strictTypeChecked,
     bpEslintConfig,
     {
+        "languageOptions": {
+            "parserOptions": {
+                "project": "./tsconfig.eslint.json",
+                "projectService": false,
+                "tsconfigRootDir": import.meta.dirname
+            }
+        }
+    },
+    {
         "rules": {
             "header/header": [0],
             "no-console": ["error", {

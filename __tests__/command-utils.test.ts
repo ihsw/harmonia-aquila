@@ -1,7 +1,8 @@
 import { Command } from 'commander'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
-import { parseOutputFormat, pathExists, writeRows } from './command-utils.js'
+import { parseOutputFormat, pathExists, writeRows } from '../src/command-utils.js'
+
 import { createTempDir, createTempFile, removeTempDir } from './test-helpers.js'
 
 describe('writeRows', () => {

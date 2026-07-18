@@ -2,9 +2,8 @@ import { Command } from 'commander'
 import { parseFile } from 'music-metadata'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
+import { registerValidateAudiobookCommand, type ValidateAudiobookJsonOutput } from '../../../src/commands/manage-audiobooks/validate.js'
 import { createTempDir, createTempFile, makeAudioMetadata, removeTempDir } from '../../test-helpers.js'
-
-import { registerValidateAudiobookCommand, type ValidateAudiobookJsonOutput } from './validate.js'
 
 vi.mock('music-metadata', () => ({
   parseFile: vi.fn(),

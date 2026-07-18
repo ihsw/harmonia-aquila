@@ -2,9 +2,8 @@ import { Command } from 'commander'
 import { parseFile } from 'music-metadata'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
+import { registerSummarizeSourceDirCommand, type SummarizeSourceDirJsonOutput } from '../../../src/commands/manage-albums/summarize-source-dir.js'
 import { createTempDir, createTempFile, makeAudioMetadata, removeTempDir } from '../../test-helpers.js'
-
-import { registerSummarizeSourceDirCommand, type SummarizeSourceDirJsonOutput } from './summarize-source-dir.js'
 
 vi.mock('music-metadata', () => ({
   parseFile: vi.fn(),

@@ -19,16 +19,16 @@ npm run test:watch
 Use the locally installed Vitest binary directly — never `npx`:
 
 ```sh
-./node_modules/.bin/vitest run src/command-utils.test.ts
-./node_modules/.bin/vitest run src/commands/manage-albums/summarize-source-dir.test.ts
-./node_modules/.bin/vitest run src/commands/manage-audiobooks/merge.test.ts
+./node_modules/.bin/vitest run __tests__/command-utils.test.ts
+./node_modules/.bin/vitest run __tests__/commands/manage-albums/summarize-source-dir.test.ts
+./node_modules/.bin/vitest run __tests__/commands/manage-audiobooks/merge.test.ts
 ```
 
-Any file glob or path that matches `src/**/*.test.ts` works:
+Any file glob or path that matches `__tests__/**/*.test.ts` works:
 
 ```sh
-./node_modules/.bin/vitest run src/commands/manage-albums/
-./node_modules/.bin/vitest run src/commands/manage-audiobooks/
+./node_modules/.bin/vitest run __tests__/commands/manage-albums/
+./node_modules/.bin/vitest run __tests__/commands/manage-audiobooks/
 ```
 
 ## Hermetic Rules
@@ -44,20 +44,22 @@ The test suite is fully hermetic:
 
 ## Test Layout
 
-Tests live beside the source modules they exercise:
+Tests live in the root `__tests__/` tree, grouped to mirror the source
+modules they exercise. Keeping tests outside `src/` prevents `npm run build`
+from emitting test files into `build/dist`.
 
 ```
-src/command-utils.test.ts
-src/commands/manage-albums/helpers/utils.test.ts
-src/commands/manage-albums/summarize-source-dir.test.ts
-src/commands/manage-albums/fix-tags.test.ts
-src/commands/manage-albums/organize-files.test.ts
-src/commands/manage-audiobooks/validate.test.ts
-src/commands/manage-audiobooks/copy-and-rename.test.ts
-src/commands/manage-audiobooks/crawl.test.ts
-src/commands/manage-audiobooks/merge.test.ts
-src/commands/manage-audiobooks/convert-file.test.ts
-src/commands/manage-audiobooks/set-metadata.test.ts
+__tests__/command-utils.test.ts
+__tests__/commands/manage-albums/helpers/utils.test.ts
+__tests__/commands/manage-albums/summarize-source-dir.test.ts
+__tests__/commands/manage-albums/fix-tags.test.ts
+__tests__/commands/manage-albums/organize-files.test.ts
+__tests__/commands/manage-audiobooks/validate.test.ts
+__tests__/commands/manage-audiobooks/copy-and-rename.test.ts
+__tests__/commands/manage-audiobooks/crawl.test.ts
+__tests__/commands/manage-audiobooks/merge.test.ts
+__tests__/commands/manage-audiobooks/convert-file.test.ts
+__tests__/commands/manage-audiobooks/set-metadata.test.ts
 ```
 
-Shared fixtures and temporary-directory helpers are in `src/test-helpers.ts`.
+Shared fixtures and temporary-directory helpers are in `__tests__/test-helpers.ts`.

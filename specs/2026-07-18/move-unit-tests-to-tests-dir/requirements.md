@@ -19,6 +19,7 @@ Move all unit tests and test-only helpers into a root-level `__tests__/` directo
 - Update import paths in moved tests.
 - Update `vitest.config.ts` test discovery to target `__tests__/**/*.test.ts`.
 - Update `package.json` lint coverage so `npm run lint` includes both production TypeScript and the new test tree.
+- Update `eslint.config.mjs` and add lint-only TypeScript configuration if needed so type-aware linting covers `__tests__/` without widening production build inputs.
 - Update `docs/testing.md` to document the new paths and focused-test command examples.
 - Update `tsconfig.json` only if needed to explicitly keep tests outside production builds.
 

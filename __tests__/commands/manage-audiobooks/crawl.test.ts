@@ -4,9 +4,8 @@ import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
+import { type CrawlAudiobookJsonOutput, registerCrawlAudiobooksCommand } from '../../../src/commands/manage-audiobooks/crawl.js'
 import { createTempDir, createTempFile, makeAudioMetadata, removeTempDir } from '../../test-helpers.js'
-
-import { type CrawlAudiobookJsonOutput, registerCrawlAudiobooksCommand } from './crawl.js'
 
 vi.mock('music-metadata', () => ({
   parseFile: vi.fn(),

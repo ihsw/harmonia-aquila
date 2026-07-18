@@ -14,6 +14,8 @@ Vitest will become responsible for compiling/running the root test tree via `inc
 
 ```text
 package.json                                      (modified: lint script includes __tests__)
+eslint.config.mjs                                (modified: type-aware lint uses lint-only TS project)
+tsconfig.eslint.json                             (new: lint-only TS project including src and __tests__)
 tsconfig.json                                    (modified only if explicit test exclusion is needed)
 vitest.config.ts                                 (modified: test include points at __tests__)
 docs/testing.md                                  (modified: examples use __tests__ paths)
@@ -55,6 +57,8 @@ The new root test tree mirrors the existing `src` grouping without duplicating t
 | --- | --- | --- |
 | `vitest.config.ts` | `include: ['src/**/*.test.ts']` | `include: ['__tests__/**/*.test.ts']` with existing `build/**` and `node_modules/**` excludes preserved. |
 | `package.json` | `lint: eslint ./src` | Lint command includes `src`, `__tests__`, and root TypeScript config files that are part of the test setup if needed. |
+| `eslint.config.mjs` | Type-aware lint relies on the production `tsconfig.json` project service. | Use a lint-only TS project when `__tests__/` sits outside the production build project. |
+| `tsconfig.eslint.json` | Does not exist. | Extends `tsconfig.json`, sets `noEmit`, uses `rootDir: "."`, and includes `src` plus `__tests__` for lint only. |
 | `tsconfig.json` | `include: ['src']` | May remain unchanged if tests are outside `src`; optionally add explicit excludes for `__tests__` and `**/*.test.ts` for defensive clarity. |
 | `docs/testing.md` | Focused examples reference `src/**/*.test.ts` | Examples reference `__tests__/**/*.test.ts`. |
 

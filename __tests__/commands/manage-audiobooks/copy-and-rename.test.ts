@@ -2,9 +2,8 @@ import { Command } from 'commander'
 import { parseFile } from 'music-metadata'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
+import { type CopyAndRenameAudiobookJsonOutput, registerCopyAndRenameAudiobookCommand } from '../../../src/commands/manage-audiobooks/copy-and-rename.js'
 import { createTempDir, createTempFile, makeAudioMetadata, removeTempDir } from '../../test-helpers.js'
-
-import { type CopyAndRenameAudiobookJsonOutput, registerCopyAndRenameAudiobookCommand } from './copy-and-rename.js'
 
 vi.mock('music-metadata', () => ({
   parseFile: vi.fn(),
