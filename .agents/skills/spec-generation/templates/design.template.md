@@ -80,10 +80,12 @@ ordering, schema choices, mock strategy, etc.>
 ## 9. Verification
 
 After every source code file edit:
-1. `<lint command>` (NFR-1)
+1. `npm run lint -- <modified-file>` — lint only the file just modified
+   (NFR-1)
 
 Once at end of spec:
-1. `<lint command>` — must exit 0
+1. `npm run lint` — whole-codebase last-call lint after all TypeScript
+   modifications are complete; must exit 0
 2. `<typecheck command>` — must exit 0
 3. `<test command>` — must exit 0
 4. `git --no-pager diff --stat <forbidden path>` — must be empty

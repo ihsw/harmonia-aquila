@@ -13,8 +13,11 @@
 >   (NFR-<n>). If a real bug surfaces elsewhere, STOP and surface it;
 >   do not patch silently.
 > - After **every** source code file modification (for example, a `.ts` edit),
->   run `<lint command>` and fix any reported issues before moving on (NFR-1).
->   Do this per source-code edit, not per-task.
+>   run `npm run lint -- <modified-file>` and fix any reported issues before
+>   moving on (NFR-1). This MUST lint only the file just modified. Do this per
+>   source-code edit, not per-task.
+> - Run whole-codebase `npm run lint` only as a last-call verification after all
+>   TypeScript modifications are complete.
 > - Mark the matching `- [x]` checkbox **immediately** when each task
 >   is finished, so progress is resumable.
 
@@ -22,8 +25,9 @@
 
 ### 1.1 Confirm clean baseline
 
-- [ ] Run `<lint command>` and capture exit code. Note any pre-existing
-      lint errors so they are not attributed to this spec.
+- [ ] Do **not** run whole-codebase `npm run lint` as a pre-flight baseline;
+      reserve it for final verification after all TypeScript modifications are
+      complete.
 - [ ] Run `<test command>` and capture pass/fail counts as the baseline.
 - [ ] <Other "before-state" checks: confirm dependency present, audit
       consumers, snapshot `git status`, etc.>
@@ -33,7 +37,7 @@
 ### 2.1 <Concrete sub-step>
 
 - [ ] <Imperative sentence: "Rewrite `<path>` per `design.md` §3.">
-- [ ] Run `<lint command>`. Fix issues. Re-run until clean.
+- [ ] Run `npm run lint -- <modified-file>`. Fix issues. Re-run until clean.
 
 ## Phase 3 — <…repeat per file/component/area…>
 
@@ -46,7 +50,8 @@
 
 ### N-1.1 Full lint + typecheck + test
 
-- [ ] `<lint command>` — exit 0.
+- [ ] `npm run lint` — whole-codebase last-call lint after all TypeScript
+      modifications are complete; exit 0.
 - [ ] `<typecheck command>` — exit 0.
 - [ ] `<test command>` — exit 0; baseline pass count from Phase 1.x ±
       documented changes.

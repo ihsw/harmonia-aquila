@@ -48,9 +48,12 @@ These are non-negotiable and apply to every spec you generate:
    the user and stop. Wait for explicit "start" / "execute" /
    "proceed with tasks" before touching implementation files.
 4. **Every `requirements.md` MUST include an NFR that mandates running
-   the project's lint command after every source code file modification** and
-   fixing reported issues before the change is considered complete.
-   Phrase it as `NFR-<n> — Lint after every source code file modification`.
+   the project's lint command against the exact modified source file after
+   every source code file modification** and fixing reported issues before
+   the change is considered complete. Phrase it as
+   `NFR-<n> — Lint after every source code file modification` and require
+   `npm run lint -- <modified-file>` rather than whole-codebase linting
+   during per-file edits.
 5. **Every `tasks.md` MUST have a `- [ ]` checkbox under every task
    heading** so progress is resumable. Sub-tasks are also checkboxes.
 6. **Mark `- [x]` immediately** when each task is finished — not at the
@@ -113,7 +116,10 @@ Follow this sequence, stopping after step 5:
    Every task heading MUST have at least one `- [ ]` subtask. Open
    the file with a "Hard constraints (re-read before starting)"
    blockquote that restates: do-not-start, no-`npx`, scope limits,
-   lint-after-every-source-code-edit, mark-`[x]`-immediately.
+   lint-after-every-source-code-edit using `npm run lint -- <modified-file>`,
+   mark-`[x]`-immediately, and reserve whole-codebase `npm run lint` for the
+   final verification phase after all TypeScript modifications are complete
+   (including not using whole-codebase lint as a pre-flight baseline).
 6. **STOP.** Do not run lint, do not edit source. Tell the user the
    spec is ready and which folder it lives in. Wait for them to
    direct execution.
@@ -151,7 +157,10 @@ Follow this sequence, stopping after step 5:
 Use these wordings when applicable. They appear in nearly every spec:
 
 - `NFR — Lint after every source code file modification.` Mandatory (per
-  `AGENTS.md`).
+  `AGENTS.md`). The required command form is
+  `npm run lint -- <modified-file>` so only the file just modified is linted
+  during implementation. Whole-codebase `npm run lint` is reserved for the
+  final verification phase after all TypeScript modifications are complete.
 - `NFR — No npx.` Mandatory (per `AGENTS.md`). Forbid `npx` in **all**
   forms (no `--no-install`, no one-off jest invocations). Tell the
   agent to use `./node_modules/.bin/<tool>` or `npm run <script>`.
