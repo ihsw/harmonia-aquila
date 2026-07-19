@@ -1,10 +1,10 @@
 import { type DynamicModule, Module } from '@nestjs/common'
 
-import { ManageAlbumsController } from './manage-albums.controller.js'
-import { ManageAudiobooksController } from './manage-audiobooks.controller.js'
-import { WebMcpServerFactory } from './mcp-server.js'
-import { McpController } from './mcp.controller.js'
-import { WebPathResolver, type WebRoots } from './path-resolver.js'
+import { ManageAlbumsController } from '../controllers/manage-albums.controller.js'
+import { ManageAudiobooksController } from '../controllers/manage-audiobooks.controller.js'
+import { McpController } from '../controllers/mcp.controller.js'
+import { WebPathResolver, type WebRoots } from '../providers/path-resolver.js'
+import { WebMcpServerFactory } from '../servers/mcp-server.js'
 
 @Module({})
 export class AppModule {}

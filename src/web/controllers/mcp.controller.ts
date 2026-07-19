@@ -1,7 +1,7 @@
 import { Controller, ForbiddenException, Get, HttpCode, Inject, Post, Req, Res } from '@nestjs/common'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
-import { WebMcpServerFactory } from './mcp-server.js'
+import { WebMcpServerFactory } from '../servers/mcp-server.js'
 
 type HttpRequestWithBody = IncomingMessage & {
   body?: unknown

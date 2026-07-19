@@ -3,8 +3,8 @@ import 'reflect-metadata'
 import type { INestApplication } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 
-import { createAppModule } from './app.module.js'
-import { normalizeWebRoots, type WebRoots } from './path-resolver.js'
+import { createAppModule } from './modules/app.module.js'
+import { normalizeWebRoots, type WebRoots } from './providers/path-resolver.js'
 
 export interface ServeWebOptions extends WebRoots {
   host: string

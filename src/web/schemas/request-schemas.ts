@@ -1,6 +1,6 @@
 import { z, type ZodType } from 'zod'
 
-import { UserInputError } from '../lib/errors.js'
+import { UserInputError } from '../../lib/errors.js'
 
 export type QueryRecord = Record<string, string | string[] | undefined>
 

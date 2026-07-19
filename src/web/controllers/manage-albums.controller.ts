@@ -1,11 +1,10 @@
 import { Body, Controller, Get, Inject, Post, Query } from '@nestjs/common'
 
-import { fixAlbumTags } from '../lib/albums/fix-tags.js'
-import { organizeAlbumFiles } from '../lib/albums/organize-files.js'
-import { summarizeAlbumSourceDir } from '../lib/albums/summarize-source-dir.js'
-
-import { throwHttpError } from './http-errors.js'
-import { WebPathResolver } from './path-resolver.js'
+import { fixAlbumTags } from '../../lib/albums/fix-tags.js'
+import { organizeAlbumFiles } from '../../lib/albums/organize-files.js'
+import { summarizeAlbumSourceDir } from '../../lib/albums/summarize-source-dir.js'
+import { throwHttpError } from '../http-errors.js'
+import { WebPathResolver } from '../providers/path-resolver.js'
 import {
   fixTagsBodySchema,
   optionalEntry,
@@ -13,7 +12,7 @@ import {
   parseRequest,
   type QueryRecord,
   summarizeSourceDirQuerySchema,
-} from './request-schemas.js'
+} from '../schemas/request-schemas.js'
 
 @Controller('manage-albums')
 export class ManageAlbumsController {

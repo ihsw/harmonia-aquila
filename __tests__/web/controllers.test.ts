@@ -11,9 +11,9 @@ import { crawlAudiobooks } from '../../src/lib/audiobooks/crawl.js'
 import { mergeAudiobooks } from '../../src/lib/audiobooks/merge.js'
 import { setAudiobookMetadata } from '../../src/lib/audiobooks/set-metadata.js'
 import { validateAudiobook } from '../../src/lib/audiobooks/validate.js'
-import { ManageAlbumsController } from '../../src/web/manage-albums.controller.js'
-import { ManageAudiobooksController } from '../../src/web/manage-audiobooks.controller.js'
-import { normalizeWebRoots, WebPathResolver, type WebRoots } from '../../src/web/path-resolver.js'
+import { ManageAlbumsController } from '../../src/web/controllers/manage-albums.controller.js'
+import { ManageAudiobooksController } from '../../src/web/controllers/manage-audiobooks.controller.js'
+import { normalizeWebRoots, WebPathResolver, type WebRoots } from '../../src/web/providers/path-resolver.js'
 import { createTempDir, removeTempDir } from '../test-helpers.js'
 
 vi.mock('../../src/lib/albums/summarize-source-dir.js', () => ({

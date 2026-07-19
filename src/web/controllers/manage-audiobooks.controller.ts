@@ -1,14 +1,13 @@
 import { Body, Controller, Get, Inject, Post, Query } from '@nestjs/common'
 
-import { convertAudiobookFiles } from '../lib/audiobooks/convert-file.js'
-import { copyAndRenameAudiobook } from '../lib/audiobooks/copy-and-rename.js'
-import { crawlAudiobooks } from '../lib/audiobooks/crawl.js'
-import { mergeAudiobooks } from '../lib/audiobooks/merge.js'
-import { setAudiobookMetadata } from '../lib/audiobooks/set-metadata.js'
-import { validateAudiobook } from '../lib/audiobooks/validate.js'
-
-import { throwHttpError } from './http-errors.js'
-import { WebPathResolver } from './path-resolver.js'
+import { convertAudiobookFiles } from '../../lib/audiobooks/convert-file.js'
+import { copyAndRenameAudiobook } from '../../lib/audiobooks/copy-and-rename.js'
+import { crawlAudiobooks } from '../../lib/audiobooks/crawl.js'
+import { mergeAudiobooks } from '../../lib/audiobooks/merge.js'
+import { setAudiobookMetadata } from '../../lib/audiobooks/set-metadata.js'
+import { validateAudiobook } from '../../lib/audiobooks/validate.js'
+import { throwHttpError } from '../http-errors.js'
+import { WebPathResolver } from '../providers/path-resolver.js'
 import {
   convertFileBodySchema,
   copyAndRenameBodySchema,
@@ -19,7 +18,7 @@ import {
   type QueryRecord,
   setMetadataBodySchema,
   validateAudiobookQuerySchema,
-} from './request-schemas.js'
+} from '../schemas/request-schemas.js'
 
 @Controller('manage-audiobooks')
 export class ManageAudiobooksController {

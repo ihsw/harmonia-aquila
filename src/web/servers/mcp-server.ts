@@ -3,14 +3,13 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { Inject, Injectable } from '@nestjs/common'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
-import { summarizeAlbumSourceDir } from '../lib/albums/summarize-source-dir.js'
-
+import { summarizeAlbumSourceDir } from '../../lib/albums/summarize-source-dir.js'
+import { WebPathResolver } from '../providers/path-resolver.js'
 import {
   MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME,
   manageAlbumsSummarizeSourceDirInputSchema,
-} from './mcp-schemas.js'
-import { WebPathResolver } from './path-resolver.js'
-import { optionalEntry } from './request-schemas.js'
+} from '../schemas/mcp-schemas.js'
+import { optionalEntry } from '../schemas/request-schemas.js'
 
 type HttpRequestWithBody = IncomingMessage & {
   body?: unknown

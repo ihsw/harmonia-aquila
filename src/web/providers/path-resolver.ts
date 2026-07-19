@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
-import { UserInputError } from '../lib/errors.js'
+import { UserInputError } from '../../lib/errors.js'
 
 export interface WebRoots {
   sourceDir: string

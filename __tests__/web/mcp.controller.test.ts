@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { summarizeAlbumSourceDir } from '../../src/lib/albums/summarize-source-dir.js'
 import { createWebApp } from '../../src/web/main.js'
-import { MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME } from '../../src/web/mcp-schemas.js'
+import { MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME } from '../../src/web/schemas/mcp-schemas.js'
 import { createTempDir, removeTempDir } from '../test-helpers.js'
 
 vi.mock('../../src/lib/albums/summarize-source-dir.js', () => ({
