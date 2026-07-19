@@ -43,6 +43,7 @@
     "music-metadata": "^11.13.0",
     "node-taglib-sharp": "^6.0.3",
     "p-limit": "^7.3.0",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "zod": "^4.4.3"
   }
 }
