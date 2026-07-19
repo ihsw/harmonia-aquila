@@ -1,0 +1,41 @@
+info:
+  name: organize-files
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{baseUrl}}/manage-albums/organize-files"
+  body:
+    type: json
+    data: |-
+      {
+        "ignoreNonAudioFiles": true,
+        "limit": "0"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("201 status code", function () {
+          expect(res.getStatus()).to.eql(201);
+        });
+
+        test("response body is an array", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(json).to.be.an("array");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "201"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

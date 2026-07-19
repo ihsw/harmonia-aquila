@@ -8,3 +8,5 @@ variables:
     value: 'true'
   - name: traversalDirName
     value: ..
+  - name: sampleAlbumFileName
+    value: StarTropics/Y. Hirai - StarTropics OST - 01 - Opening.mp3

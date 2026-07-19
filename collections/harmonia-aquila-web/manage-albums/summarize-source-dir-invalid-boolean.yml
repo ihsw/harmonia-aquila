@@ -1,0 +1,36 @@
+info:
+  name: summarize-source-dir-invalid-boolean
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{baseUrl}}/manage-albums/summarize-source-dir?dirName={{summarizeDirName}}&ignoreNonAudioFiles=maybe"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("400 status code", function () {
+          expect(res.getStatus()).to.eql(400);
+        });
+
+        test("response body reports boolean contract error", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(json).to.have.property("statusCode", 400);
+          expect(json).to.have.property("error", "Bad Request");
+          expect(json).to.have.property("message").that.includes("boolean values");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,39 @@
+info:
+  name: copy-and-rename-missing-file-name
+  type: http
+  seq: 15
+
+http:
+  method: POST
+  url: "{{baseUrl}}/manage-audiobooks/copy-and-rename"
+  body:
+    type: json
+    data: |-
+      {}
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("400 status code", function () {
+          expect(res.getStatus()).to.eql(400);
+        });
+
+        test("response body reports missing fileName", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(json).to.have.property("statusCode", 400);
+          expect(json).to.have.property("message").that.includes("fileName is required");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

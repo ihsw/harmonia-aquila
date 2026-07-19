@@ -1,0 +1,42 @@
+info:
+  name: copy-and-rename-dest-dir-override
+  type: http
+  seq: 17
+
+http:
+  method: POST
+  url: "{{baseUrl}}/manage-audiobooks/copy-and-rename"
+  body:
+    type: json
+    data: |-
+      {
+        "destDir": "../outside",
+        "fileName": "{{sampleAlbumFileName}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("400 status code", function () {
+          expect(res.getStatus()).to.eql(400);
+        });
+
+        test("response body reports configured destination root", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(json).to.have.property("statusCode", 400);
+          expect(json).to.have.property("message").that.includes("--dest-dir");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

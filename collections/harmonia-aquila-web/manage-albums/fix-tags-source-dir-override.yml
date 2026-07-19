@@ -1,0 +1,41 @@
+info:
+  name: fix-tags-source-dir-override
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{baseUrl}}/manage-albums/fix-tags"
+  body:
+    type: json
+    data: |-
+      {
+        "sourceDir": "../outside"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("400 status code", function () {
+          expect(res.getStatus()).to.eql(400);
+        });
+
+        test("response body reports configured source root", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(json).to.have.property("statusCode", 400);
+          expect(json).to.have.property("message").that.includes("--source-dir");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

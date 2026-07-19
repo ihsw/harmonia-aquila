@@ -1,0 +1,44 @@
+info:
+  name: set-metadata-source-path-traversal
+  type: http
+  seq: 24
+
+http:
+  method: POST
+  url: "{{baseUrl}}/manage-audiobooks/set-metadata"
+  body:
+    type: json
+    data: |-
+      {
+        "author": "Author",
+        "destFilepath": "book.m4b",
+        "sourceFilepath": "../outside.m4b",
+        "title": "Title"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("400 status code", function () {
+          expect(res.getStatus()).to.eql(400);
+        });
+
+        test("response body reports source root violation", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(json).to.have.property("statusCode", 400);
+          expect(json).to.have.property("message").that.includes("--source-dir");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

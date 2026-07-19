@@ -1,0 +1,41 @@
+info:
+  name: fix-tags
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseUrl}}/manage-albums/fix-tags"
+  body:
+    type: json
+    data: |-
+      {
+        "limit": "0"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("400 status code", function () {
+          expect(res.getStatus()).to.eql(400);
+        });
+
+        test("response body reports flat source-directory contract", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(json).to.have.property("statusCode", 400);
+          expect(json).to.have.property("message").that.includes("must contain only supported audio files");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

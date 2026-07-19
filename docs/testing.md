@@ -44,7 +44,7 @@ In another shell, run the Bruno collection from its collection root:
 
 ```sh
 cd collections/harmonia-aquila-web
-../../node_modules/.bin/bru run manage-albums/summarize-source-dir.yml --env local --bail
+../../node_modules/.bin/bru run . -r --env local --bail
 ```
 
 ## Hermetic Rules
