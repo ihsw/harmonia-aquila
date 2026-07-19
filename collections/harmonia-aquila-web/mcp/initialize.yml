@@ -1,0 +1,57 @@
+info:
+  name: initialize
+  type: http
+  seq: 26
+
+http:
+  method: POST
+  url: "{{baseUrl}}/mcp"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 100,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "{{mcpProtocolVersion}}",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "bruno",
+            "version": "1.0.0"
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Accept", "application/json, text/event-stream");
+        req.setHeader("MCP-Protocol-Version", bru.getEnvVar("mcpProtocolVersion"));
+    - type: tests
+      code: |-
+        test("200 status code", function () {
+          expect(res.getStatus()).to.eql(200);
+        });
+
+        test("response advertises tool capability", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(json).to.have.property("id", 100);
+          expect(json).to.have.nested.property("result.capabilities.tools");
+          expect(json).to.have.nested.property("result.serverInfo.name", "harmonia-aquila-web");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+

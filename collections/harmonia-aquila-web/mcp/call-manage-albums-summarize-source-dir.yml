@@ -1,0 +1,60 @@
+info:
+  name: call-manage-albums-summarize-source-dir
+  type: http
+  seq: 28
+
+http:
+  method: POST
+  url: "{{baseUrl}}/mcp"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 102,
+        "method": "tools/call",
+        "params": {
+          "name": "manage_albums_summarize_source_dir",
+          "arguments": {
+            "dirName": "{{summarizeDirName}}",
+            "ignoreNonAudioFiles": true,
+            "limit": 0
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Accept", "application/json, text/event-stream");
+        req.setHeader("MCP-Protocol-Version", bru.getEnvVar("mcpProtocolVersion"));
+    - type: tests
+      code: |-
+        test("200 status code", function () {
+          expect(res.getStatus()).to.eql(200);
+        });
+
+        test("tool response content is a JSON array", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+          const content = json.result.content;
+          const rows = JSON.parse(content[0].text);
+
+          expect(json).to.have.property("id", 102);
+          expect(content).to.be.an("array");
+          expect(content[0]).to.have.property("type", "text");
+          expect(rows).to.be.an("array");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+

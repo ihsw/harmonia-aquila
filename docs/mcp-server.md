@@ -4,6 +4,16 @@ This document records the intended Model Context Protocol (MCP) server for
 Harmonia Aquila. The server exposes the same album and audiobook operations as
 the `manage-albums` and `manage-audiobooks` CLI supercommands.
 
+## Current scoped web endpoint
+
+`web serve` also exposes a scoped Streamable HTTP endpoint at `/mcp`. That web
+endpoint is intentionally limited to one read-only tool,
+`manage_albums_summarize_source_dir`, and resolves all paths inside the
+configured `--source-dir`.
+
+The rest of this document describes a broader future stdio MCP server and should
+not be read as the current `web serve` tool surface.
+
 ## Goals
 
 - Run as a separate MCP stdio process.

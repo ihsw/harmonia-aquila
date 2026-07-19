@@ -47,6 +47,9 @@ cd collections/harmonia-aquila-web
 ../../node_modules/.bin/bru run . -r --env local --bail
 ```
 
+The collection includes both the REST web routes and the scoped `/mcp` endpoint
+for `manage_albums_summarize_source_dir`.
+
 ## Hermetic Rules
 
 The test suite is fully hermetic:

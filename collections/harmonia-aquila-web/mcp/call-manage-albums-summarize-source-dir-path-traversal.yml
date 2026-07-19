@@ -1,0 +1,55 @@
+info:
+  name: call-manage-albums-summarize-source-dir-path-traversal
+  type: http
+  seq: 29
+
+http:
+  method: POST
+  url: "{{baseUrl}}/mcp"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 103,
+        "method": "tools/call",
+        "params": {
+          "name": "manage_albums_summarize_source_dir",
+          "arguments": {
+            "dirName": "{{traversalDirName}}"
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Accept", "application/json, text/event-stream");
+        req.setHeader("MCP-Protocol-Version", bru.getEnvVar("mcpProtocolVersion"));
+    - type: tests
+      code: |-
+        test("200 status code", function () {
+          expect(res.getStatus()).to.eql(200);
+        });
+
+        test("tool response reports source root violation", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+          const content = json.result.content;
+
+          expect(json).to.have.property("id", 103);
+          expect(json.result).to.have.property("isError", true);
+          expect(content[0].text).to.include("--source-dir");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

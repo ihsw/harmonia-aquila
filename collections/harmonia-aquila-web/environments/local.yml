@@ -10,3 +10,5 @@ variables:
     value: ..
   - name: sampleAlbumFileName
     value: StarTropics/Y. Hirai - StarTropics OST - 01 - Opening.mp3
+  - name: mcpProtocolVersion
+    value: '2025-11-25'

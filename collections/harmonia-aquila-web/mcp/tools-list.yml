@@ -1,0 +1,51 @@
+info:
+  name: tools-list
+  type: http
+  seq: 27
+
+http:
+  method: POST
+  url: "{{baseUrl}}/mcp"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 101,
+        "method": "tools/list",
+        "params": {}
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Accept", "application/json, text/event-stream");
+        req.setHeader("MCP-Protocol-Version", bru.getEnvVar("mcpProtocolVersion"));
+    - type: tests
+      code: |-
+        test("200 status code", function () {
+          expect(res.getStatus()).to.eql(200);
+        });
+
+        test("only summarize source directory tool is exposed", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+          const tools = json.result.tools;
+
+          expect(json).to.have.property("id", 101);
+          expect(tools).to.be.an("array").with.lengthOf(1);
+          expect(tools[0]).to.have.property("name", "manage_albums_summarize_source_dir");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
