@@ -25,86 +25,86 @@
 
 ### 1.1 Confirm current validation surface
 
-- [ ] Inspect `package.json` and confirm `zod` is already available.
-- [ ] Inspect `src/web/request-options.ts`, both controllers, `http-errors.ts`, and current web tests.
-- [ ] Do **not** run whole-codebase `npm run lint` as a pre-flight baseline; reserve it for final verification.
+- [x] Inspect `package.json` and confirm `zod` is already available.
+- [x] Inspect `src/web/request-options.ts`, both controllers, `http-errors.ts`, and current web tests.
+- [x] Do **not** run whole-codebase `npm run lint` as a pre-flight baseline; reserve it for final verification.
 
 ## Phase 2 — Zod schema layer
 
 ### 2.1 Add schema helpers
 
-- [ ] Create `src/web/request-schemas.ts` with typed Zod primitives and a parse helper.
-- [ ] Convert Zod parse failures to `UserInputError` or equivalent HTTP 400 mapping.
-- [ ] Run `npm run lint -- src/web/request-schemas.ts`. Fix issues. Re-run until clean.
+- [x] Create `src/web/request-schemas.ts` with typed Zod primitives and a parse helper.
+- [x] Convert Zod parse failures to `UserInputError` or equivalent HTTP 400 mapping.
+- [x] Run `npm run lint -- src/web/request-schemas.ts`. Fix issues. Re-run until clean.
 
 ### 2.2 Retire manual helper usage
 
-- [ ] Decide whether `src/web/request-options.ts` should be deleted or reduced to compatibility exports during migration.
-- [ ] Remove unused manual helper code once controllers no longer import it.
-- [ ] Run `npm run lint -- src/web/request-options.ts` if the file remains modified. Fix issues. Re-run until clean.
+- [x] Decide whether `src/web/request-options.ts` should be deleted or reduced to compatibility exports during migration.
+- [x] Remove unused manual helper code once controllers no longer import it.
+- [x] Run `npm run lint -- src/web/request-options.ts` if the file remains modified. Fix issues. Re-run until clean.
 
 ## Phase 3 — Album routes
 
 ### 3.1 Refactor album controller validation
 
-- [ ] Update `summarize-source-dir`, `fix-tags`, and `organize-files` to parse request data with Zod schemas.
-- [ ] Preserve root override rejection, path resolution order, optional option behavior, and shared function option shapes.
-- [ ] Run `npm run lint -- src/web/manage-albums.controller.ts`. Fix issues. Re-run until clean.
+- [x] Update `summarize-source-dir`, `fix-tags`, and `organize-files` to parse request data with Zod schemas.
+- [x] Preserve root override rejection, path resolution order, optional option behavior, and shared function option shapes.
+- [x] Run `npm run lint -- src/web/manage-albums.controller.ts`. Fix issues. Re-run until clean.
 
 ### 3.2 Cover album validation
 
-- [ ] Update `__tests__/web/controllers.test.ts` for album Zod validation behavior.
-- [ ] Ensure invalid boolean, root override, missing required field, and traversal cases still return 400 without shared function calls.
-- [ ] Run `npm run lint -- __tests__/web/controllers.test.ts`. Fix issues. Re-run until clean.
-- [ ] Run `./node_modules/.bin/vitest run __tests__/web/controllers.test.ts`.
+- [x] Update `__tests__/web/controllers.test.ts` for album Zod validation behavior.
+- [x] Ensure invalid boolean, root override, missing required field, and traversal cases still return 400 without shared function calls.
+- [x] Run `npm run lint -- __tests__/web/controllers.test.ts`. Fix issues. Re-run until clean.
+- [x] Run `./node_modules/.bin/vitest run __tests__/web/controllers.test.ts`.
 
 ## Phase 4 — Audiobook routes
 
 ### 4.1 Refactor audiobook controller validation
 
-- [ ] Update `validate`, `crawl`, `copy-and-rename`, `convert-file`, `merge`, and `set-metadata` to parse request data with Zod schemas.
-- [ ] Preserve `convert-file.fileName` string-or-array behavior and missing/empty list semantics.
-- [ ] Preserve root override rejection and source/destination path resolution semantics.
-- [ ] Run `npm run lint -- src/web/manage-audiobooks.controller.ts`. Fix issues. Re-run until clean.
+- [x] Update `validate`, `crawl`, `copy-and-rename`, `convert-file`, `merge`, and `set-metadata` to parse request data with Zod schemas.
+- [x] Preserve `convert-file.fileName` string-or-array behavior and missing/empty list semantics.
+- [x] Preserve root override rejection and source/destination path resolution semantics.
+- [x] Run `npm run lint -- src/web/manage-audiobooks.controller.ts`. Fix issues. Re-run until clean.
 
 ### 4.2 Cover audiobook validation
 
-- [ ] Update `__tests__/web/controllers.test.ts` for audiobook Zod validation behavior.
-- [ ] Add or preserve coverage for `convert-file.fileName` string, string-array, invalid-type, and traversal cases.
-- [ ] Run `npm run lint -- __tests__/web/controllers.test.ts`. Fix issues. Re-run until clean.
-- [ ] Run `./node_modules/.bin/vitest run __tests__/web/controllers.test.ts`.
+- [x] Update `__tests__/web/controllers.test.ts` for audiobook Zod validation behavior.
+- [x] Add or preserve coverage for `convert-file.fileName` string, string-array, invalid-type, and traversal cases.
+- [x] Run `npm run lint -- __tests__/web/controllers.test.ts`. Fix issues. Re-run until clean.
+- [x] Run `./node_modules/.bin/vitest run __tests__/web/controllers.test.ts`.
 
 ## Phase 5 — Bruno compatibility
 
 ### 5.1 Update collection assertions only if needed
 
-- [ ] Run the current Bruno collection against the refactored server and identify any assertion failures caused only by equivalent Zod message wording.
-- [ ] If needed, update `collections/harmonia-aquila-web/**` assertions to check stable status codes and field/context substrings.
-- [ ] Do not weaken assertions for path traversal, root override, or missing required field semantics.
+- [x] Run the current Bruno collection against the refactored server and identify any assertion failures caused only by equivalent Zod message wording.
+- [x] If needed, update `collections/harmonia-aquila-web/**` assertions to check stable status codes and field/context substrings.
+- [x] Do not weaken assertions for path traversal, root override, or missing required field semantics.
 
 ## Phase 6 — Verification
 
 ### 6.1 Focused verification
 
-- [ ] `./node_modules/.bin/vitest run __tests__/web` — exit 0.
-- [ ] `npm run build` — exit 0 before live Bruno verification.
+- [x] `./node_modules/.bin/vitest run __tests__/web` — exit 0.
+- [x] `npm run build` — exit 0 before live Bruno verification.
 
 ### 6.2 Live Bruno verification
 
-- [ ] Start `npm run web:serve -- --source-dir etc/1-source-files --dest-dir etc/2-destination-files --host 127.0.0.1 --port 3000` and capture the specific PID.
-- [ ] `cd collections/harmonia-aquila-web && ../../node_modules/.bin/bru run . -r --env local --bail` — exit 0.
-- [ ] Stop the captured `web serve` PID using `kill <PID>`.
+- [x] Start `npm run web:serve -- --source-dir etc/1-source-files --dest-dir etc/2-destination-files --host 127.0.0.1 --port 3000` and capture the specific PID.
+- [x] `cd collections/harmonia-aquila-web && ../../node_modules/.bin/bru run . -r --env local --bail` — exit 0.
+- [x] Stop the captured `web serve` PID using `kill <PID>`.
 
 ### 6.3 Full verification
 
-- [ ] `npm run lint` — whole-codebase last-call lint after all TypeScript modifications are complete; exit 0.
-- [ ] `npm run build` — exit 0.
-- [ ] `npm test` — exit 0.
-- [ ] `git --no-pager diff --stat -- src/web __tests__/web collections/harmonia-aquila-web package.json package-lock.json` lists only expected files.
+- [x] `npm run lint` — whole-codebase last-call lint after all TypeScript modifications are complete; exit 0.
+- [x] `npm run build` — exit 0.
+- [x] `npm test` — exit 0.
+- [x] `git --no-pager diff --stat -- src/web __tests__/web collections/harmonia-aquila-web package.json package-lock.json` lists only expected files.
 
 ## Phase 7 — Documentation
 
 ### 7.1 Update directly related docs only
 
-- [ ] If an existing web/API validation document exists, update it to mention Zod-backed request validation.
-- [ ] If no such document exists, do not create broad new docs unless the user requests them; tests and Bruno collection coverage are sufficient.
+- [x] If an existing web/API validation document exists, update it to mention Zod-backed request validation.
+- [x] If no such document exists, do not create broad new docs unless the user requests them; tests and Bruno collection coverage are sufficient.

@@ -119,6 +119,17 @@ describe('web controllers', () => {
     expect(fixAlbumTags).not.toHaveBeenCalled()
   })
 
+  it('rejects album request contract violations before invoking operations', async () => {
+    await expect(albumController.summarizeSourceDir({
+      dirName: 'music',
+      ignoreNonAudioFiles: 'maybe',
+    })).rejects.toBeInstanceOf(BadRequestException)
+    await expect(albumController.organizeFiles({ execute: 'maybe' })).rejects.toBeInstanceOf(BadRequestException)
+
+    expect(summarizeAlbumSourceDir).not.toHaveBeenCalled()
+    expect(organizeAlbumFiles).not.toHaveBeenCalled()
+  })
+
   it('maps audiobook GET query parameters to validate options', async () => {
     vi.mocked(validateAudiobook).mockResolvedValue([{ valid: true } as never])
 
@@ -180,6 +191,26 @@ describe('web controllers', () => {
       fileName: ['safe.m4b', '../escape.m4b'],
     })).rejects.toBeInstanceOf(BadRequestException)
 
+    expect(convertAudiobookFiles).not.toHaveBeenCalled()
+  })
+
+  it('maps convert-file string filename and rejects invalid filename types', async () => {
+    vi.mocked(convertAudiobookFiles).mockResolvedValue([])
+
+    await audiobookController.convertFile({ fileName: 'book.mp3' })
+
+    expect(convertAudiobookFiles).toHaveBeenCalledWith({
+      concurrency: '4',
+      destDir: roots.destDir,
+      fileName: [path.join(roots.sourceDir, 'book.mp3')],
+      jobs: '16',
+    })
+
+    vi.mocked(convertAudiobookFiles).mockReset()
+
+    await expect(audiobookController.convertFile({
+      fileName: [123],
+    })).rejects.toBeInstanceOf(BadRequestException)
     expect(convertAudiobookFiles).not.toHaveBeenCalled()
   })
 

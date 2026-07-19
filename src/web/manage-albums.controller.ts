@@ -6,7 +6,14 @@ import { summarizeAlbumSourceDir } from '../lib/albums/summarize-source-dir.js'
 
 import { throwHttpError } from './http-errors.js'
 import { WebPathResolver } from './path-resolver.js'
-import { bodyRecord, optionalBoolean, optionalEntry, optionalString, type QueryRecord, rejectPresent, requiredString } from './request-options.js'
+import {
+  fixTagsBodySchema,
+  optionalEntry,
+  organizeFilesBodySchema,
+  parseRequest,
+  type QueryRecord,
+  summarizeSourceDirQuerySchema,
+} from './request-schemas.js'
 
 @Controller('manage-albums')
 export class ManageAlbumsController {
@@ -15,10 +22,12 @@ export class ManageAlbumsController {
   @Get('summarize-source-dir')
   public async summarizeSourceDir(@Query() query: QueryRecord): Promise<unknown> {
     try {
+      const options = parseRequest(summarizeSourceDirQuerySchema, query)
+
       return await summarizeAlbumSourceDir({
-        dirName: await this.pathResolver.resolveSource(requiredString(query, 'dirName'), 'dirName'),
-        ...optionalEntry('ignoreNonAudioFiles', optionalBoolean(query.ignoreNonAudioFiles)),
-        ...optionalEntry('limit', optionalString(query, 'limit')),
+        dirName: await this.pathResolver.resolveSource(options.dirName, 'dirName'),
+        ...optionalEntry('ignoreNonAudioFiles', options.ignoreNonAudioFiles),
+        ...optionalEntry('limit', options.limit),
       })
     }
     catch (error) {
@@ -29,25 +38,26 @@ export class ManageAlbumsController {
   @Post('fix-tags')
   public async fixTags(@Body() rawBody: unknown): Promise<unknown> {
     try {
-      const body = bodyRecord(rawBody)
-      rejectPresent(body, 'destDir', 'destDir is configured by web serve --dest-dir')
-      rejectPresent(body, 'sourceDir', 'sourceDir is configured by web serve --source-dir')
+      const options = parseRequest(fixTagsBodySchema, rawBody, {
+        destDir: 'destDir is configured by web serve --dest-dir',
+        sourceDir: 'sourceDir is configured by web serve --source-dir',
+      })
 
       return await fixAlbumTags({
         destDir: this.pathResolver.destDir,
         sourceDir: this.pathResolver.sourceDir,
-        ...optionalEntry('albumArtistsStrategy', optionalString(body, 'albumArtistsStrategy')),
-        ...optionalEntry('albumStrategy', optionalString(body, 'albumStrategy')),
-        ...optionalEntry('destinationStrategy', optionalString(body, 'destinationStrategy')),
-        ...optionalEntry('execute', optionalBoolean(body.execute)),
-        ...optionalEntry('limit', optionalString(body, 'limit')),
-        ...optionalEntry('producerStrategy', optionalString(body, 'producerStrategy')),
-        ...optionalEntry('resetTrack', optionalBoolean(body.resetTrack)),
-        ...optionalEntry('setAlbum', optionalString(body, 'setAlbum')),
-        ...optionalEntry('setAlbumArtist', optionalString(body, 'setAlbumArtist')),
-        ...optionalEntry('setArtist', optionalString(body, 'setArtist')),
-        ...optionalEntry('setMetadata', optionalString(body, 'setMetadata')),
-        ...optionalEntry('swapArtistAlbumartist', optionalBoolean(body.swapArtistAlbumartist)),
+        ...optionalEntry('albumArtistsStrategy', options.albumArtistsStrategy),
+        ...optionalEntry('albumStrategy', options.albumStrategy),
+        ...optionalEntry('destinationStrategy', options.destinationStrategy),
+        ...optionalEntry('execute', options.execute),
+        ...optionalEntry('limit', options.limit),
+        ...optionalEntry('producerStrategy', options.producerStrategy),
+        ...optionalEntry('resetTrack', options.resetTrack),
+        ...optionalEntry('setAlbum', options.setAlbum),
+        ...optionalEntry('setAlbumArtist', options.setAlbumArtist),
+        ...optionalEntry('setArtist', options.setArtist),
+        ...optionalEntry('setMetadata', options.setMetadata),
+        ...optionalEntry('swapArtistAlbumartist', options.swapArtistAlbumartist),
       })
     }
     catch (error) {
@@ -58,19 +68,20 @@ export class ManageAlbumsController {
   @Post('organize-files')
   public async organizeFiles(@Body() rawBody: unknown): Promise<unknown> {
     try {
-      const body = bodyRecord(rawBody)
-      rejectPresent(body, 'destDir', 'destDir is configured by web serve --dest-dir')
-      rejectPresent(body, 'sourceDir', 'sourceDir is configured by web serve --source-dir')
+      const options = parseRequest(organizeFilesBodySchema, rawBody, {
+        destDir: 'destDir is configured by web serve --dest-dir',
+        sourceDir: 'sourceDir is configured by web serve --source-dir',
+      })
 
       return await organizeAlbumFiles({
         destDir: this.pathResolver.destDir,
         sourceDir: this.pathResolver.sourceDir,
-        ...optionalEntry('artistFilenameStrategy', optionalString(body, 'artistFilenameStrategy')),
-        ...optionalEntry('execute', optionalBoolean(body.execute)),
-        ...optionalEntry('ignoreAudioFilesWithoutTracks', optionalBoolean(body.ignoreAudioFilesWithoutTracks)),
-        ...optionalEntry('ignoreNonAudioFiles', optionalBoolean(body.ignoreNonAudioFiles)),
-        ...optionalEntry('limit', optionalString(body, 'limit')),
-        ...optionalEntry('titleFilenameStrategy', optionalString(body, 'titleFilenameStrategy')),
+        ...optionalEntry('artistFilenameStrategy', options.artistFilenameStrategy),
+        ...optionalEntry('execute', options.execute),
+        ...optionalEntry('ignoreAudioFilesWithoutTracks', options.ignoreAudioFilesWithoutTracks),
+        ...optionalEntry('ignoreNonAudioFiles', options.ignoreNonAudioFiles),
+        ...optionalEntry('limit', options.limit),
+        ...optionalEntry('titleFilenameStrategy', options.titleFilenameStrategy),
       })
     }
     catch (error) {

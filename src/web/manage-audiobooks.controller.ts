@@ -9,7 +9,17 @@ import { validateAudiobook } from '../lib/audiobooks/validate.js'
 
 import { throwHttpError } from './http-errors.js'
 import { WebPathResolver } from './path-resolver.js'
-import { bodyRecord, optionalBoolean, optionalEntry, optionalString, type QueryRecord, rejectPresent, requiredString, stringArray } from './request-options.js'
+import {
+  convertFileBodySchema,
+  copyAndRenameBodySchema,
+  crawlAudiobooksQuerySchema,
+  mergeBodySchema,
+  optionalEntry,
+  parseRequest,
+  type QueryRecord,
+  setMetadataBodySchema,
+  validateAudiobookQuerySchema,
+} from './request-schemas.js'
 
 @Controller('manage-audiobooks')
 export class ManageAudiobooksController {
@@ -18,8 +28,10 @@ export class ManageAudiobooksController {
   @Get('validate')
   public async validate(@Query() query: QueryRecord): Promise<unknown> {
     try {
+      const options = parseRequest(validateAudiobookQuerySchema, query)
+
       return await validateAudiobook({
-        fileName: await this.pathResolver.resolveSource(requiredString(query, 'fileName'), 'fileName'),
+        fileName: await this.pathResolver.resolveSource(options.fileName, 'fileName'),
       })
     }
     catch (error) {
@@ -30,8 +42,10 @@ export class ManageAudiobooksController {
   @Get('crawl')
   public async crawl(@Query() query: QueryRecord): Promise<unknown> {
     try {
+      const options = parseRequest(crawlAudiobooksQuerySchema, query)
+
       return await crawlAudiobooks({
-        dirName: await this.pathResolver.resolveSource(requiredString(query, 'dirName'), 'dirName'),
+        dirName: await this.pathResolver.resolveSource(options.dirName, 'dirName'),
       })
     }
     catch (error) {
@@ -42,13 +56,14 @@ export class ManageAudiobooksController {
   @Post('copy-and-rename')
   public async copyAndRename(@Body() rawBody: unknown): Promise<unknown> {
     try {
-      const body = bodyRecord(rawBody)
-      rejectPresent(body, 'destDir', 'destDir is configured by web serve --dest-dir')
+      const options = parseRequest(copyAndRenameBodySchema, rawBody, {
+        destDir: 'destDir is configured by web serve --dest-dir',
+      })
 
       return await copyAndRenameAudiobook({
         destDir: this.pathResolver.destDir,
-        fileName: await this.pathResolver.resolveSource(requiredString(body, 'fileName'), 'fileName'),
-        ...optionalEntry('execute', optionalBoolean(body.execute)),
+        fileName: await this.pathResolver.resolveSource(options.fileName, 'fileName'),
+        ...optionalEntry('execute', options.execute),
       })
     }
     catch (error) {
@@ -59,20 +74,21 @@ export class ManageAudiobooksController {
   @Post('convert-file')
   public async convertFile(@Body() rawBody: unknown): Promise<unknown> {
     try {
-      const body = bodyRecord(rawBody)
-      rejectPresent(body, 'destDir', 'destDir is configured by web serve --dest-dir')
+      const options = parseRequest(convertFileBodySchema, rawBody, {
+        destDir: 'destDir is configured by web serve --dest-dir',
+      })
 
       return await convertAudiobookFiles({
-        concurrency: optionalString(body, 'concurrency') ?? '4',
+        ...optionalEntry('author', options.author),
+        concurrency: options.concurrency ?? '4',
         destDir: this.pathResolver.destDir,
+        ...optionalEntry('execute', options.execute),
         fileName: await Promise.all(
-          stringArray(body, 'fileName').map(fileName => this.pathResolver.resolveSource(fileName, 'fileName')),
+          options.fileName.map(fileName => this.pathResolver.resolveSource(fileName, 'fileName')),
         ),
-        jobs: optionalString(body, 'jobs') ?? '16',
-        ...optionalEntry('author', optionalString(body, 'author')),
-        ...optionalEntry('execute', optionalBoolean(body.execute)),
-        ...optionalEntry('narrator', optionalString(body, 'narrator')),
-        ...optionalEntry('title', optionalString(body, 'title')),
+        jobs: options.jobs ?? '16',
+        ...optionalEntry('narrator', options.narrator),
+        ...optionalEntry('title', options.title),
       })
     }
     catch (error) {
@@ -83,16 +99,17 @@ export class ManageAudiobooksController {
   @Post('merge')
   public async merge(@Body() rawBody: unknown): Promise<unknown> {
     try {
-      const body = bodyRecord(rawBody)
-      rejectPresent(body, 'destDir', 'destDir is configured by web serve --dest-dir')
-      rejectPresent(body, 'sourceDir', 'sourceDir is configured by web serve --source-dir')
+      const options = parseRequest(mergeBodySchema, rawBody, {
+        destDir: 'destDir is configured by web serve --dest-dir',
+        sourceDir: 'sourceDir is configured by web serve --source-dir',
+      })
 
       return await mergeAudiobooks({
         destDir: this.pathResolver.destDir,
-        jobs: optionalString(body, 'jobs') ?? '16',
+        ...optionalEntry('bypassMetadata', options.bypassMetadata),
+        ...optionalEntry('execute', options.execute),
+        jobs: options.jobs ?? '16',
         sourceDir: this.pathResolver.sourceDir,
-        ...optionalEntry('bypassMetadata', optionalBoolean(body.bypassMetadata)),
-        ...optionalEntry('execute', optionalBoolean(body.execute)),
       })
     }
     catch (error) {
@@ -103,15 +120,15 @@ export class ManageAudiobooksController {
   @Post('set-metadata')
   public async setMetadata(@Body() rawBody: unknown): Promise<unknown> {
     try {
-      const body = bodyRecord(rawBody)
+      const options = parseRequest(setMetadataBodySchema, rawBody)
 
       return await setAudiobookMetadata({
-        author: requiredString(body, 'author'),
-        destFilepath: await this.pathResolver.resolveDest(requiredString(body, 'destFilepath'), 'destFilepath'),
-        sourceFilepath: await this.pathResolver.resolveSource(requiredString(body, 'sourceFilepath'), 'sourceFilepath'),
-        title: requiredString(body, 'title'),
-        ...optionalEntry('execute', optionalBoolean(body.execute)),
-        ...optionalEntry('narrator', optionalString(body, 'narrator')),
+        author: options.author,
+        destFilepath: await this.pathResolver.resolveDest(options.destFilepath, 'destFilepath'),
+        ...optionalEntry('execute', options.execute),
+        ...optionalEntry('narrator', options.narrator),
+        sourceFilepath: await this.pathResolver.resolveSource(options.sourceFilepath, 'sourceFilepath'),
+        title: options.title,
       })
     }
     catch (error) {
