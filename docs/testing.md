@@ -14,6 +14,14 @@ Start watch mode for active development:
 npm run test:watch
 ```
 
+Run all tests with coverage reporting:
+
+```sh
+npm run test:coverage
+```
+
+Coverage artifacts are written to `reports/coverage/`.
+
 ## Running a Single Test File
 
 Use the locally installed Vitest binary directly — never `npx`:

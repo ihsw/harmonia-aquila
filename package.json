@@ -10,6 +10,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "lint": "eslint ./src ./__tests__",
     "web:serve": "node build/dist/index.js web serve"
@@ -30,6 +31,7 @@
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/node": "^26.1.0",
     "@usebruno/cli": "^3.5.2",
+    "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^9.39.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.62.1",
