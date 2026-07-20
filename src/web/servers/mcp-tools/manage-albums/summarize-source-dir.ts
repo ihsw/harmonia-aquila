@@ -4,27 +4,21 @@ import {
   manageAlbumsSummarizeSourceDirInputSchema,
 } from '../../../schemas/mcp/manage-albums.js'
 import { optionalEntry } from '../../../schemas/request-schemas.js'
-import type { WebMcpToolContext, WebMcpToolRegistration } from '../types.js'
+import { jsonToolContent, optionalNumberEntry } from '../helpers.js'
+import { defineWebMcpTool, type WebMcpToolContext, type WebMcpToolRegistration } from '../types.js'
 
 export function createManageAlbumsSummarizeSourceDirTool(
   context: WebMcpToolContext,
-): WebMcpToolRegistration<typeof manageAlbumsSummarizeSourceDirInputSchema> {
-  return {
+): WebMcpToolRegistration {
+  return defineWebMcpTool({
     handler: async (input) => {
       const rows = await summarizeAlbumSourceDir({
         dirName: await context.pathResolver.resolveSource(input.dirName, 'dirName'),
         ...optionalEntry('ignoreNonAudioFiles', input.ignoreNonAudioFiles),
-        ...optionalEntry('limit', input.limit === undefined ? undefined : String(input.limit)),
+        ...optionalNumberEntry('limit', input.limit),
       })
 
-      return {
-        content: [
-          {
-            text: JSON.stringify(rows),
-            type: 'text',
-          },
-        ],
-      }
+      return jsonToolContent(rows)
     },
     name: MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME,
     options: {
@@ -35,5 +29,5 @@ export function createManageAlbumsSummarizeSourceDirTool(
       inputSchema: manageAlbumsSummarizeSourceDirInputSchema,
       title: 'Manage albums summarize source directory',
     },
-  }
+  })
 }

@@ -1,7 +1,7 @@
 info:
-  name: tools-list
+  name: call-manage-audiobooks-crawl
   type: http
-  seq: 27
+  seq: 32
 
 http:
   method: POST
@@ -11,9 +11,14 @@ http:
     data: |-
       {
         "jsonrpc": "2.0",
-        "id": 101,
-        "method": "tools/list",
-        "params": {}
+        "id": 106,
+        "method": "tools/call",
+        "params": {
+          "name": "manage_audiobooks_crawl",
+          "arguments": {
+            "dirName": "{{summarizeDirName}}"
+          }
+        }
       }
   auth: inherit
 
@@ -29,24 +34,13 @@ runtime:
           expect(res.getStatus()).to.eql(200);
         });
 
-        test("all manage albums and audiobooks tools are exposed", function () {
+        test("tool response content is a JSON array", function () {
           const body = res.getBody();
           const json = typeof body === "string" ? JSON.parse(body) : body;
-          const tools = json.result.tools;
-          const toolNames = tools.map((tool) => tool.name);
+          const rows = JSON.parse(json.result.content[0].text);
 
-          expect(json).to.have.property("id", 101);
-          expect(toolNames).to.eql([
-            "manage_albums_summarize_source_dir",
-            "manage_albums_fix_tags",
-            "manage_albums_organize_files",
-            "manage_audiobooks_validate",
-            "manage_audiobooks_crawl",
-            "manage_audiobooks_copy_and_rename",
-            "manage_audiobooks_convert_file",
-            "manage_audiobooks_merge",
-            "manage_audiobooks_set_metadata"
-          ]);
+          expect(json).to.have.property("id", 106);
+          expect(rows).to.be.an("array");
         });
   assertions:
     - expression: res.status

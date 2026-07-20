@@ -8,14 +8,28 @@ export interface WebMcpToolContext {
   pathResolver: WebPathResolver
 }
 
-export interface WebMcpToolRegistration<InputSchema extends ZodRawShapeCompat> {
+interface WebMcpToolOptions<InputSchema extends ZodRawShapeCompat> {
+  _meta?: Record<string, unknown>
+  annotations?: ToolAnnotations
+  description?: string
+  inputSchema: InputSchema
+  title?: string
+}
+
+interface WebMcpToolDefinition<InputSchema extends ZodRawShapeCompat> {
   handler: ToolCallback<InputSchema>
   name: string
-  options: {
-    _meta?: Record<string, unknown>
-    annotations?: ToolAnnotations
-    description?: string
-    inputSchema: InputSchema
-    title?: string
-  }
+  options: WebMcpToolOptions<InputSchema>
+}
+
+export interface WebMcpToolRegistration {
+  handler: ToolCallback<ZodRawShapeCompat>
+  name: string
+  options: WebMcpToolOptions<ZodRawShapeCompat>
+}
+
+export function defineWebMcpTool<InputSchema extends ZodRawShapeCompat>(
+  tool: WebMcpToolDefinition<InputSchema>,
+): WebMcpToolRegistration {
+  return tool
 }

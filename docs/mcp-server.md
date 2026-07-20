@@ -7,9 +7,24 @@ the `manage-albums` and `manage-audiobooks` CLI supercommands.
 ## Current scoped web endpoint
 
 `web serve` also exposes a scoped Streamable HTTP endpoint at `/mcp`. That web
-endpoint is intentionally limited to one read-only tool,
-`manage_albums_summarize_source_dir`, and resolves all paths inside the
-configured `--source-dir`.
+endpoint exposes scoped album and audiobook tools matching the current
+`manage-albums` and `manage-audiobooks` functionality:
+
+| MCP tool | CLI command |
+| --- | --- |
+| `manage_albums_summarize_source_dir` | `manage-albums summarize-source-dir` |
+| `manage_albums_fix_tags` | `manage-albums fix-tags` |
+| `manage_albums_organize_files` | `manage-albums organize-files` |
+| `manage_audiobooks_validate` | `manage-audiobooks validate` |
+| `manage_audiobooks_crawl` | `manage-audiobooks crawl` |
+| `manage_audiobooks_copy_and_rename` | `manage-audiobooks copy-and-rename` |
+| `manage_audiobooks_convert_file` | `manage-audiobooks convert-file` |
+| `manage_audiobooks_merge` | `manage-audiobooks merge` |
+| `manage_audiobooks_set_metadata` | `manage-audiobooks set-metadata` |
+
+The web endpoint resolves all source paths inside the configured `--source-dir`
+and all destination paths inside the configured `--dest-dir`; tool schemas do
+not expose root override inputs.
 
 The rest of this document describes a broader future stdio MCP server and should
 not be read as the current `web serve` tool surface.
