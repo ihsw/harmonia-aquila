@@ -3,13 +3,9 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { Inject, Injectable } from '@nestjs/common'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
-import { summarizeAlbumSourceDir } from '../../lib/albums/summarize-source-dir.js'
 import { WebPathResolver } from '../providers/path-resolver.js'
-import {
-  MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME,
-  manageAlbumsSummarizeSourceDirInputSchema,
-} from '../schemas/mcp-schemas.js'
-import { optionalEntry } from '../schemas/request-schemas.js'
+
+import { getWebMcpToolRegistrations } from './mcp-tools/index.js'
 
 type HttpRequestWithBody = IncomingMessage & {
   body?: unknown
@@ -39,35 +35,11 @@ export class WebMcpServerFactory {
       name: 'harmonia-aquila-web',
       version: '1.0.0',
     })
+    const context = { pathResolver: this.pathResolver }
 
-    server.registerTool(
-      MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME,
-      {
-        annotations: {
-          readOnlyHint: true,
-        },
-        description: 'Summarize FLAC and MP3 metadata under the configured source directory.',
-        inputSchema: manageAlbumsSummarizeSourceDirInputSchema,
-        title: 'Manage albums summarize source directory',
-      },
-      async (input) => {
-        const rows = await summarizeAlbumSourceDir({
-          dirName: await this.pathResolver.resolveSource(input.dirName, 'dirName'),
-          ...optionalEntry('ignoreNonAudioFiles', input.ignoreNonAudioFiles),
-          ...optionalEntry('limit', input.limit === undefined ? undefined : String(input.limit)),
-        })
-
-        return {
-          content: [
-            {
-              text: JSON.stringify(rows),
-              type: 'text',
-            },
-          ],
-        }
-      },
-    )
-
-    return server
+    return getWebMcpToolRegistrations(context).reduce((registeredServer, tool) => {
+      registeredServer.registerTool(tool.name, tool.options, tool.handler)
+      return registeredServer
+    }, server)
   }
 }

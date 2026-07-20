@@ -5,7 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { summarizeAlbumSourceDir } from '../../src/lib/albums/summarize-source-dir.js'
 import { createWebApp } from '../../src/web/main.js'
-import { MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME } from '../../src/web/schemas/mcp-schemas.js'
+import { WebPathResolver } from '../../src/web/providers/path-resolver.js'
+import { MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME } from '../../src/web/schemas/mcp/manage-albums.js'
+import { getWebMcpToolRegistrations } from '../../src/web/servers/mcp-tools/index.js'
 import { createTempDir, removeTempDir } from '../test-helpers.js'
 
 vi.mock('../../src/lib/albums/summarize-source-dir.js', () => ({
@@ -85,6 +87,14 @@ describe('web MCP controller', () => {
     expect(response.id).toBe(2)
     expect(response.result).toMatchObject({ tools: [{ name: MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME }] })
     expect((response.result as { tools?: unknown[] }).tools).toHaveLength(1)
+  })
+
+  it('composes exactly one tool registration for now', () => {
+    const tools = getWebMcpToolRegistrations({
+      pathResolver: app.get(WebPathResolver),
+    })
+
+    expect(tools.map(tool => tool.name)).toEqual([MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME])
   })
 
   it('calls the summarize source directory tool', async () => {
