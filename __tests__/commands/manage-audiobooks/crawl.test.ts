@@ -92,6 +92,24 @@ describe('crawl', () => {
     expect(rows[0]?.reasonCode).toBe('missing-metadata')
   })
 
+  it('categorizes metadata read failures as validation-failed', async () => {
+    await createTempFile(rootDir, 'broken.m4b')
+    mockParseFile.mockRejectedValue(new Error('cannot read metadata'))
+
+    await makeProgram().parseAsync([
+      'node', 's', 'crawl',
+      '--dir-name', rootDir,
+      '--format', 'json',
+    ])
+
+    const rawArg: unknown = infoSpy.mock.calls[0]?.[0]
+    const rows = JSON.parse(String(rawArg)) as CrawlAudiobookJsonOutput
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.category).toBe('invalid-other')
+    expect(rows[0]?.reasonCode).toBe('validation-failed')
+    expect(rows[0]?.reason).toBe('cannot read metadata')
+  })
+
   it('recursively discovers M4B files in subdirectories', async () => {
     const subDir = join(rootDir, 'sub')
     await mkdir(subDir)

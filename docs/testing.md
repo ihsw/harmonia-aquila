@@ -20,7 +20,9 @@ Run all tests with coverage reporting:
 npm run test:coverage
 ```
 
-Coverage artifacts are written to `reports/coverage/`.
+Coverage artifacts are written to `reports/coverage/`. Global coverage
+thresholds are enforced at 85% statements, 85% lines, 90% functions, and 70%
+branches.
 
 ## Running a Single Test File
 
