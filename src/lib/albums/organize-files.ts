@@ -1,12 +1,21 @@
 import { parseFile } from 'music-metadata'
 import { copyFile, mkdir } from 'node:fs/promises'
-import { dirname, extname, join, relative, resolve } from 'node:path'
+import { dirname, join, relative, resolve } from 'node:path'
 import pLimit from 'p-limit'
 
 import { pathExists } from '../../command-utils.js'
 import { UserInputError } from '../errors.js'
 
 import { getAudioFiles, parseLimit } from './audio-files.js'
+import {
+  type ArtistFilenameStrategy,
+  formatTrackNumber,
+  getAlbumDestination,
+  getArtistFilename,
+  parseArtistFilenameStrategy,
+  parseTitleFilenameStrategy,
+  type TitleFilenameStrategy,
+} from './organization-plan.js'
 
 export interface OrganizeFilesJsonOutputRow {
   action: string
@@ -33,67 +42,10 @@ export interface OrganizeFilesOptions {
 
 export type OrganizeFilesJsonOutput = OrganizeFilesJsonOutputRow[]
 
-type ArtistFilenameStrategy = 'albumartist' | 'artist' | 'label' | 'producer'
-type TitleFilenameStrategy = 'subtitle' | 'title'
-
 interface PlannedCopy {
   destinationPath: string
   row: OrganizeFilesJsonOutputRow
   sourcePath: string
-}
-
-function sanitizePathSegment(value: string): string {
-  return Array.from(value).map((character) => {
-    if (character.charCodeAt(0) < 32 || '<>:"/\\|?*'.includes(character)) {
-      return '-'
-    }
-
-    return character
-  }).join('').replaceAll(/\s+/g, ' ').trim()
-}
-
-function formatTrackNumber(trackNumber: number): string {
-  return trackNumber.toString().padStart(2, '0')
-}
-
-function formatMetadataValues(values: string[] | undefined): string {
-  return values?.filter(value => value !== '').join('; ') ?? ''
-}
-
-function parseArtistFilenameStrategy(value: string | undefined): ArtistFilenameStrategy {
-  const strategy = value ?? 'artist'
-
-  if (strategy !== 'albumartist' && strategy !== 'artist' && strategy !== 'label' && strategy !== 'producer') {
-    throw new UserInputError('--artist-filename-strategy must be one of: artist, albumartist, label, producer')
-  }
-
-  return strategy
-}
-
-function parseTitleFilenameStrategy(value: string | undefined): TitleFilenameStrategy {
-  const strategy = value ?? 'title'
-
-  if (strategy !== 'subtitle' && strategy !== 'title') {
-    throw new UserInputError('--title-filename-strategy must be one of: subtitle, title')
-  }
-
-  return strategy
-}
-
-function getArtistFilename(strategy: ArtistFilenameStrategy, artist: string, albumartist: string, label: string[], producer: string[]): string {
-  if (strategy === 'albumartist') {
-    return albumartist
-  }
-
-  if (strategy === 'label') {
-    return formatMetadataValues(label)
-  }
-
-  if (strategy === 'producer') {
-    return formatMetadataValues(producer)
-  }
-
-  return artist
 }
 
 export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise<OrganizeFilesJsonOutput> {
@@ -142,12 +94,8 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
       }
 
       const formattedTrackNumber = formatTrackNumber(trackNumber)
-      const destinationPath = join(
-        destinationDirectory,
-        sanitizePathSegment(artistFilename),
-        sanitizePathSegment(album),
-        `${formattedTrackNumber} - ${sanitizePathSegment(titleFilename)}${extname(file.name)}`,
-      )
+      const destination = getAlbumDestination(artistFilename, album, trackNumber, titleFilename, file.name)
+      const destinationPath = join(destinationDirectory, destination)
 
       return {
         destinationPath,
@@ -156,7 +104,7 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
           album,
           artistFilename,
           artistFilenameStrategy,
-          destination: relative(destinationDirectory, destinationPath),
+          destination,
           filename: file.name,
           titleFilename,
           titleFilenameStrategy,

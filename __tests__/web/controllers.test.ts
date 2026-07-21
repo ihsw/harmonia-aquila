@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fixAlbumTags } from '../../src/lib/albums/fix-tags.js'
 import { organizeAlbumFiles } from '../../src/lib/albums/organize-files.js'
 import { summarizeAlbumSourceDir } from '../../src/lib/albums/summarize-source-dir.js'
+import { validateAlbumSourceDir } from '../../src/lib/albums/validate.js'
 import { convertAudiobookFiles } from '../../src/lib/audiobooks/convert-file.js'
 import { copyAndRenameAudiobook } from '../../src/lib/audiobooks/copy-and-rename.js'
 import { crawlAudiobooks } from '../../src/lib/audiobooks/crawl.js'
@@ -24,6 +25,9 @@ vi.mock('../../src/lib/albums/fix-tags.js', () => ({
 }))
 vi.mock('../../src/lib/albums/organize-files.js', () => ({
   organizeAlbumFiles: vi.fn(),
+}))
+vi.mock('../../src/lib/albums/validate.js', () => ({
+  validateAlbumSourceDir: vi.fn(),
 }))
 vi.mock('../../src/lib/audiobooks/validate.js', () => ({
   validateAudiobook: vi.fn(),
@@ -58,6 +62,7 @@ describe('web controllers', () => {
     albumController = new ManageAlbumsController(pathResolver)
     audiobookController = new ManageAudiobooksController(pathResolver)
     vi.mocked(summarizeAlbumSourceDir).mockReset()
+    vi.mocked(validateAlbumSourceDir).mockReset()
     vi.mocked(fixAlbumTags).mockReset()
     vi.mocked(organizeAlbumFiles).mockReset()
     vi.mocked(validateAudiobook).mockReset()
@@ -86,6 +91,27 @@ describe('web controllers', () => {
     })
   })
 
+  it('maps album GET query parameters to validate options', async () => {
+    vi.mocked(validateAlbumSourceDir).mockResolvedValue([{ status: 'valid' } as never])
+
+    const rows = await albumController.validate({
+      artistFilenameStrategy: 'albumartist',
+      dirName: 'music',
+      ignoreNonAudioFiles: 'true',
+      limit: '2',
+      titleFilenameStrategy: 'subtitle',
+    })
+
+    expect(rows).toEqual([{ status: 'valid' }])
+    expect(validateAlbumSourceDir).toHaveBeenCalledWith({
+      artistFilenameStrategy: 'albumartist',
+      dirName: path.join(roots.sourceDir, 'music'),
+      ignoreNonAudioFiles: true,
+      limit: '2',
+      titleFilenameStrategy: 'subtitle',
+    })
+  })
+
   it('maps album POST bodies to organize options with dry-run default', async () => {
     vi.mocked(organizeAlbumFiles).mockResolvedValue([{ action: 'would copy' } as never])
 
@@ -111,10 +137,12 @@ describe('web controllers', () => {
 
   it('rejects album traversal and root override attempts', async () => {
     await expect(albumController.summarizeSourceDir({ dirName: '../escape' })).rejects.toBeInstanceOf(BadRequestException)
+    await expect(albumController.validate({ dirName: '../escape' })).rejects.toBeInstanceOf(BadRequestException)
     await expect(albumController.organizeFiles({ destDir: 'override' })).rejects.toBeInstanceOf(BadRequestException)
     await expect(albumController.fixTags({ sourceDir: 'override' })).rejects.toBeInstanceOf(BadRequestException)
 
     expect(summarizeAlbumSourceDir).not.toHaveBeenCalled()
+    expect(validateAlbumSourceDir).not.toHaveBeenCalled()
     expect(organizeAlbumFiles).not.toHaveBeenCalled()
     expect(fixAlbumTags).not.toHaveBeenCalled()
   })
@@ -125,8 +153,13 @@ describe('web controllers', () => {
       ignoreNonAudioFiles: 'maybe',
     })).rejects.toBeInstanceOf(BadRequestException)
     await expect(albumController.organizeFiles({ execute: 'maybe' })).rejects.toBeInstanceOf(BadRequestException)
+    await expect(albumController.validate({
+      dirName: 'music',
+      ignoreNonAudioFiles: 'maybe',
+    })).rejects.toBeInstanceOf(BadRequestException)
 
     expect(summarizeAlbumSourceDir).not.toHaveBeenCalled()
+    expect(validateAlbumSourceDir).not.toHaveBeenCalled()
     expect(organizeAlbumFiles).not.toHaveBeenCalled()
   })
 

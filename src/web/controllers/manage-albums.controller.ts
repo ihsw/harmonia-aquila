@@ -3,6 +3,7 @@ import { Body, Controller, Get, Inject, Post, Query } from '@nestjs/common'
 import { fixAlbumTags } from '../../lib/albums/fix-tags.js'
 import { organizeAlbumFiles } from '../../lib/albums/organize-files.js'
 import { summarizeAlbumSourceDir } from '../../lib/albums/summarize-source-dir.js'
+import { validateAlbumSourceDir } from '../../lib/albums/validate.js'
 import { throwHttpError } from '../http-errors.js'
 import { WebPathResolver } from '../providers/path-resolver.js'
 import {
@@ -12,6 +13,7 @@ import {
   parseRequest,
   type QueryRecord,
   summarizeSourceDirQuerySchema,
+  validateAlbumQuerySchema,
 } from '../schemas/request-schemas.js'
 
 @Controller('manage-albums')
@@ -27,6 +29,24 @@ export class ManageAlbumsController {
         dirName: await this.pathResolver.resolveSource(options.dirName, 'dirName'),
         ...optionalEntry('ignoreNonAudioFiles', options.ignoreNonAudioFiles),
         ...optionalEntry('limit', options.limit),
+      })
+    }
+    catch (error) {
+      throwHttpError(error)
+    }
+  }
+
+  @Get('validate')
+  public async validate(@Query() query: QueryRecord): Promise<unknown> {
+    try {
+      const options = parseRequest(validateAlbumQuerySchema, query)
+
+      return await validateAlbumSourceDir({
+        dirName: await this.pathResolver.resolveSource(options.dirName, 'dirName'),
+        ...optionalEntry('artistFilenameStrategy', options.artistFilenameStrategy),
+        ...optionalEntry('ignoreNonAudioFiles', options.ignoreNonAudioFiles),
+        ...optionalEntry('limit', options.limit),
+        ...optionalEntry('titleFilenameStrategy', options.titleFilenameStrategy),
       })
     }
     catch (error) {

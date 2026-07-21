@@ -13,6 +13,7 @@ endpoint exposes scoped album and audiobook tools matching the current
 | MCP tool | CLI command |
 | --- | --- |
 | `manage_albums_summarize_source_dir` | `manage-albums summarize-source-dir` |
+| `manage_albums_validate` | `manage-albums validate` |
 | `manage_albums_fix_tags` | `manage-albums fix-tags` |
 | `manage_albums_organize_files` | `manage-albums organize-files` |
 | `manage_audiobooks_validate` | `manage-audiobooks validate` |

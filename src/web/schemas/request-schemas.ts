@@ -101,6 +101,14 @@ export const summarizeSourceDirQuerySchema = z.object({
   limit: optionalString('limit'),
 })
 
+export const validateAlbumQuerySchema = z.object({
+  artistFilenameStrategy: optionalString('artistFilenameStrategy'),
+  dirName: requiredString('dirName'),
+  ignoreNonAudioFiles: optionalQueryBoolean(),
+  limit: optionalString('limit'),
+  titleFilenameStrategy: optionalString('titleFilenameStrategy'),
+})
+
 export const fixTagsBodySchema = z.object({
   albumArtistsStrategy: optionalString('albumArtistsStrategy'),
   albumStrategy: optionalString('albumStrategy'),

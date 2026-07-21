@@ -58,7 +58,7 @@ cd collections/harmonia-aquila-web
 ```
 
 The collection includes both the REST web routes and the scoped `/mcp` endpoint
-for `manage_albums_summarize_source_dir`.
+for the current manage-albums and manage-audiobooks tool surface.
 
 ## Hermetic Rules
 

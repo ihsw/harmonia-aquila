@@ -19,6 +19,7 @@ describe('command index registration', () => {
     expect(manageAlbums).toBeDefined()
     expect(commandNames(manageAlbums as Command)).toEqual([
       'summarize-source-dir',
+      'validate',
       'fix-tags',
       'organize-files',
     ])
