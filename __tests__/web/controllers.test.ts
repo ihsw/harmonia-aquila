@@ -3,6 +3,7 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { fixAlbumTags } from '../../src/lib/albums/fix-tags.js'
+import { listAlbumSourceDir } from '../../src/lib/albums/list.js'
 import { organizeAlbumFiles } from '../../src/lib/albums/organize-files.js'
 import { summarizeAlbumSourceDir } from '../../src/lib/albums/summarize-source-dir.js'
 import { validateAlbumSourceDir } from '../../src/lib/albums/validate.js'
@@ -12,11 +13,15 @@ import { crawlAudiobooks } from '../../src/lib/audiobooks/crawl.js'
 import { mergeAudiobooks } from '../../src/lib/audiobooks/merge.js'
 import { setAudiobookMetadata } from '../../src/lib/audiobooks/set-metadata.js'
 import { validateAudiobook } from '../../src/lib/audiobooks/validate.js'
+import { UserInputError } from '../../src/lib/errors.js'
 import { ManageAlbumsController } from '../../src/web/controllers/manage-albums.controller.js'
 import { ManageAudiobooksController } from '../../src/web/controllers/manage-audiobooks.controller.js'
 import { normalizeWebRoots, WebPathResolver, type WebRoots } from '../../src/web/providers/path-resolver.js'
 import { createTempDir, removeTempDir } from '../test-helpers.js'
 
+vi.mock('../../src/lib/albums/list.js', () => ({
+  listAlbumSourceDir: vi.fn(),
+}))
 vi.mock('../../src/lib/albums/summarize-source-dir.js', () => ({
   summarizeAlbumSourceDir: vi.fn(),
 }))
@@ -61,6 +66,7 @@ describe('web controllers', () => {
     const pathResolver = new WebPathResolver(roots)
     albumController = new ManageAlbumsController(pathResolver)
     audiobookController = new ManageAudiobooksController(pathResolver)
+    vi.mocked(listAlbumSourceDir).mockReset()
     vi.mocked(summarizeAlbumSourceDir).mockReset()
     vi.mocked(validateAlbumSourceDir).mockReset()
     vi.mocked(fixAlbumTags).mockReset()
@@ -76,6 +82,35 @@ describe('web controllers', () => {
   afterEach(async () => {
     await removeTempDir(roots.destDir)
     await removeTempDir(roots.sourceDir)
+  })
+
+  it('maps album GET list query to configured source root', async () => {
+    vi.mocked(listAlbumSourceDir).mockResolvedValue(['a.flac', 'sub/'])
+
+    const result = await albumController.list({})
+
+    expect(result).toEqual(['a.flac', 'sub/'])
+    expect(listAlbumSourceDir).toHaveBeenCalledWith({ sourceDir: roots.sourceDir })
+  })
+
+  it('passes optional prefix to list', async () => {
+    vi.mocked(listAlbumSourceDir).mockResolvedValue(['sub/track.flac'])
+
+    await albumController.list({ prefix: 'sub/' })
+
+    expect(listAlbumSourceDir).toHaveBeenCalledWith({ prefix: 'sub/', sourceDir: roots.sourceDir })
+  })
+
+  it('rejects non-string prefix before calling list', async () => {
+    await expect(albumController.list({ prefix: ['a', 'b'] })).rejects.toBeInstanceOf(BadRequestException)
+
+    expect(listAlbumSourceDir).not.toHaveBeenCalled()
+  })
+
+  it('maps list UserInputError to 400', async () => {
+    vi.mocked(listAlbumSourceDir).mockRejectedValue(new UserInputError('prefix must end with /'))
+
+    await expect(albumController.list({ prefix: 'bad' })).rejects.toBeInstanceOf(BadRequestException)
   })
 
   it('maps album GET query parameters to summarize options', async () => {

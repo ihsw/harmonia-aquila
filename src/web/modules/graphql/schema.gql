@@ -32,6 +32,10 @@ type AlbumFixTagsRow {
   trackNumber: String
 }
 
+input AlbumListInput {
+  prefix: String
+}
+
 input AlbumOrganizeFilesInput {
   artistFilenameStrategy: String
   execute: Boolean
@@ -198,6 +202,7 @@ type Mutation {
 }
 
 type Query {
+  albumList(input: AlbumListInput!): [String!]!
   albumSummarizeSourceDir(input: AlbumSummaryInput!): [AlbumSummaryRow!]!
   albumValidateSourceDir(input: AlbumValidationInput!): [AlbumValidationRow!]!
   audiobookCrawl(input: AudiobookCrawlInput!): [AudiobookCrawlRow!]!

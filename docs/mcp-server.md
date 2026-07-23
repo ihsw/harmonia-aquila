@@ -12,6 +12,7 @@ endpoint exposes scoped album and audiobook tools matching the current
 
 | MCP tool | CLI command |
 | --- | --- |
+| `manage_albums_list` | `manage-albums list` |
 | `manage_albums_summarize_source_dir` | `manage-albums summarize-source-dir` |
 | `manage_albums_validate` | `manage-albums validate` |
 | `manage_albums_fix_tags` | `manage-albums fix-tags` |
@@ -26,6 +27,9 @@ endpoint exposes scoped album and audiobook tools matching the current
 The web endpoint resolves all source paths inside the configured `--source-dir`
 and all destination paths inside the configured `--dest-dir`; tool schemas do
 not expose root override inputs.
+
+`manage_albums_list` is read-only. Its optional `prefix` selects the configured
+source root when empty, or a slash-terminated source-root-relative directory.
 
 ### Web server logging
 
@@ -130,6 +134,7 @@ CLI executable.
 The following tools are read-only:
 
 - `album_summarize_source_dir`
+- `manage_albums_list`
 - `audiobook_validate`
 - `audiobook_crawl`
 

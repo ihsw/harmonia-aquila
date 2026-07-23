@@ -4,6 +4,10 @@ variables:
     value: http://127.0.0.1:3000
   - name: summarizeDirName
     value: .
+  - name: albumListPrefix
+    value: ''
+  - name: albumListNestedPrefix
+    value: albums/
   - name: ignoreNonAudioFiles
     value: 'true'
   - name: traversalDirName

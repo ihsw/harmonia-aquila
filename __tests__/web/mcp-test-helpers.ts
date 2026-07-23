@@ -5,6 +5,7 @@ import type { Server } from 'node:http'
 import { createWebApp } from '../../src/web/main.js'
 import {
   MANAGE_ALBUMS_FIX_TAGS_TOOL_NAME,
+  MANAGE_ALBUMS_LIST_TOOL_NAME,
   MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME,
   MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME,
   MANAGE_ALBUMS_VALIDATE_TOOL_NAME,
@@ -20,6 +21,7 @@ import {
 import { createTempDir, removeTempDir } from '../test-helpers.js'
 
 export const EXPECTED_MCP_TOOL_NAMES = [
+  MANAGE_ALBUMS_LIST_TOOL_NAME,
   MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME,
   MANAGE_ALBUMS_VALIDATE_TOOL_NAME,
   MANAGE_ALBUMS_FIX_TAGS_TOOL_NAME,

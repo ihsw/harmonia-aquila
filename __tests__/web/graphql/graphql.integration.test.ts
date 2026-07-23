@@ -50,6 +50,7 @@ describe('web GraphQL endpoint', () => {
       }
     }`)
     const result = await postGraphql(`{
+      albumList(input: {})
       albumSummarizeSourceDir(input: { dirName: "." }) { filename }
       audiobookCrawl(input: { dirName: "." }) { filename }
     }`)
@@ -64,6 +65,7 @@ describe('web GraphQL endpoint', () => {
       'audiobookSetMetadata',
     ]))
     expect(getOperationNames(schema.data, 'queryType')).toEqual(expect.arrayContaining([
+      'albumList',
       'albumSummarizeSourceDir',
       'albumValidateSourceDir',
       'audiobookCrawl',
@@ -71,6 +73,7 @@ describe('web GraphQL endpoint', () => {
     ]))
     expect(result).toEqual({
       data: {
+        albumList: [],
         albumSummarizeSourceDir: [],
         audiobookCrawl: [],
       },
@@ -80,12 +83,16 @@ describe('web GraphQL endpoint', () => {
   it('keeps mutations dry-run by default and translates resolver errors safely', async () => {
     const dryRun = await postGraphql('mutation { albumFixTags(input: {}) { album } }')
     const userInputError = await postGraphql('{ audiobookValidate(input: { fileName: "../escape.m4b" }) { filename } }')
+    const listTraversal = await postGraphql('{ albumList(input: { prefix: "../" }) }')
     const internalError = await postGraphql('{ audiobookValidate(input: { fileName: "missing.m4b" }) { filename } }')
 
     expect(dryRun).toEqual({ data: { albumFixTags: [] } })
     expect(userInputError.errors?.[0]).toMatchObject({
       extensions: { code: 'BAD_USER_INPUT' },
       message: 'fileName must stay within --source-dir',
+    })
+    expect(listTraversal.errors?.[0]).toMatchObject({
+      extensions: { code: 'BAD_USER_INPUT' },
     })
     expect(internalError.errors?.[0]).toMatchObject({
       extensions: { code: 'INTERNAL_SERVER_ERROR' },

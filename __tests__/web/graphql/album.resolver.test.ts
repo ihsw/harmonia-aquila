@@ -2,6 +2,7 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { fixAlbumTags } from '../../../src/lib/albums/fix-tags.js'
+import { listAlbumSourceDir } from '../../../src/lib/albums/list.js'
 import { organizeAlbumFiles } from '../../../src/lib/albums/organize-files.js'
 import { summarizeAlbumSourceDir } from '../../../src/lib/albums/summarize-source-dir.js'
 import { validateAlbumSourceDir } from '../../../src/lib/albums/validate.js'
@@ -10,6 +11,7 @@ import { WebPathResolver, type WebRoots } from '../../../src/web/providers/path-
 import { createTempDir, removeTempDir } from '../../test-helpers.js'
 
 vi.mock('../../../src/lib/albums/fix-tags.js', () => ({ fixAlbumTags: vi.fn() }))
+vi.mock('../../../src/lib/albums/list.js', () => ({ listAlbumSourceDir: vi.fn() }))
 vi.mock('../../../src/lib/albums/organize-files.js', () => ({ organizeAlbumFiles: vi.fn() }))
 vi.mock('../../../src/lib/albums/summarize-source-dir.js', () => ({ summarizeAlbumSourceDir: vi.fn() }))
 vi.mock('../../../src/lib/albums/validate.js', () => ({ validateAlbumSourceDir: vi.fn() }))
@@ -25,6 +27,7 @@ describe('AlbumResolver', () => {
     }
     resolver = new AlbumResolver(new WebPathResolver(roots))
     vi.mocked(fixAlbumTags).mockReset()
+    vi.mocked(listAlbumSourceDir).mockReset()
     vi.mocked(organizeAlbumFiles).mockReset()
     vi.mocked(summarizeAlbumSourceDir).mockReset()
     vi.mocked(validateAlbumSourceDir).mockReset()
@@ -33,6 +36,18 @@ describe('AlbumResolver', () => {
   afterEach(async () => {
     await removeTempDir(roots.destDir)
     await removeTempDir(roots.sourceDir)
+  })
+
+  it('maps albumList input through configured source root', async () => {
+    vi.mocked(listAlbumSourceDir).mockResolvedValue(['a.flac', 'sub/'])
+
+    const noPrefix = await resolver.albumList({})
+
+    await resolver.albumList({ prefix: 'sub/' })
+
+    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(1, { sourceDir: roots.sourceDir })
+    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(2, { prefix: 'sub/', sourceDir: roots.sourceDir })
+    expect(noPrefix).toEqual(['a.flac', 'sub/'])
   })
 
   it('maps read-only query inputs through the source root', async () => {

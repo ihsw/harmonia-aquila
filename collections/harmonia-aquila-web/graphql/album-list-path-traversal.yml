@@ -1,0 +1,43 @@
+info:
+  name: album-list-path-traversal
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/graphql"
+  body:
+    type: json
+    data: |-
+      {
+        "query": "query AlbumListTraversal($input: AlbumListInput!) { albumList(input: $input) }",
+        "variables": {
+          "input": {
+            "prefix": "{{traversalDirName}}/"
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("reports source-root traversal as bad input", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(200);
+          expect(json).to.have.property("errors").that.is.an("array").and.not.empty;
+          expect(json).to.have.nested.property("errors[0].extensions.code", "BAD_USER_INPUT");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

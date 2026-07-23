@@ -2,6 +2,12 @@
 import { Field, InputType } from '@nestjs/graphql'
 
 @InputType()
+export class AlbumListInput {
+  @Field(() => String, { nullable: true })
+  public prefix?: string
+}
+
+@InputType()
 export class AlbumSummaryInput {
   @Field(() => String)
   public dirName!: string

@@ -30,6 +30,7 @@ Use the locally installed Vitest binary directly — never `npx`:
 
 ```sh
 ./node_modules/.bin/vitest run __tests__/command-utils.test.ts
+./node_modules/.bin/vitest run __tests__/lib/albums/list.test.ts
 ./node_modules/.bin/vitest run __tests__/commands/manage-albums/summarize-source-dir.test.ts
 ./node_modules/.bin/vitest run __tests__/commands/manage-audiobooks/merge.test.ts
 ```
@@ -79,7 +80,9 @@ from emitting test files into `build/dist`.
 
 ```
 __tests__/command-utils.test.ts
+__tests__/lib/albums/list.test.ts
 __tests__/commands/manage-albums/helpers/utils.test.ts
+__tests__/commands/manage-albums/list.test.ts
 __tests__/commands/manage-albums/summarize-source-dir.test.ts
 __tests__/commands/manage-albums/fix-tags.test.ts
 __tests__/commands/manage-albums/organize-files.test.ts

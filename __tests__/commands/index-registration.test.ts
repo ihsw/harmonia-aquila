@@ -18,6 +18,7 @@ describe('command index registration', () => {
     const manageAlbums = program.commands.find(command => command.name() === 'manage-albums')
     expect(manageAlbums).toBeDefined()
     expect(commandNames(manageAlbums as Command)).toEqual([
+      'list',
       'summarize-source-dir',
       'validate',
       'fix-tags',

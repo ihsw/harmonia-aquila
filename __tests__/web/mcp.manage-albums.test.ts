@@ -1,11 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { fixAlbumTags } from '../../src/lib/albums/fix-tags.js'
+import { listAlbumSourceDir } from '../../src/lib/albums/list.js'
 import { organizeAlbumFiles } from '../../src/lib/albums/organize-files.js'
 import { summarizeAlbumSourceDir } from '../../src/lib/albums/summarize-source-dir.js'
 import { validateAlbumSourceDir } from '../../src/lib/albums/validate.js'
+import { UserInputError } from '../../src/lib/errors.js'
 import {
   MANAGE_ALBUMS_FIX_TAGS_TOOL_NAME,
+  MANAGE_ALBUMS_LIST_TOOL_NAME,
   MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME,
   MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME,
   MANAGE_ALBUMS_VALIDATE_TOOL_NAME,
@@ -13,6 +16,9 @@ import {
 
 import { closeWebMcpTestApp, createWebMcpTestApp, getToolText, postMcp, type WebMcpTestApp } from './mcp-test-helpers.js'
 
+vi.mock('../../src/lib/albums/list.js', () => ({
+  listAlbumSourceDir: vi.fn(),
+}))
 vi.mock('../../src/lib/albums/summarize-source-dir.js', () => ({
   summarizeAlbumSourceDir: vi.fn(),
 }))
@@ -31,6 +37,7 @@ describe('web MCP manage-albums tools', () => {
 
   beforeEach(async () => {
     testApp = await createWebMcpTestApp()
+    vi.mocked(listAlbumSourceDir).mockReset()
     vi.mocked(summarizeAlbumSourceDir).mockReset()
     vi.mocked(validateAlbumSourceDir).mockReset()
     vi.mocked(fixAlbumTags).mockReset()
@@ -40,6 +47,44 @@ describe('web MCP manage-albums tools', () => {
   afterEach(async () => {
     await closeWebMcpTestApp(testApp)
     testApp = undefined
+  })
+
+  it('calls list tool with configured source root and optional prefix', async () => {
+    const currentTestApp = requireTestApp()
+    vi.mocked(listAlbumSourceDir).mockResolvedValue(['a.flac', 'sub/'])
+
+    const noPrefix = await callTool(10, MANAGE_ALBUMS_LIST_TOOL_NAME, {})
+    const withPrefix = await callTool(11, MANAGE_ALBUMS_LIST_TOOL_NAME, { prefix: 'sub/' })
+
+    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(1, { sourceDir: currentTestApp.sourceDir })
+    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(2, { prefix: 'sub/', sourceDir: currentTestApp.sourceDir })
+    expect(JSON.parse(getToolText(noPrefix))).toEqual(['a.flac', 'sub/'])
+    expect(JSON.parse(getToolText(withPrefix))).toEqual(['a.flac', 'sub/'])
+  })
+
+  it('discovers list as a read-only tool', async () => {
+    const response = await postMcp(requireTestApp().baseUrl, {
+      id: 9,
+      jsonrpc: '2.0',
+      method: 'tools/list',
+      params: {},
+    })
+    const tools = (response.result as {
+      tools?: Array<{ annotations?: { readOnlyHint?: boolean }, name?: string }>
+    }).tools ?? []
+
+    expect(tools).toContainEqual(expect.objectContaining({
+      annotations: { readOnlyHint: true },
+      name: MANAGE_ALBUMS_LIST_TOOL_NAME,
+    }))
+  })
+
+  it('propagates list errors as tool error content', async () => {
+    vi.mocked(listAlbumSourceDir).mockRejectedValue(new UserInputError('prefix must end with /'))
+
+    const response = await callTool(12, MANAGE_ALBUMS_LIST_TOOL_NAME, { prefix: 'bad' })
+
+    expect(getToolText(response)).toContain('prefix')
   })
 
   it('calls album tools with configured roots and mapped options', async () => {

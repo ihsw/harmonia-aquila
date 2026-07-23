@@ -2,6 +2,7 @@ import { Inject, UseFilters } from '@nestjs/common'
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql'
 
 import { fixAlbumTags, type FixTagsJsonOutput } from '../../../lib/albums/fix-tags.js'
+import { listAlbumSourceDir, type ListAlbumSourceDirJsonOutput } from '../../../lib/albums/list.js'
 import { organizeAlbumFiles, type OrganizeFilesJsonOutput } from '../../../lib/albums/organize-files.js'
 import { summarizeAlbumSourceDir, type SummarizeSourceDirJsonOutput } from '../../../lib/albums/summarize-source-dir.js'
 import { validateAlbumSourceDir, type ValidateAlbumSourceDirJsonOutput } from '../../../lib/albums/validate.js'
@@ -9,6 +10,7 @@ import { WebPathResolver } from '../../providers/path-resolver.js'
 
 import {
   AlbumFixTagsInput,
+  AlbumListInput,
   AlbumOrganizeFilesInput,
   AlbumSummaryInput,
   AlbumValidationInput,
@@ -29,6 +31,16 @@ function optionalEntry<T>(key: string, value: T | undefined): Record<string, T> 
 @UseFilters(GraphqlErrorFilter)
 export class AlbumResolver {
   public constructor(@Inject(WebPathResolver) private readonly pathResolver: WebPathResolver) {}
+
+  @Query(() => [String])
+  public async albumList(
+    @Args('input', { type: () => AlbumListInput }) input: AlbumListInput,
+  ): Promise<ListAlbumSourceDirJsonOutput> {
+    return listAlbumSourceDir({
+      sourceDir: this.pathResolver.sourceDir,
+      ...optionalEntry('prefix', input.prefix),
+    })
+  }
 
   @Query(() => [AlbumSummaryRow])
   public async albumSummarizeSourceDir(

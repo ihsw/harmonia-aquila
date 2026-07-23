@@ -10,6 +10,7 @@ starting `web serve`; clients cannot override those roots.
 
 | Queries | Mutations |
 | --- | --- |
+| `albumList` | |
 | `albumSummarizeSourceDir` | `albumFixTags` |
 | `albumValidateSourceDir` | `albumOrganizeFiles` |
 | `audiobookValidate` | `audiobookCopyAndRename` |
@@ -27,6 +28,15 @@ query {
     album
     title
   }
+}
+```
+
+List direct entries at the configured source root, or provide a slash-terminated
+source-root-relative `prefix` to list one subdirectory:
+
+```graphql
+query {
+  albumList(input: { prefix: "" })
 }
 ```
 

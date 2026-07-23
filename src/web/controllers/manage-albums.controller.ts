@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Inject, Post, Query } from '@nestjs/common'
 
 import { fixAlbumTags } from '../../lib/albums/fix-tags.js'
+import { listAlbumSourceDir } from '../../lib/albums/list.js'
 import { organizeAlbumFiles } from '../../lib/albums/organize-files.js'
 import { summarizeAlbumSourceDir } from '../../lib/albums/summarize-source-dir.js'
 import { validateAlbumSourceDir } from '../../lib/albums/validate.js'
@@ -8,6 +9,7 @@ import { throwHttpError } from '../http-errors.js'
 import { WebPathResolver } from '../providers/path-resolver.js'
 import {
   fixTagsBodySchema,
+  listAlbumQuerySchema,
   optionalEntry,
   organizeFilesBodySchema,
   parseRequest,
@@ -19,6 +21,21 @@ import {
 @Controller('manage-albums')
 export class ManageAlbumsController {
   public constructor(@Inject(WebPathResolver) private readonly pathResolver: WebPathResolver) {}
+
+  @Get('list')
+  public async list(@Query() query: QueryRecord): Promise<unknown> {
+    try {
+      const options = parseRequest(listAlbumQuerySchema, query)
+
+      return await listAlbumSourceDir({
+        sourceDir: this.pathResolver.sourceDir,
+        ...optionalEntry('prefix', options.prefix),
+      })
+    }
+    catch (error) {
+      throwHttpError(error)
+    }
+  }
 
   @Get('summarize-source-dir')
   public async summarizeSourceDir(@Query() query: QueryRecord): Promise<unknown> {

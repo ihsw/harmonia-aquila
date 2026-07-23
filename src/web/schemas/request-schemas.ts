@@ -101,6 +101,10 @@ export const summarizeSourceDirQuerySchema = z.object({
   limit: optionalString('limit'),
 })
 
+export const listAlbumQuerySchema = z.object({
+  prefix: optionalString('prefix'),
+})
+
 export const validateAlbumQuerySchema = z.object({
   artistFilenameStrategy: optionalString('artistFilenameStrategy'),
   dirName: requiredString('dirName'),

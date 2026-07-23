@@ -36,6 +36,7 @@ __tests__/lib/albums/list.test.ts
 __tests__/commands/manage-albums/list.test.ts
 __tests__/commands/index-registration.test.ts
 __tests__/web/controllers.test.ts
+__tests__/web/mcp-test-helpers.ts
 __tests__/web/mcp.manage-albums.test.ts
 __tests__/web/graphql/album.resolver.test.ts
 __tests__/web/graphql/graphql.integration.test.ts

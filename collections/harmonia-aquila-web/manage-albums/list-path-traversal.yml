@@ -1,0 +1,33 @@
+info:
+  name: list-path-traversal
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseUrl}}/manage-albums/list?prefix={{traversalDirName}}/"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("rejects source-root traversal", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(400);
+          expect(json).to.have.property("statusCode", 400);
+          expect(json).to.have.property("error", "Bad Request");
+          expect(json).to.have.property("message").that.includes("source root");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
