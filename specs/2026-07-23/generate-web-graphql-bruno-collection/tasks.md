@@ -22,38 +22,44 @@
 
 ### 1.1 Confirm the live GraphQL contract and fixtures
 
-- [ ] Inspect `src/web/modules/graphql/schema.gql`, `docs/graphql.md`, the
+- [x] Inspect `src/web/modules/graphql/schema.gql`, `docs/graphql.md`, the
       current collection layout, and the installed Bruno CLI behavior.
-- [ ] Inspect the configured local fixture roots and identify only relative,
+- [x] Inspect the configured local fixture roots and identify only relative,
       non-sensitive audiobook values that can safely be used in dry runs.
-- [ ] Do not run whole-codebase `npm run lint` as a pre-flight baseline.
-- [ ] Record a blockquoted task note if an audiobook operation can only
+- [x] Do not run whole-codebase `npm run lint` as a pre-flight baseline.
+- [x] Record a blockquoted task note if an audiobook operation can only
       deterministically exercise the `BAD_USER_INPUT` contract.
+
+> note: The repository uses `etc/albums/**` and `etc/audiobooks/**`, not the
+> planned `etc/1-source-files` and `etc/2-destination-files` paths. The server
+> therefore uses `etc` as both confined roots. `albumFixTags`,
+> `audiobookCopyAndRename`, and `audiobookMerge` deterministically assert
+> `BAD_USER_INPUT`; the remaining operations validate data arrays.
 
 ## Phase 2 — GraphQL collection requests
 
 ### 2.1 Add query coverage
 
-- [ ] Create GraphQL POST requests for `albumSummarizeSourceDir`,
+- [x] Create GraphQL POST requests for `albumSummarizeSourceDir`,
       `albumValidateSourceDir`, `audiobookValidate`, and `audiobookCrawl` per
       `design.md` sections 3 and 4.
-- [ ] Assert status 200, absence of top-level `errors`, and the typed data
+- [x] Assert status 200, absence of top-level `errors`, and the typed data
       array for every query with stable fixture inputs.
 
 ### 2.2 Add dry-run mutation coverage
 
-- [ ] Create GraphQL POST requests for `albumFixTags`, `albumOrganizeFiles`,
+- [x] Create GraphQL POST requests for `albumFixTags`, `albumOrganizeFiles`,
       `audiobookCopyAndRename`, `audiobookConvertFiles`, `audiobookMerge`, and
       `audiobookSetMetadata`.
-- [ ] Omit `execute` from every mutation input and assert either the typed data
+- [x] Omit `execute` from every mutation input and assert either the typed data
       array or the documented `BAD_USER_INPUT` envelope selected in Phase 1.
-- [ ] Select only representative fields declared in `schema.gql`; do not copy
+- [x] Select only representative fields declared in `schema.gql`; do not copy
       REST response expectations or status codes.
 
 ### 2.3 Add GraphQL error-contract coverage
 
-- [ ] Create the traversal request using `{{traversalDirName}}`.
-- [ ] Assert HTTP 200, a non-empty `errors` array, and
+- [x] Create the traversal request using `{{traversalDirName}}`.
+- [x] Assert HTTP 200, a non-empty `errors` array, and
       `errors[0].extensions.code === "BAD_USER_INPUT"` without binding to an
       implementation-specific path or message.
 
@@ -61,33 +67,33 @@
 
 ### 3.1 Add minimal GraphQL variables
 
-- [ ] Extend `environments/local.yml` with only the relative sample variables
+- [x] Extend `environments/local.yml` with only the relative sample variables
       used by the GraphQL requests, preserving all existing variables.
-- [ ] Confirm no variable contains an absolute host filesystem path or enables
+- [x] Confirm no variable contains an absolute host filesystem path or enables
       execution.
 
 ## Phase 4 — Live verification
 
 ### 4.1 Build and run the local server
 
-- [ ] Run `npm run build`.
-- [ ] Start `npm run web:serve -- --source-dir etc/1-source-files --dest-dir
-      etc/2-destination-files --host 127.0.0.1 --port 3000` and retain the
+- [x] Run `npm run build`.
+- [x] Start `npm run web:serve -- --source-dir etc --dest-dir etc --host
+      127.0.0.1 --port 3000` and retain the
       specific PID.
-- [ ] Confirm `POST /graphql` is reachable before running Bruno.
+- [x] Confirm `POST /graphql` is reachable before running Bruno.
 
 ### 4.2 Run and clean up the collection
 
-- [ ] From `collections/harmonia-aquila-web/`, run
+- [x] From `collections/harmonia-aquila-web/`, run
       `../../node_modules/.bin/bru run graphql --env local --bail`.
-- [ ] Stop the captured server with `kill <PID>` and confirm no fixture file
+- [x] Stop the captured server with `kill <PID>` and confirm no fixture file
       under `etc/**` changed.
 
 ## Phase 5 — Scope verification
 
 ### 5.1 Confirm the collection-only diff
 
-- [ ] `git --no-pager diff --stat -- src __tests__ docs package.json
+- [x] `git --no-pager diff --stat -- src __tests__ docs package.json
       package-lock.json etc` is empty (NFR-5).
-- [ ] `git --no-pager diff --stat -- collections/harmonia-aquila-web` lists
+- [x] `git --no-pager diff --stat -- collections/harmonia-aquila-web` lists
       only the GraphQL request files and permitted environment update.

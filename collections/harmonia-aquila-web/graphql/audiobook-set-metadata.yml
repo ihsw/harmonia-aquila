@@ -1,0 +1,46 @@
+info:
+  name: audiobook-set-metadata
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: "{{baseUrl}}/graphql"
+  body:
+    type: json
+    data: |-
+      {
+        "query": "mutation AudiobookSetMetadata($input: AudiobookSetMetadataInput!) { audiobookSetMetadata(input: $input) { action source destination } }",
+        "variables": {
+          "input": {
+            "author": "Michael Kimmel",
+            "title": "Angry White Men",
+            "sourceFilepath": "{{graphqlAudiobookFileName}}",
+            "destFilepath": "{{graphqlMetadataDestFilepath}}"
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns a dry-run metadata array", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(200);
+          expect(json).to.not.have.property("errors");
+          expect(json).to.have.nested.property("data.audiobookSetMetadata").that.is.an("array");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

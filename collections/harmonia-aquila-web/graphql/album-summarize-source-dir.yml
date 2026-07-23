@@ -1,0 +1,45 @@
+info:
+  name: album-summarize-source-dir
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/graphql"
+  body:
+    type: json
+    data: |-
+      {
+        "query": "query AlbumSummary($input: AlbumSummaryInput!) { albumSummarizeSourceDir(input: $input) { filename artist album title } }",
+        "variables": {
+          "input": {
+            "dirName": "{{graphqlAlbumDirName}}",
+            "ignoreNonAudioFiles": true,
+            "limit": "1"
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns an album summary array", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(200);
+          expect(json).to.not.have.property("errors");
+          expect(json).to.have.nested.property("data.albumSummarizeSourceDir").that.is.an("array");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,41 @@
+info:
+  name: audiobook-merge
+  type: http
+  seq: 9
+
+http:
+  method: POST
+  url: "{{baseUrl}}/graphql"
+  body:
+    type: json
+    data: |-
+      {
+        "query": "mutation AudiobookMerge($input: AudiobookMergeInput!) { audiobookMerge(input: $input) { action sourceFiles metadataBypassed } }",
+        "variables": {
+          "input": {}
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("reports invalid aggregate metadata", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(200);
+          expect(json).to.have.property("errors").that.is.an("array").and.not.empty;
+          expect(json).to.have.nested.property("errors[0].extensions.code", "BAD_USER_INPUT");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

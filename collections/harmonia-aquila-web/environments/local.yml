@@ -10,5 +10,13 @@ variables:
     value: ..
   - name: sampleAlbumFileName
     value: StarTropics/Y. Hirai - StarTropics OST - 01 - Opening.mp3
+  - name: graphqlAlbumDirName
+    value: albums/1-source-files/lufia2 ost
+  - name: graphqlAudiobookDirName
+    value: audiobooks
+  - name: graphqlAudiobookFileName
+    value: audiobooks/2-aggregated-files/metadata-corrected/Michael Kimmel - Angry White Men.m4b
+  - name: graphqlMetadataDestFilepath
+    value: audiobooks/2-aggregated-files/metadata-corrected/GraphQL dry run.m4b
   - name: mcpProtocolVersion
     value: '2025-11-25'

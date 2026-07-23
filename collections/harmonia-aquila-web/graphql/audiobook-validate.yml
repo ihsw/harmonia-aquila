@@ -1,0 +1,43 @@
+info:
+  name: audiobook-validate
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/graphql"
+  body:
+    type: json
+    data: |-
+      {
+        "query": "query AudiobookValidation($input: AudiobookValidationInput!) { audiobookValidate(input: $input) { filename performer title valid } }",
+        "variables": {
+          "input": {
+            "fileName": "{{graphqlAudiobookFileName}}"
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns an audiobook validation array", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(200);
+          expect(json).to.not.have.property("errors");
+          expect(json).to.have.nested.property("data.audiobookValidate").that.is.an("array");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

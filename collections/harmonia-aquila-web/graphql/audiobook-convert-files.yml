@@ -1,0 +1,45 @@
+info:
+  name: audiobook-convert-files
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{baseUrl}}/graphql"
+  body:
+    type: json
+    data: |-
+      {
+        "query": "mutation AudiobookConvertFiles($input: AudiobookConvertFilesInput!) { audiobookConvertFiles(input: $input) { action source destination } }",
+        "variables": {
+          "input": {
+            "fileNames": [
+              "{{graphqlAudiobookFileName}}"
+            ]
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns a dry-run conversion array", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(200);
+          expect(json).to.not.have.property("errors");
+          expect(json).to.have.nested.property("data.audiobookConvertFiles").that.is.an("array");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

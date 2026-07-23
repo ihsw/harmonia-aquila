@@ -1,0 +1,44 @@
+info:
+  name: album-organize-files
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{baseUrl}}/graphql"
+  body:
+    type: json
+    data: |-
+      {
+        "query": "mutation AlbumOrganizeFiles($input: AlbumOrganizeFilesInput!) { albumOrganizeFiles(input: $input) { action filename } }",
+        "variables": {
+          "input": {
+            "ignoreNonAudioFiles": true,
+            "limit": "1"
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns a dry-run organize array", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(200);
+          expect(json).to.not.have.property("errors");
+          expect(json).to.have.nested.property("data.albumOrganizeFiles").that.is.an("array");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
