@@ -1,0 +1,205 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input AlbumFixTagsInput {
+  albumArtistsStrategy: String
+  albumStrategy: String
+  destinationStrategy: String
+  execute: Boolean
+  limit: String
+  producerStrategy: String
+  resetTrack: Boolean
+  setAlbum: String
+  setAlbumArtist: String
+  setArtist: String
+  setMetadata: String
+  swapArtistAlbumartist: Boolean
+}
+
+type AlbumFixTagsRow {
+  album: String!
+  albumartists: [String!]
+  artist: String!
+  newAlbum: String
+  newAlbumartists: [String!]
+  newArtists: [String!]
+  newProducers: [String!]
+  newTitle: String
+  newTrackNumber: Int
+  producers: [String!]
+  title: String!
+  trackNumber: String
+}
+
+input AlbumOrganizeFilesInput {
+  artistFilenameStrategy: String
+  execute: Boolean
+  ignoreAudioFilesWithoutTracks: Boolean
+  ignoreNonAudioFiles: Boolean
+  limit: String
+  titleFilenameStrategy: String
+}
+
+type AlbumOrganizeFilesRow {
+  action: String!
+  album: String!
+  artistFilename: String!
+  artistFilenameStrategy: String!
+  destination: String!
+  filename: String!
+  titleFilename: String!
+  titleFilenameStrategy: String!
+  trackNumber: String!
+}
+
+input AlbumSummaryInput {
+  dirName: String!
+  ignoreNonAudioFiles: Boolean
+  limit: String
+}
+
+type AlbumSummaryRow {
+  album: String!
+  albumartist: String!
+  artist: String!
+  bitrate: String!
+  duration: String!
+  filename: String!
+  grouping: String!
+  label: String!
+  originalalbum: String!
+  publisher: String!
+  sampleRate: String!
+  subtitle: String!
+  title: String!
+  year: String!
+}
+
+input AlbumValidationInput {
+  artistFilenameStrategy: String
+  dirName: String!
+  ignoreNonAudioFiles: Boolean
+  limit: String
+  titleFilenameStrategy: String
+}
+
+type AlbumValidationRow {
+  album: String!
+  artistFilename: String!
+  artistFilenameStrategy: String!
+  destination: String!
+  filename: String!
+  issues: [String!]!
+  status: String!
+  titleFilename: String!
+  titleFilenameStrategy: String!
+  trackNumber: String!
+}
+
+input AudiobookConvertFilesInput {
+  author: String
+  concurrency: String
+  execute: Boolean
+  fileNames: [String!]!
+  jobs: String
+  narrator: String
+  title: String
+}
+
+type AudiobookConvertFilesRow {
+  action: String!
+  destination: String!
+  narrator: String
+  performer: String!
+  source: String!
+  title: String!
+}
+
+input AudiobookCopyAndRenameInput {
+  execute: Boolean
+  fileName: String!
+}
+
+type AudiobookCopyAndRenameRow {
+  action: String!
+  destination: String!
+  filename: String!
+  performer: String!
+  title: String!
+}
+
+input AudiobookCrawlInput {
+  dirName: String!
+}
+
+type AudiobookCrawlRow {
+  category: String!
+  expectedFilename: String!
+  filename: String!
+  path: String!
+  performer: String!
+  reason: String!
+  reasonCode: String!
+  title: String!
+}
+
+input AudiobookMergeInput {
+  bypassMetadata: Boolean
+  execute: Boolean
+  jobs: String
+}
+
+type AudiobookMergeRow {
+  action: String!
+  destination: String!
+  metadataBypassed: Boolean!
+  performer: String
+  sourceFiles: Int!
+  title: String
+}
+
+input AudiobookSetMetadataInput {
+  author: String!
+  destFilepath: String!
+  execute: Boolean
+  narrator: String
+  sourceFilepath: String!
+  title: String!
+}
+
+type AudiobookSetMetadataRow {
+  action: String!
+  author: String!
+  destination: String!
+  narrator: String!
+  source: String!
+  title: String!
+}
+
+input AudiobookValidationInput {
+  fileName: String!
+}
+
+type AudiobookValidationRow {
+  filename: String!
+  performer: String!
+  title: String!
+  valid: Boolean!
+}
+
+type Mutation {
+  albumFixTags(input: AlbumFixTagsInput!): [AlbumFixTagsRow!]!
+  albumOrganizeFiles(input: AlbumOrganizeFilesInput!): [AlbumOrganizeFilesRow!]!
+  audiobookConvertFiles(input: AudiobookConvertFilesInput!): [AudiobookConvertFilesRow!]!
+  audiobookCopyAndRename(input: AudiobookCopyAndRenameInput!): [AudiobookCopyAndRenameRow!]!
+  audiobookMerge(input: AudiobookMergeInput!): [AudiobookMergeRow!]!
+  audiobookSetMetadata(input: AudiobookSetMetadataInput!): [AudiobookSetMetadataRow!]!
+}
+
+type Query {
+  albumSummarizeSourceDir(input: AlbumSummaryInput!): [AlbumSummaryRow!]!
+  albumValidateSourceDir(input: AlbumValidationInput!): [AlbumValidationRow!]!
+  audiobookCrawl(input: AudiobookCrawlInput!): [AudiobookCrawlRow!]!
+  audiobookValidate(input: AudiobookValidationInput!): [AudiobookValidationRow!]!
+}

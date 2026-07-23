@@ -30,6 +30,7 @@ existing global HTTP filter or disclose sensitive paths (FR-9, FR-11).
 ```text
 package.json
 package-lock.json
+tsconfig.base.json
 src/web/modules/app.module.ts
 src/web/modules/graphql/graphql.module.ts
 src/web/modules/graphql/graphql-error.filter.ts
@@ -72,11 +73,16 @@ use the compatible current NestJS 11 line selected by npm:
 | `@nestjs/graphql` | Nest code-first decorators and GraphQL module |
 | `@nestjs/apollo` | Apollo driver |
 | `@apollo/server` | Apollo Server runtime peer |
+| `@as-integrations/express5` | Required Apollo Server 5 Express 5 adapter |
 | `graphql` | GraphQL runtime peer |
 
 The generated `schema.gql` is a tracked artifact. Regenerate it through normal
 application initialization after type/resolver edits and include its intentional
 diff; do not hand-edit it (FR-1, FR-10).
+
+`tsconfig.base.json` enables `emitDecoratorMetadata`. NestJS GraphQL reads
+resolver argument metadata before applying explicit argument type thunks, so
+this compiler setting is required for code-first schema initialization.
 
 ## 4. Contract and resolver mapping
 

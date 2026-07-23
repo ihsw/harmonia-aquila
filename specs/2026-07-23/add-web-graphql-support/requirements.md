@@ -25,8 +25,11 @@ domain-service semantics, and preserve all existing REST and MCP contracts.
 
 ### In scope
 
-- Add compatible `@nestjs/graphql`, `@nestjs/apollo`, `@apollo/server`, and
-  `graphql` runtime dependencies through npm and update `package-lock.json`.
+- Add compatible `@nestjs/graphql`, `@nestjs/apollo`, `@apollo/server`,
+  `@as-integrations/express5`, and `graphql` runtime dependencies through npm
+  and update `package-lock.json`.
+- Enable TypeScript decorator metadata in `tsconfig.base.json`, which NestJS
+  GraphQL requires to build resolver argument metadata.
 - Add `src/web/modules/graphql/**` for the GraphQL Nest module, decorated
   input/object types, resolvers, error translation, and generated SDL.
 - Register the module in `src/web/modules/app.module.ts`.
@@ -44,9 +47,9 @@ domain-service semantics, and preserve all existing REST and MCP contracts.
 - A browser UI or generated client SDK.
 - Changing the semantics of `execute`, collision prevention, source/destination
   confinement, Docker/m4b-tool execution, Pino logging, or HTTP/MCP responses.
-- Adding `class-validator`, `class-transformer`, `@nestjs/testing`,
-  `@as-integrations/express5`, `ts-morph`, or GraphQL scalar packages unless
-  npm identifies a direct, version-compatible runtime requirement.
+- Adding `class-validator`, `class-transformer`, `@nestjs/testing`, `ts-morph`,
+  or GraphQL scalar packages unless npm identifies a direct, version-compatible
+  runtime requirement.
 
 ## 4. Functional Requirements
 

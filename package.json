@@ -38,11 +38,16 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
+    "@apollo/server": "^5.5.1",
+    "@as-integrations/express5": "^1.1.2",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@nestjs/apollo": "^13.4.2",
     "@nestjs/common": "^11.1.28",
     "@nestjs/core": "^11.1.28",
+    "@nestjs/graphql": "^13.4.2",
     "@nestjs/platform-express": "^11.1.28",
     "commander": "^15.0.0",
+    "graphql": "^16.14.2",
     "music-metadata": "^11.13.0",
     "node-taglib-sharp": "^6.0.3",
     "p-limit": "^7.3.0",

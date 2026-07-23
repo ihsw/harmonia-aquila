@@ -25,6 +25,7 @@
 
     // Recommended Options
     "strict": true,
+    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "jsx": "react-jsx",
     "verbatimModuleSyntax": true,
