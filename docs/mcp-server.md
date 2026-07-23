@@ -27,6 +27,14 @@ The web endpoint resolves all source paths inside the configured `--source-dir`
 and all destination paths inside the configured `--dest-dir`; tool schemas do
 not expose root override inputs.
 
+### Web server logging
+
+`web serve` writes newline-delimited Pino JSON records to stderr, leaving stdout
+and `/mcp` response bodies for CLI and protocol output. Records include server
+readiness, completed requests, and unexpected failures. Each response returns a
+safe `x-request-id` for correlating its records; request bodies, query strings,
+authorization and cookie headers, and client filesystem paths are not logged.
+
 The rest of this document describes a broader future stdio MCP server and should
 not be read as the current `web serve` tool surface.
 
