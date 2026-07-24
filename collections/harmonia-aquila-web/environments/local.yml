@@ -8,6 +8,8 @@ variables:
     value: ''
   - name: albumListNestedPrefix
     value: albums/
+  - name: albumOrganizeDir
+    value: albums/1-source-files/lufia2 ost/
   - name: ignoreNonAudioFiles
     value: 'true'
   - name: traversalDirName

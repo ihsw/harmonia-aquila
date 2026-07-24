@@ -40,6 +40,7 @@ export const manageAlbumsFixTagsInputSchema = {
 }
 
 export const manageAlbumsOrganizeFilesInputSchema = {
+  albumDir: z.string().min(1, 'albumDir is required').endsWith('/', 'albumDir must end with /'),
   artistFilenameStrategy: z.string().optional(),
   execute: z.boolean().optional(),
   ignoreAudioFilesWithoutTracks: z.boolean().optional(),

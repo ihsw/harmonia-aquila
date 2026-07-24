@@ -113,6 +113,7 @@ describe('web MCP manage-albums tools', () => {
       titleFilenameStrategy: 'subtitle',
     })
     const organizeResponse = await callTool(4, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
+      albumDir: 'music/',
       execute: true,
       ignoreNonAudioFiles: true,
       limit: 4,
@@ -143,7 +144,7 @@ describe('web MCP manage-albums tools', () => {
       execute: true,
       ignoreNonAudioFiles: true,
       limit: '4',
-      sourceDir: currentTestApp.sourceDir,
+      sourceDir: `${currentTestApp.sourceDir}/music`,
     })
     expect(JSON.parse(getToolText(summarizeResponse))).toEqual([{ filename: 'a.flac' }])
     expect(JSON.parse(getToolText(fixResponse))).toEqual([{ action: 'fix' }])
@@ -162,6 +163,21 @@ describe('web MCP manage-albums tools', () => {
     expect(summarizeAlbumSourceDir).not.toHaveBeenCalled()
     expect(validateAlbumSourceDir).not.toHaveBeenCalled()
     expect(fixAlbumTags).not.toHaveBeenCalled()
+  })
+
+  it('requires a slash-terminated album directory for organize files', async () => {
+    const missingAlbumDirResponse = await callTool(7, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {})
+    const malformedAlbumDirResponse = await callTool(8, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
+      albumDir: 'music',
+    })
+    const traversalResponse = await callTool(9, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
+      albumDir: '../outside/',
+    })
+
+    expect(getToolText(missingAlbumDirResponse)).toContain('albumDir')
+    expect(getToolText(malformedAlbumDirResponse)).toContain('albumDir must end with /')
+    expect(getToolText(traversalResponse)).toContain('--source-dir')
+    expect(organizeAlbumFiles).not.toHaveBeenCalled()
   })
 
   async function callTool(id: number, name: string, toolArguments: unknown) {

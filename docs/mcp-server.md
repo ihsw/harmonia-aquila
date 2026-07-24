@@ -30,6 +30,9 @@ not expose root override inputs.
 
 `manage_albums_list` is read-only. Its optional `prefix` selects the configured
 source root when empty, or a slash-terminated source-root-relative directory.
+`manage_albums_organize_files` requires `albumDir`, a slash-terminated folder
+path returned by that list operation, and resolves it within the configured
+source root.
 
 ### Web server logging
 

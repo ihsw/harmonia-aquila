@@ -16,6 +16,7 @@ http:
         "params": {
           "name": "manage_albums_organize_files",
           "arguments": {
+            "albumDir": "{{albumOrganizeDir}}",
             "ignoreNonAudioFiles": true,
             "limit": 0
           }
