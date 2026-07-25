@@ -158,6 +158,20 @@ describe('web controllers', () => {
     })
   })
 
+  it('maps organize-files multi-artist conflicts to 400', async () => {
+    vi.mocked(organizeAlbumFiles).mockRejectedValue(new UserInputError(
+      'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+    ))
+
+    await expect(albumController.organizeFiles({})).rejects.toMatchObject({
+      response: {
+        error: 'Bad Request',
+        message: 'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+        statusCode: 400,
+      },
+    })
+  })
+
   it('maps album POST bodies to fix-tags options', async () => {
     vi.mocked(fixAlbumTags).mockResolvedValue([{ album: 'A', artist: 'B', title: 'C' }])
 

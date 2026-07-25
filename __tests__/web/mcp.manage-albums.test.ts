@@ -180,6 +180,18 @@ describe('web MCP manage-albums tools', () => {
     expect(organizeAlbumFiles).not.toHaveBeenCalled()
   })
 
+  it('returns multi-artist album conflicts as organize-files tool error content', async () => {
+    vi.mocked(organizeAlbumFiles).mockRejectedValue(new UserInputError(
+      'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+    ))
+
+    const response = await callTool(13, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, { albumDir: 'music/' })
+
+    expect(getToolText(response)).toContain(
+      'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+    )
+  })
+
   async function callTool(id: number, name: string, toolArguments: unknown) {
     return postMcp(requireTestApp().baseUrl, {
       id,

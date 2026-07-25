@@ -32,7 +32,9 @@ not expose root override inputs.
 source root when empty, or a slash-terminated source-root-relative directory.
 `manage_albums_organize_files` requires `albumDir`, a slash-terminated folder
 path returned by that list operation, and resolves it within the configured
-source root.
+source root. It rejects, without an override, any plan that would create the
+same normalized album directory for multiple normalized artist directories;
+the tool reports that validation failure before writing destination files.
 
 ### Web server logging
 

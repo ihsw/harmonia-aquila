@@ -1,8 +1,10 @@
 import { Command } from 'commander'
 import { parseFile } from 'music-metadata'
+import { readdir } from 'node:fs/promises'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 
 import { type OrganizeFilesJsonOutput, registerOrganizeFilesCommand } from '../../../src/commands/manage-albums/organize-files.js'
+import { organizeAlbumFiles } from '../../../src/lib/albums/organize-files.js'
 import { createTempDir, createTempFile, makeAudioMetadata, removeTempDir } from '../../test-helpers.js'
 
 vi.mock('music-metadata', () => ({
@@ -97,5 +99,64 @@ describe('organize-files', () => {
         '--dest-dir', destDir,
       ]),
     ).rejects.toThrow()
+  })
+
+  it('rejects one output album name for multiple artists before copying in dry-run and execute modes', async () => {
+    await createTempFile(sourceDir, 'artist-a.flac')
+    await createTempFile(sourceDir, 'artist-b.flac')
+    const artistAMetadata = makeAudioMetadata({
+      album: 'Same Album',
+      artist: 'Artist A',
+      title: 'Track One',
+      track: { no: 1, of: null },
+    })
+    const artistBMetadata = makeAudioMetadata({
+      album: 'Same Album',
+      artist: 'Artist B',
+      title: 'Track Two',
+      track: { no: 2, of: null },
+    })
+    mockParseFile
+      .mockResolvedValueOnce(artistAMetadata)
+      .mockResolvedValueOnce(artistBMetadata)
+      .mockResolvedValueOnce(artistAMetadata)
+      .mockResolvedValueOnce(artistBMetadata)
+
+    const options = { destDir, sourceDir }
+
+    await expect(organizeAlbumFiles(options)).rejects.toThrow(
+      'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+    )
+    await expect(organizeAlbumFiles({ ...options, execute: true })).rejects.toThrow(
+      'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+    )
+
+    expect(await readdir(destDir)).toEqual([])
+  })
+
+  it('allows multiple tracks from one artist and album', async () => {
+    await createTempFile(sourceDir, 'track01.flac')
+    await createTempFile(sourceDir, 'track02.flac')
+    mockParseFile
+      .mockResolvedValueOnce(makeAudioMetadata({
+        album: 'Same Album',
+        artist: 'Artist A',
+        title: 'Track One',
+        track: { no: 1, of: null },
+      }))
+      .mockResolvedValueOnce(makeAudioMetadata({
+        album: 'Same Album',
+        artist: 'Artist A',
+        title: 'Track Two',
+        track: { no: 2, of: null },
+      }))
+
+    const rows = await organizeAlbumFiles({ destDir, sourceDir })
+
+    expect(rows).toHaveLength(2)
+    expect(rows.map(row => row.destination)).toEqual([
+      'Artist A/Same Album/01 - Track One.flac',
+      'Artist A/Same Album/02 - Track Two.flac',
+    ])
   })
 })

@@ -20,6 +20,11 @@ npm run build
 
 Do not run `fix-tags` during this suitable-candidate pass, and do not use overwrite behavior or manual merges for duplicate destination album folders.
 
+`organize-files` also fails before copying when one plan would create the same
+normalized album directory name for multiple normalized artist directories.
+Treat that result as a metadata or source-selection issue; it has no bypass
+and must not be worked around with manual destination merges.
+
 ## Reconciled suitable-candidate processing spec
 
 - Spec: `specs/2026-07-09/process-reconciled-suitable-source-albums/`

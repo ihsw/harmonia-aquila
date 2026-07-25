@@ -13,7 +13,7 @@ export type { OrganizeFilesJsonOutput, OrganizeFilesJsonOutputRow } from '../../
 export function registerOrganizeFilesCommand(program: Command): void {
   const organizeFilesCommand = program
     .command('organize-files')
-    .description('Copy FLAC and MP3 files into ArtistName/AlbumName/TrackNumber - Title.ext')
+    .description('Copy FLAC and MP3 files into ArtistName/AlbumName/TrackNumber - Title.ext; fail when one album name resolves for multiple artists')
     .requiredOption('--source-dir <sourceDir>', 'directory containing FLAC and MP3 files to organize')
     .requiredOption('--dest-dir <destDir>', 'directory to copy organized files into')
     .option('--limit <count>', 'maximum number of files to copy')

@@ -14,6 +14,7 @@ import {
   getArtistFilename,
   parseArtistFilenameStrategy,
   parseTitleFilenameStrategy,
+  sanitizePathSegment,
   type TitleFilenameStrategy,
 } from './organization-plan.js'
 
@@ -43,6 +44,8 @@ export interface OrganizeFilesOptions {
 export type OrganizeFilesJsonOutput = OrganizeFilesJsonOutputRow[]
 
 interface PlannedCopy {
+  albumDirectory: string
+  artistDirectory: string
   destinationPath: string
   row: OrganizeFilesJsonOutputRow
   sourcePath: string
@@ -98,6 +101,8 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
       const destinationPath = join(destinationDirectory, destination)
 
       return {
+        albumDirectory: sanitizePathSegment(album),
+        artistDirectory: sanitizePathSegment(artistFilename),
         destinationPath,
         row: {
           action: options.execute === true ? 'copied' : 'would copy',
@@ -129,6 +134,25 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
   if (duplicateDestinationEntries.length > 0) {
     throw new UserInputError(`Multiple files resolve to the same destination: ${duplicateDestinationEntries
       .map(([destinationPath, filenames]) => `${relative(destinationDirectory, destinationPath)} (${filenames.join(', ')})`)
+      .join('; ')}`)
+  }
+
+  const artistsByAlbumDirectory = new Map<string, Set<string>>()
+
+  for (const plannedCopy of plannedCopies) {
+    const artistDirectories = artistsByAlbumDirectory.get(plannedCopy.albumDirectory) ?? new Set<string>()
+
+    artistDirectories.add(plannedCopy.artistDirectory)
+    artistsByAlbumDirectory.set(plannedCopy.albumDirectory, artistDirectories)
+  }
+
+  const multiArtistAlbumDirectories = [...artistsByAlbumDirectory.entries()]
+    .filter(([, artistDirectories]) => artistDirectories.size > 1)
+    .sort(([firstAlbumDirectory], [secondAlbumDirectory]) => firstAlbumDirectory.localeCompare(secondAlbumDirectory))
+
+  if (multiArtistAlbumDirectories.length > 0) {
+    throw new UserInputError(`Multiple artists resolve to the same album directory: ${multiArtistAlbumDirectories
+      .map(([albumDirectory, artistDirectories]) => `${albumDirectory} (${[...artistDirectories].sort().join(', ')})`)
       .join('; ')}`)
   }
 

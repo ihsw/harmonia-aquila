@@ -82,11 +82,17 @@ describe('web GraphQL endpoint', () => {
 
   it('keeps mutations dry-run by default and translates resolver errors safely', async () => {
     const dryRun = await postGraphql('mutation { albumFixTags(input: {}) { album } }')
+    const organizeInvalidStrategy = await postGraphql(`mutation {
+      albumOrganizeFiles(input: { artistFilenameStrategy: "invalid" }) { filename }
+    }`)
     const userInputError = await postGraphql('{ audiobookValidate(input: { fileName: "../escape.m4b" }) { filename } }')
     const listTraversal = await postGraphql('{ albumList(input: { prefix: "../" }) }')
     const internalError = await postGraphql('{ audiobookValidate(input: { fileName: "missing.m4b" }) { filename } }')
 
     expect(dryRun).toEqual({ data: { albumFixTags: [] } })
+    expect(organizeInvalidStrategy.errors?.[0]).toMatchObject({
+      extensions: { code: 'BAD_USER_INPUT' },
+    })
     expect(userInputError.errors?.[0]).toMatchObject({
       extensions: { code: 'BAD_USER_INPUT' },
       message: 'fileName must stay within --source-dir',

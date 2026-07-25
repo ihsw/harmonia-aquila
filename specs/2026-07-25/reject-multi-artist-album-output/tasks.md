@@ -21,43 +21,43 @@
 
 ### 1.1 Confirm current behavior and boundaries
 
-- [ ] Inspect the current organization planning order, existing exact-path and
+- [x] Inspect the current organization planning order, existing exact-path and
       existing-directory guards, and the current dirty-worktree state.
-- [ ] Confirm the shared fixture has two artists, one normalized album name,
+- [x] Confirm the shared fixture has two artists, one normalized album name,
       and distinct track/title paths so it reaches the new guard.
-- [ ] Do not run whole-codebase `npm run lint` as a baseline; reserve it for
+- [x] Do not run whole-codebase `npm run lint` as a baseline; reserve it for
       final verification.
 
 ## Phase 2 — Domain safeguard and CLI
 
 ### 2.1 Add normalized album-to-artist conflict detection
 
-- [ ] Modify `src/lib/albums/organize-files.ts` per `design.md` section 3:
+- [x] Modify `src/lib/albums/organize-files.ts` per `design.md` section 3:
       group sanitized planned album output segments and reject any group with
       multiple sanitized artist output segments before stat or copy work.
-- [ ] Keep the existing exact duplicate-file-destination error ordered ahead
+- [x] Keep the existing exact duplicate-file-destination error ordered ahead
       of the new guard, and make the new error stable and path-safe.
-- [ ] Run `npm run lint -- src/lib/albums/organize-files.ts`. Fix and rerun
+- [x] Run `npm run lint -- src/lib/albums/organize-files.ts`. Fix and rerun
       until clean.
 
 ### 2.2 Prove core behavior and CLI wording
 
-- [ ] Extend `__tests__/commands/manage-albums/organize-files.test.ts` for
+- [x] Extend `__tests__/commands/manage-albums/organize-files.test.ts` for
       dry-run and execute failures, no destination output, a valid multi-track
       same-artist album, and sanitized-segment behavior if practical.
-- [ ] Update `src/commands/manage-albums/organize-files.ts` help text to state
+- [x] Update `src/commands/manage-albums/organize-files.ts` help text to state
       the multi-artist same-name-album failure behavior.
-- [ ] Run lint after each edited source/test file, then run
+- [x] Run lint after each edited source/test file, then run
       `./node_modules/.bin/vitest run __tests__/commands/manage-albums/organize-files.test.ts`.
 
 ## Phase 3 — REST client parity
 
 ### 3.1 Assert REST error translation
 
-- [ ] Extend `__tests__/web/controllers.test.ts` (and a web integration test if
+- [x] Extend `__tests__/web/controllers.test.ts` (and a web integration test if
       needed) so a `UserInputError` from organize-files remains the established
       HTTP 400 error body without any route/body/root behavior change.
-- [ ] Run `npm run lint -- __tests__/web/controllers.test.ts` and the focused
+- [x] Run `npm run lint -- __tests__/web/controllers.test.ts` and the focused
       web controller test.
 
 ### 3.2 Add REST Bruno coverage
@@ -70,41 +70,41 @@
 
 ### 4.1 Assert GraphQL error translation
 
-- [ ] Extend the album resolver and GraphQL integration tests to assert the
+- [x] Extend the album resolver and GraphQL integration tests to assert the
       mutation presents the domain failure as `BAD_USER_INPUT`, with no schema
       or mutation signature change.
-- [ ] Run lint after every edited GraphQL test and execute the focused Vitest
+- [x] Run lint after every edited GraphQL test and execute the focused Vitest
       commands from `design.md` section 8.
 
 ### 4.2 Add GraphQL Bruno coverage and documentation
 
 - [ ] Add a GraphQL organize-files conflict request that asserts an error
       envelope and `BAD_USER_INPUT`.
-- [ ] Update `docs/graphql.md` to document the organize-files safeguard and
+- [x] Update `docs/graphql.md` to document the organize-files safeguard and
       preserve its existing dry-run/execute guidance.
 
 ## Phase 5 — MCP client parity
 
 ### 5.1 Assert MCP tool failure behavior
 
-- [ ] Extend `__tests__/web/mcp.manage-albums.test.ts` to assert the existing
+- [x] Extend `__tests__/web/mcp.manage-albums.test.ts` to assert the existing
       tool error representation exposes the conflict message while tool name,
       input schema, annotations, and root confinement stay unchanged.
-- [ ] Run `npm run lint -- __tests__/web/mcp.manage-albums.test.ts` and the
+- [x] Run `npm run lint -- __tests__/web/mcp.manage-albums.test.ts` and the
       focused MCP test.
 
 ### 5.2 Add MCP Bruno coverage and documentation
 
 - [ ] Add an MCP `tools/call` conflict request that asserts error content and
       leaves the existing tool-list request unchanged.
-- [ ] Update `docs/mcp-server.md` to describe the non-bypassable safeguard for
+- [x] Update `docs/mcp-server.md` to describe the non-bypassable safeguard for
       `manage_albums_organize_files`.
 
 ## Phase 6 — Shared documentation and live collection verification
 
 ### 6.1 Document operation safety
 
-- [ ] Update `docs/album-organization.md` so its safe execution guidance
+- [x] Update `docs/album-organization.md` so its safe execution guidance
       explains the multi-artist same-name-album failure and does not recommend
       manual overwrite or merge workarounds.
 
@@ -120,16 +120,16 @@
 
 ### 7.1 Run quality checks
 
-- [ ] `npm run lint` — final whole-codebase lint; exit 0.
-- [ ] `npm run build` — exit 0.
-- [ ] `npm test` — exit 0.
+- [x] `npm run lint` — final whole-codebase lint; exit 0.
+- [x] `npm run build` — exit 0.
+- [x] `npm test` — exit 0.
 
 ### 7.2 Verify scope and behavior
 
-- [ ] Confirm all four clients expose the one domain error rule and no adapter
+- [x] Confirm all four clients expose the one domain error rule and no adapter
       duplicates detection logic (NFR-4).
-- [ ] `git --no-pager diff --stat -- src/lib/audiobooks src/commands/manage-audiobooks package.json package-lock.json`
+- [x] `git --no-pager diff --stat -- src/lib/audiobooks src/commands/manage-audiobooks package.json package-lock.json`
       must be empty (NFR-5).
-- [ ] Confirm the diff contains only the planned service, CLI description,
+- [x] Confirm the diff contains only the planned service, CLI description,
       client coverage, collection, and documentation changes from
       `design.md` section 2.

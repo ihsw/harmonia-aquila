@@ -53,6 +53,11 @@ mutation {
 }
 ```
 
+`albumOrganizeFiles` rejects a plan when the same normalized album directory
+would be created for more than one normalized artist directory. This safeguard
+applies to dry runs and `execute: true`, cannot be bypassed, and is returned as
+`BAD_USER_INPUT` before any destination files are created.
+
 GraphQL errors with `extensions.code` equal to `BAD_USER_INPUT` identify
 invalid inputs or paths outside configured roots. Unexpected failures return
 `INTERNAL_SERVER_ERROR` without exposing filesystem paths or stack traces.

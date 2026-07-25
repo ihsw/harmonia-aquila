@@ -6,6 +6,7 @@ import { listAlbumSourceDir } from '../../../src/lib/albums/list.js'
 import { organizeAlbumFiles } from '../../../src/lib/albums/organize-files.js'
 import { summarizeAlbumSourceDir } from '../../../src/lib/albums/summarize-source-dir.js'
 import { validateAlbumSourceDir } from '../../../src/lib/albums/validate.js'
+import { UserInputError } from '../../../src/lib/errors.js'
 import { AlbumResolver } from '../../../src/web/modules/graphql/album.resolver.js'
 import { WebPathResolver, type WebRoots } from '../../../src/web/providers/path-resolver.js'
 import { createTempDir, removeTempDir } from '../../test-helpers.js'
@@ -94,5 +95,15 @@ describe('AlbumResolver', () => {
       ignoreNonAudioFiles: true,
       sourceDir: roots.sourceDir,
     })
+  })
+
+  it('preserves organize-files multi-artist conflicts for GraphQL error filtering', async () => {
+    vi.mocked(organizeAlbumFiles).mockRejectedValue(new UserInputError(
+      'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+    ))
+
+    await expect(resolver.albumOrganizeFiles({})).rejects.toThrow(
+      'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+    )
   })
 })
