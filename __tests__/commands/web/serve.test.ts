@@ -20,7 +20,7 @@ function makeProgram(): Command {
 }
 
 describe('web serve command', () => {
-  it('lists source and destination directory options in help output', () => {
+  it('lists source, destination, and scratch directory options in help output', () => {
     const output: string[] = []
     const program = new Command()
     program.exitOverride()
@@ -33,17 +33,35 @@ describe('web serve command', () => {
     expect(() => program.parse(['node', 'test', 'serve', '--help'])).toThrow(CommanderError)
     expect(output.join('')).toContain('--source-dir <dir>')
     expect(output.join('')).toContain('--dest-dir <dir>')
+    expect(output.join('')).toContain('--scratch-dir <dir>')
     expect(output.join('')).toContain('--host <host>')
     expect(output.join('')).toContain('--port <port>')
   })
 
-  it('requires source and destination directories before bootstrapping', async () => {
+  it('requires source, destination, and scratch directories before bootstrapping', async () => {
     await expect(
-      makeProgram().parseAsync(['node', 'test', 'serve', '--dest-dir', '/dst']),
+      makeProgram().parseAsync([
+        'node', 'test', 'serve', '--dest-dir', '/dst', '--scratch-dir', '/scratch',
+      ]),
     ).rejects.toThrow(CommanderError)
 
     await expect(
-      makeProgram().parseAsync(['node', 'test', 'serve', '--source-dir', '/src']),
+      makeProgram().parseAsync([
+        'node', 'test', 'serve', '--source-dir', '/src', '--scratch-dir', '/scratch',
+      ]),
+    ).rejects.toThrow(CommanderError)
+
+    await expect(
+      makeProgram().parseAsync([
+        'node', 'test', 'serve', '--source-dir', '/src', '--dest-dir', '/dst',
+      ]),
+    ).rejects.toThrow(CommanderError)
+
+    await expect(
+      makeProgram().parseAsync([
+        'node', 'test', 'serve', '--source-dir', '/src', '--dest-dir', '/dst',
+        '--scratch-dir', ' ',
+      ]),
     ).rejects.toThrow(CommanderError)
 
     expect(serveWeb).not.toHaveBeenCalled()
@@ -56,6 +74,7 @@ describe('web serve command', () => {
       'node', 'test', 'serve',
       '--source-dir', '/src',
       '--dest-dir', '/dst',
+      '--scratch-dir', '/scratch',
       '--host', '0.0.0.0',
       '--port', '1234',
     ])
@@ -64,6 +83,7 @@ describe('web serve command', () => {
       destDir: '/dst',
       host: '0.0.0.0',
       port: 1234,
+      scratchDir: '/scratch',
       sourceDir: '/src',
     })
   })

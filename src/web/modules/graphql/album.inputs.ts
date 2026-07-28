@@ -95,4 +95,7 @@ export class AlbumOrganizeFilesInput {
 
   @Field(() => String, { nullable: true })
   public titleFilenameStrategy?: string
+
+  @Field(() => Boolean, { nullable: true })
+  public useScratchDir?: boolean
 }

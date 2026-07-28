@@ -15,7 +15,9 @@ export function createManageAlbumsOrganizeFilesTool(
       const sourceDir = await context.pathResolver.resolveSource(input.albumDir, 'albumDir')
 
       return jsonToolContent(await organizeAlbumFiles({
-        destDir: context.pathResolver.destDir,
+        destDir: input.useScratchDir === true
+          ? context.pathResolver.scratchDir
+          : context.pathResolver.sourceDir,
         sourceDir,
         ...optionalEntry('artistFilenameStrategy', input.artistFilenameStrategy),
         ...optionalEntry('execute', input.execute),
@@ -30,7 +32,7 @@ export function createManageAlbumsOrganizeFilesTool(
       annotations: {
         readOnlyHint: false,
       },
-      description: 'Organize files from an album directory returned by manage_albums_list into the destination directory.',
+      description: 'Organize files from an album directory returned by manage_albums_list into the configured source or scratch directory.',
       inputSchema: manageAlbumsOrganizeFilesInputSchema,
       title: 'Manage albums organize files',
     },

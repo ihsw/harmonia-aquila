@@ -12,7 +12,7 @@ export function createManageAlbumsFixTagsTool(
 ): WebMcpToolRegistration {
   return defineWebMcpTool({
     handler: async input => jsonToolContent(await fixAlbumTags({
-      destDir: context.pathResolver.destDir,
+      destDir: context.pathResolver.scratchDir,
       sourceDir: context.pathResolver.sourceDir,
       ...optionalEntry('albumArtistsStrategy', input.albumArtistsStrategy),
       ...optionalEntry('albumStrategy', input.albumStrategy),
@@ -32,7 +32,7 @@ export function createManageAlbumsFixTagsTool(
       annotations: {
         readOnlyHint: false,
       },
-      description: 'Fix album tags under the configured source directory and plan output under the destination directory.',
+      description: 'Fix album tags under the configured source directory and plan output under the scratch directory.',
       inputSchema: manageAlbumsFixTagsInputSchema,
       title: 'Manage albums fix tags',
     },

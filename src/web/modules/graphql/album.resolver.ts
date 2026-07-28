@@ -71,7 +71,7 @@ export class AlbumResolver {
     @Args('input', { type: () => AlbumFixTagsInput }) input: AlbumFixTagsInput,
   ): Promise<FixTagsJsonOutput> {
     return fixAlbumTags({
-      destDir: this.pathResolver.destDir,
+      destDir: this.pathResolver.scratchDir,
       sourceDir: this.pathResolver.sourceDir,
       ...optionalEntry('albumArtistsStrategy', input.albumArtistsStrategy),
       ...optionalEntry('albumStrategy', input.albumStrategy),
@@ -93,7 +93,9 @@ export class AlbumResolver {
     @Args('input', { type: () => AlbumOrganizeFilesInput }) input: AlbumOrganizeFilesInput,
   ): Promise<OrganizeFilesJsonOutput> {
     return organizeAlbumFiles({
-      destDir: this.pathResolver.destDir,
+      destDir: input.useScratchDir === true
+        ? this.pathResolver.scratchDir
+        : this.pathResolver.sourceDir,
       sourceDir: this.pathResolver.sourceDir,
       ...optionalEntry('artistFilenameStrategy', input.artistFilenameStrategy),
       ...optionalEntry('execute', input.execute),

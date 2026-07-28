@@ -43,6 +43,7 @@ input AlbumOrganizeFilesInput {
   ignoreNonAudioFiles: Boolean
   limit: String
   titleFilenameStrategy: String
+  useScratchDir: Boolean
 }
 
 type AlbumOrganizeFilesRow {

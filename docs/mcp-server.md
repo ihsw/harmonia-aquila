@@ -24,17 +24,21 @@ endpoint exposes scoped album and audiobook tools matching the current
 | `manage_audiobooks_merge` | `manage-audiobooks merge` |
 | `manage_audiobooks_set_metadata` | `manage-audiobooks set-metadata` |
 
-The web endpoint resolves all source paths inside the configured `--source-dir`
-and all destination paths inside the configured `--dest-dir`; tool schemas do
-not expose root override inputs.
+The web endpoint resolves all source paths inside the configured `--source-dir`,
+all audiobook destination paths inside `--dest-dir`, and album scratch output
+inside `--scratch-dir`; tool schemas do not expose root override inputs.
 
 `manage_albums_list` is read-only. Its optional `prefix` selects the configured
 source root when empty, or a slash-terminated source-root-relative directory.
 `manage_albums_organize_files` requires `albumDir`, a slash-terminated folder
 path returned by that list operation, and resolves it within the configured
-source root. It rejects, without an override, any plan that would create the
-same normalized album directory for multiple normalized artist directories;
-the tool reports that validation failure before writing destination files.
+source root. Its output defaults to the configured source root; pass
+`useScratchDir: true` to select the configured scratch root.
+`manage_albums_fix_tags` always plans or writes output under the scratch root.
+Both tools reject arbitrary root overrides. Organization also rejects any plan
+that would create the same normalized album directory for multiple normalized
+artist directories; the tool reports that validation failure before writing
+destination files.
 
 ### Web server logging
 

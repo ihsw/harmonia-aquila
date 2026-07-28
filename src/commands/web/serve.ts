@@ -7,6 +7,7 @@ interface WebServeOptions {
   destDir?: string
   host: string
   port: string
+  scratchDir?: string
   sourceDir?: string
 }
 
@@ -36,15 +37,18 @@ export function registerWebServeCommand(program: Command): void {
     .option('--port <port>', 'port to bind', '3000')
     .option('--source-dir <dir>', 'source directory root for web routes')
     .option('--dest-dir <dir>', 'destination directory root for web routes')
+    .option('--scratch-dir <dir>', 'scratch directory root for web album operations')
     .action(async (options: WebServeOptions) => {
       let port: number
       let sourceDir: string
       let destDir: string
+      let scratchDir: string
 
       try {
         port = parsePort(options.port)
         sourceDir = requiredOption(serveCommand, options.sourceDir, '--source-dir')
         destDir = requiredOption(serveCommand, options.destDir, '--dest-dir')
+        scratchDir = requiredOption(serveCommand, options.scratchDir, '--scratch-dir')
       }
       catch (error) {
         if (error instanceof UserInputError) {
@@ -54,6 +58,6 @@ export function registerWebServeCommand(program: Command): void {
         throw error
       }
 
-      await serveWeb({ destDir, host: options.host, port, sourceDir })
+      await serveWeb({ destDir, host: options.host, port, scratchDir, sourceDir })
     })
 }

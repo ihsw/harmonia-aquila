@@ -1,5 +1,5 @@
 info:
-  name: call-manage-albums-organize-files
+  name: call-manage-albums-organize-files-scratch-output
   type: http
   seq: 31
 
@@ -16,9 +16,10 @@ http:
         "params": {
           "name": "manage_albums_organize_files",
           "arguments": {
-            "albumDir": "{{albumOrganizeDir}}",
+            "albumDir": "albums/1-source-files/Across The Universe Soundtrack/",
             "ignoreNonAudioFiles": true,
-            "limit": 0
+            "limit": 0,
+            "useScratchDir": true
           }
         }
       }

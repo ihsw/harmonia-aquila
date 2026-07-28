@@ -135,6 +135,7 @@ export const organizeFilesBodySchema = z.object({
   ignoreNonAudioFiles: optionalBodyBoolean(),
   limit: optionalString('limit'),
   titleFilenameStrategy: optionalString('titleFilenameStrategy'),
+  useScratchDir: optionalBodyBoolean(),
 })
 
 export const validateAudiobookQuerySchema = z.object({

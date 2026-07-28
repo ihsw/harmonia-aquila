@@ -52,6 +52,7 @@ export interface WebMcpTestApp {
   app: INestApplication
   baseUrl: string
   destDir: string
+  scratchDir: string
   sourceDir: string
 }
 
@@ -63,14 +64,16 @@ export const mcpRequestHeaders = {
 
 export async function createWebMcpTestApp(): Promise<WebMcpTestApp> {
   const destDir = await realpath(await createTempDir('web-mcp-dest-'))
+  const scratchDir = await realpath(await createTempDir('web-mcp-scratch-'))
   const sourceDir = await realpath(await createTempDir('web-mcp-source-'))
-  const app = await createWebApp({ destDir, sourceDir })
+  const app = await createWebApp({ destDir, scratchDir, sourceDir })
   await app.listen(0, '127.0.0.1')
 
   return {
     app,
     baseUrl: getBaseUrl(app.getHttpServer() as Server),
     destDir,
+    scratchDir,
     sourceDir,
   }
 }
@@ -82,6 +85,7 @@ export async function closeWebMcpTestApp(testApp: WebMcpTestApp | undefined): Pr
 
   await testApp.app.close()
   await removeTempDir(testApp.destDir)
+  await removeTempDir(testApp.scratchDir)
   await removeTempDir(testApp.sourceDir)
 }
 

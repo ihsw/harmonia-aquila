@@ -6,6 +6,7 @@ import { UserInputError } from '../../lib/errors.js'
 export interface WebRoots {
   sourceDir: string
   destDir: string
+  scratchDir: string
 }
 
 export class WebPathResolver {
@@ -17,6 +18,10 @@ export class WebPathResolver {
 
   public get sourceDir(): string {
     return this.roots.sourceDir
+  }
+
+  public get scratchDir(): string {
+    return this.roots.scratchDir
   }
 
   public async resolveSource(requestPath: string, fieldName: string): Promise<string> {
@@ -56,6 +61,7 @@ export class WebPathResolver {
 export async function normalizeWebRoots(roots: WebRoots): Promise<WebRoots> {
   return {
     destDir: await normalizeRoot(roots.destDir, '--dest-dir'),
+    scratchDir: await normalizeRoot(roots.scratchDir, '--scratch-dir'),
     sourceDir: await normalizeRoot(roots.sourceDir, '--source-dir'),
   }
 }

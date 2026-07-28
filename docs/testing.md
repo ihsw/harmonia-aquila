@@ -48,7 +48,8 @@ Build and start the local web server against the live example directories:
 
 ```sh
 npm run build
-npm run web:serve -- --source-dir etc/1-source-files --dest-dir etc/2-destination-files --host 127.0.0.1 --port 3000
+WEB_SCRATCH_DIR="$(mktemp -d)"
+npm run web:serve -- --source-dir etc/1-source-files --dest-dir etc/2-destination-files --scratch-dir "$WEB_SCRATCH_DIR" --host 127.0.0.1 --port 3000
 ```
 
 In another shell, run the Bruno collection from its collection root:
@@ -57,6 +58,9 @@ In another shell, run the Bruno collection from its collection root:
 cd collections/harmonia-aquila-web
 ../../node_modules/.bin/bru run . -r --env local --bail
 ```
+
+After stopping the server, remove the still-empty scratch directory with
+`rmdir "$WEB_SCRATCH_DIR"`.
 
 The collection includes both the REST web routes and the scoped `/mcp` endpoint
 for the current manage-albums and manage-audiobooks tool surface.

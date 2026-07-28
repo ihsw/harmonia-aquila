@@ -61,6 +61,7 @@ describe('web controllers', () => {
   beforeEach(async () => {
     roots = await normalizeWebRoots({
       destDir: await createTempDir('web-controller-dest-'),
+      scratchDir: await createTempDir('web-controller-scratch-'),
       sourceDir: await createTempDir('web-controller-source-'),
     })
     const pathResolver = new WebPathResolver(roots)
@@ -81,6 +82,7 @@ describe('web controllers', () => {
 
   afterEach(async () => {
     await removeTempDir(roots.destDir)
+    await removeTempDir(roots.scratchDir)
     await removeTempDir(roots.sourceDir)
   })
 
@@ -153,7 +155,23 @@ describe('web controllers', () => {
     await albumController.organizeFiles({})
 
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
-      destDir: roots.destDir,
+      destDir: roots.sourceDir,
+      sourceDir: roots.sourceDir,
+    })
+  })
+
+  it('selects the organize destination from useScratchDir', async () => {
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+
+    await albumController.organizeFiles({ useScratchDir: false })
+    await albumController.organizeFiles({ useScratchDir: true })
+
+    expect(organizeAlbumFiles).toHaveBeenNthCalledWith(1, {
+      destDir: roots.sourceDir,
+      sourceDir: roots.sourceDir,
+    })
+    expect(organizeAlbumFiles).toHaveBeenNthCalledWith(2, {
+      destDir: roots.scratchDir,
       sourceDir: roots.sourceDir,
     })
   })
@@ -179,7 +197,7 @@ describe('web controllers', () => {
 
     expect(fixAlbumTags).toHaveBeenCalledWith({
       albumStrategy: 'grouping',
-      destDir: roots.destDir,
+      destDir: roots.scratchDir,
       sourceDir: roots.sourceDir,
     })
   })
@@ -202,6 +220,7 @@ describe('web controllers', () => {
       ignoreNonAudioFiles: 'maybe',
     })).rejects.toBeInstanceOf(BadRequestException)
     await expect(albumController.organizeFiles({ execute: 'maybe' })).rejects.toBeInstanceOf(BadRequestException)
+    await expect(albumController.organizeFiles({ useScratchDir: 'maybe' })).rejects.toBeInstanceOf(BadRequestException)
     await expect(albumController.validate({
       dirName: 'music',
       ignoreNonAudioFiles: 'maybe',

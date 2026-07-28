@@ -75,12 +75,12 @@ export class ManageAlbumsController {
   public async fixTags(@Body() rawBody: unknown): Promise<unknown> {
     try {
       const options = parseRequest(fixTagsBodySchema, rawBody, {
-        destDir: 'destDir is configured by web serve --dest-dir',
+        destDir: 'destDir is configured by web serve --scratch-dir',
         sourceDir: 'sourceDir is configured by web serve --source-dir',
       })
 
       return await fixAlbumTags({
-        destDir: this.pathResolver.destDir,
+        destDir: this.pathResolver.scratchDir,
         sourceDir: this.pathResolver.sourceDir,
         ...optionalEntry('albumArtistsStrategy', options.albumArtistsStrategy),
         ...optionalEntry('albumStrategy', options.albumStrategy),
@@ -105,12 +105,14 @@ export class ManageAlbumsController {
   public async organizeFiles(@Body() rawBody: unknown): Promise<unknown> {
     try {
       const options = parseRequest(organizeFilesBodySchema, rawBody, {
-        destDir: 'destDir is configured by web serve --dest-dir',
+        destDir: 'web serve --dest-dir is reserved for audiobooks; useScratchDir selects album output',
         sourceDir: 'sourceDir is configured by web serve --source-dir',
       })
 
       return await organizeAlbumFiles({
-        destDir: this.pathResolver.destDir,
+        destDir: options.useScratchDir === true
+          ? this.pathResolver.scratchDir
+          : this.pathResolver.sourceDir,
         sourceDir: this.pathResolver.sourceDir,
         ...optionalEntry('artistFilenameStrategy', options.artistFilenameStrategy),
         ...optionalEntry('execute', options.execute),

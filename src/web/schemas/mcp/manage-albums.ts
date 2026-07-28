@@ -47,4 +47,5 @@ export const manageAlbumsOrganizeFilesInputSchema = {
   ignoreNonAudioFiles: z.boolean().optional(),
   limit: z.number().int().nonnegative().optional(),
   titleFilenameStrategy: z.string().optional(),
+  useScratchDir: z.boolean().optional(),
 }

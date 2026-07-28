@@ -117,6 +117,7 @@ describe('web MCP manage-albums tools', () => {
       execute: true,
       ignoreNonAudioFiles: true,
       limit: 4,
+      useScratchDir: true,
     })
 
     expect(summarizeAlbumSourceDir).toHaveBeenCalledWith({
@@ -125,7 +126,7 @@ describe('web MCP manage-albums tools', () => {
       limit: '2',
     })
     expect(fixAlbumTags).toHaveBeenCalledWith({
-      destDir: currentTestApp.destDir,
+      destDir: currentTestApp.scratchDir,
       execute: true,
       limit: '3',
       setArtist: 'Artist',
@@ -140,7 +141,7 @@ describe('web MCP manage-albums tools', () => {
       titleFilenameStrategy: 'subtitle',
     })
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
-      destDir: currentTestApp.destDir,
+      destDir: currentTestApp.scratchDir,
       execute: true,
       ignoreNonAudioFiles: true,
       limit: '4',
@@ -152,17 +153,43 @@ describe('web MCP manage-albums tools', () => {
     expect(JSON.parse(getToolText(organizeResponse))).toEqual([{ action: 'organize' }])
   })
 
+  it('defaults organize output to source and accepts explicit false', async () => {
+    const currentTestApp = requireTestApp()
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+
+    await callTool(14, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, { albumDir: 'music/' })
+    await callTool(15, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
+      albumDir: 'music/',
+      useScratchDir: false,
+    })
+
+    expect(organizeAlbumFiles).toHaveBeenNthCalledWith(1, {
+      destDir: currentTestApp.sourceDir,
+      sourceDir: `${currentTestApp.sourceDir}/music`,
+    })
+    expect(organizeAlbumFiles).toHaveBeenNthCalledWith(2, {
+      destDir: currentTestApp.sourceDir,
+      sourceDir: `${currentTestApp.sourceDir}/music`,
+    })
+  })
+
   it('rejects traversal and invalid input before invoking the domain operation', async () => {
     const traversalResponse = await callTool(4, MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME, { dirName: '..' })
     const invalidResponse = await callTool(5, MANAGE_ALBUMS_FIX_TAGS_TOOL_NAME, { limit: -1 })
     const validateInvalidResponse = await callTool(6, MANAGE_ALBUMS_VALIDATE_TOOL_NAME, { limit: -1 })
+    const organizeInvalidResponse = await callTool(16, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
+      albumDir: 'music/',
+      useScratchDir: 'yes',
+    })
 
     expect(getToolText(traversalResponse)).toContain('--source-dir')
     expect(getToolText(invalidResponse)).toContain('Invalid arguments')
     expect(getToolText(validateInvalidResponse)).toContain('Invalid arguments')
+    expect(getToolText(organizeInvalidResponse)).toContain('Invalid arguments')
     expect(summarizeAlbumSourceDir).not.toHaveBeenCalled()
     expect(validateAlbumSourceDir).not.toHaveBeenCalled()
     expect(fixAlbumTags).not.toHaveBeenCalled()
+    expect(organizeAlbumFiles).not.toHaveBeenCalled()
   })
 
   it('requires a slash-terminated album directory for organize files', async () => {

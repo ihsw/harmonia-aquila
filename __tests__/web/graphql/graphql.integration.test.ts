@@ -19,12 +19,14 @@ describe('web GraphQL endpoint', () => {
   let app: INestApplication | undefined
   let baseUrl: string
   let destDir: string
+  let scratchDir: string
   let sourceDir: string
 
   beforeEach(async () => {
     destDir = await createTempDir('graphql-dest-')
+    scratchDir = await createTempDir('graphql-scratch-')
     sourceDir = await createTempDir('graphql-source-')
-    app = await createWebApp({ destDir, sourceDir })
+    app = await createWebApp({ destDir, scratchDir, sourceDir })
     await app.listen(0, '127.0.0.1')
     const address = (app.getHttpServer() as Server).address()
 
@@ -39,6 +41,7 @@ describe('web GraphQL endpoint', () => {
     await app?.close()
     app = undefined
     await removeTempDir(destDir)
+    await removeTempDir(scratchDir)
     await removeTempDir(sourceDir)
   })
 
@@ -82,6 +85,10 @@ describe('web GraphQL endpoint', () => {
 
   it('keeps mutations dry-run by default and translates resolver errors safely', async () => {
     const dryRun = await postGraphql('mutation { albumFixTags(input: {}) { album } }')
+    const organizeDefault = await postGraphql('mutation { albumOrganizeFiles(input: { limit: "0" }) { filename } }')
+    const organizeScratch = await postGraphql(`mutation {
+      albumOrganizeFiles(input: { limit: "0", useScratchDir: true }) { filename }
+    }`)
     const organizeInvalidStrategy = await postGraphql(`mutation {
       albumOrganizeFiles(input: { artistFilenameStrategy: "invalid" }) { filename }
     }`)
@@ -90,6 +97,8 @@ describe('web GraphQL endpoint', () => {
     const internalError = await postGraphql('{ audiobookValidate(input: { fileName: "missing.m4b" }) { filename } }')
 
     expect(dryRun).toEqual({ data: { albumFixTags: [] } })
+    expect(organizeDefault).toEqual({ data: { albumOrganizeFiles: [] } })
+    expect(organizeScratch).toEqual({ data: { albumOrganizeFiles: [] } })
     expect(organizeInvalidStrategy.errors?.[0]).toMatchObject({
       extensions: { code: 'BAD_USER_INPUT' },
     })

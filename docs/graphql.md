@@ -3,8 +3,8 @@
 `web serve` exposes a code-first Apollo GraphQL API at `POST /graphql`. The
 schema is available in `src/web/modules/graphql/schema.gql`.
 
-All inputs use paths relative to the source or destination root configured when
-starting `web serve`; clients cannot override those roots.
+All inputs use paths relative to the source, destination, or scratch root
+configured when starting `web serve`; clients cannot override those roots.
 
 ## Operations
 
@@ -52,6 +52,11 @@ mutation {
   }
 }
 ```
+
+`albumFixTags` always plans or writes its output under the configured
+`--scratch-dir`. `albumOrganizeFiles` defaults its output root to the configured
+`--source-dir`; set `useScratchDir: true` to select `--scratch-dir` instead.
+Neither mutation accepts a client-supplied root path.
 
 `albumOrganizeFiles` rejects a plan when the same normalized album directory
 would be created for more than one normalized artist directory. This safeguard
