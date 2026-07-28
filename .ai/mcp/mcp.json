@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "harmonia-aquila": {
+      "url": "http://localhost:3000/mcp"
+    }
+  }
+}
