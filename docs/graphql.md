@@ -62,15 +62,17 @@ mutation {
 `--source-dir`; set `useScratchDir: true` to select `--scratch-dir` instead.
 Neither mutation accepts a client-supplied root path.
 
-`albumOrganizeFiles` rejects a plan when the same normalized album directory
-would be created for more than one normalized artist directory. This safeguard
-applies to dry runs and `execute: true`, cannot be bypassed, and is returned as
-`BAD_USER_INPUT` before any destination files are created.
+`albumOrganizeFiles` accepts one normalized album directory per request. More
+than one album returns `BAD_USER_INPUT` with a message beginning
+`Multiple albums found:`. The operation also rejects one album directory
+associated with multiple artist directories. These safeguards apply to dry
+runs and `execute: true`, cannot be bypassed, and run before destination
+inspection or writes.
 
-`albumValidateSourceDir` applies the same safeguard before returning validation
-rows. A normalized album directory associated with multiple normalized artist
-directories is returned as `BAD_USER_INPUT`; missing metadata and exact
-duplicate file destinations continue to appear as invalid rows.
+`albumValidateSourceDir` applies the same one-album and artist safeguards before
+returning validation rows. Multiple albums or artists are returned as
+`BAD_USER_INPUT`; missing metadata and exact duplicate file destinations
+continue to appear as invalid rows.
 
 GraphQL errors with `extensions.code` equal to `BAD_USER_INPUT` identify
 invalid inputs or paths outside configured roots. Unexpected failures return

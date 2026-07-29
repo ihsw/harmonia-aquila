@@ -118,23 +118,21 @@ describe('AlbumResolver', () => {
     })
   })
 
-  it('preserves organize-files multi-artist conflicts for GraphQL error filtering', async () => {
-    vi.mocked(organizeAlbumFiles).mockRejectedValue(new UserInputError(
-      'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
-    ))
+  it.each([
+    'Multiple albums found: Album A, Album B',
+    'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+  ])('preserves organize-files conflicts for GraphQL error filtering: %s', async (message) => {
+    vi.mocked(organizeAlbumFiles).mockRejectedValue(new UserInputError(message))
 
-    await expect(resolver.albumOrganizeFiles({})).rejects.toThrow(
-      'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
-    )
+    await expect(resolver.albumOrganizeFiles({})).rejects.toThrow(message)
   })
 
-  it('preserves validation multi-artist conflicts for GraphQL error filtering', async () => {
-    vi.mocked(validateAlbumSourceDir).mockRejectedValue(new UserInputError(
-      'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
-    ))
+  it.each([
+    'Multiple albums found: Album A, Album B',
+    'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+  ])('preserves validation conflicts for GraphQL error filtering: %s', async (message) => {
+    vi.mocked(validateAlbumSourceDir).mockRejectedValue(new UserInputError(message))
 
-    await expect(resolver.albumValidateSourceDir({ dirName: 'albums' })).rejects.toThrow(
-      'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
-    )
+    await expect(resolver.albumValidateSourceDir({ dirName: 'albums' })).rejects.toThrow(message)
   })
 })

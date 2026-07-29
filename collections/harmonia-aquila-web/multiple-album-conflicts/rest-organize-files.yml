@@ -1,0 +1,38 @@
+info:
+  name: rest-organize-files
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/manage-albums/organize-files"
+  body:
+    type: json
+    data: "{}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns the multiple-album HTTP 400 contract", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(400);
+          expect(json).to.include({
+            error: "Bad Request",
+            statusCode: 400
+          });
+          expect(json.message).to.match(/^Multiple albums found:/);
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

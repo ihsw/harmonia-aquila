@@ -99,8 +99,7 @@ describe('web GraphQL endpoint', () => {
   })
 
   it('keeps mutations dry-run by default and translates resolver errors safely', async () => {
-    const validationConflictMessage
-      = 'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)'
+    const validationConflictMessage = 'Multiple albums found: Album A, Album B'
     vi.mocked(validateAlbumSourceDir).mockRejectedValueOnce(new UserInputError(validationConflictMessage))
 
     const dryRun = await postGraphql('mutation { albumFixTags(input: {}) { album } }')

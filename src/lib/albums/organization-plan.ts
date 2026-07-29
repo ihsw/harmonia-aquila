@@ -10,6 +10,18 @@ export interface AlbumOutputIdentity {
   artistDirectory: string
 }
 
+export function assertSingleAlbumDirectory(identities: Iterable<AlbumOutputIdentity>): void {
+  const albumDirectories = new Set<string>()
+
+  for (const identity of identities) {
+    albumDirectories.add(identity.albumDirectory)
+  }
+
+  if (albumDirectories.size > 1) {
+    throw new UserInputError(`Multiple albums found: ${[...albumDirectories].sort().join(', ')}`)
+  }
+}
+
 export function assertSingleArtistPerAlbumDirectory(identities: Iterable<AlbumOutputIdentity>): void {
   const artistsByAlbumDirectory = new Map<string, Set<string>>()
 

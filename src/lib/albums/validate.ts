@@ -5,6 +5,7 @@ import pLimit from 'p-limit'
 import { getAudioFiles, parseLimit } from './audio-files.js'
 import {
   type ArtistFilenameStrategy,
+  assertSingleAlbumDirectory,
   assertSingleArtistPerAlbumDirectory,
   formatTrackNumber,
   getAlbumDestination,
@@ -127,12 +128,14 @@ export async function validateAlbumSourceDir(options: ValidateAlbumSourceDirOpti
   )
 
   addDuplicateDestinationIssues(rows)
-  assertSingleArtistPerAlbumDirectory(rows
+  const outputIdentities = rows
     .filter(row => row.destination !== '')
     .map(row => ({
       albumDirectory: sanitizePathSegment(row.album),
       artistDirectory: sanitizePathSegment(row.artistFilename),
-    })))
+    }))
 
+  assertSingleAlbumDirectory(outputIdentities)
+  assertSingleArtistPerAlbumDirectory(outputIdentities)
   return rows
 }

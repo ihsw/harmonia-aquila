@@ -66,8 +66,10 @@ describe('web MCP manage-albums validate tool', () => {
     expect(validateAlbumSourceDir).not.toHaveBeenCalled()
   })
 
-  it('returns validation conflicts as tool error content', async () => {
-    const message = 'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)'
+  it.each([
+    'Multiple albums found: Album A, Album B',
+    'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+  ])('returns validation conflicts as tool error content: %s', async (message) => {
     vi.mocked(validateAlbumSourceDir).mockRejectedValue(new UserInputError(message))
 
     const response = await callTool(7, { dirName: 'music' })

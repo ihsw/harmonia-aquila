@@ -1,40 +1,38 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { validateAlbumSourceDir } from '../../src/lib/albums/validate.js'
+import { organizeAlbumFiles } from '../../src/lib/albums/organize-files.js'
 import { UserInputError } from '../../src/lib/errors.js'
 import { ManageAlbumsController } from '../../src/web/controllers/manage-albums.controller.js'
 import { WebPathResolver } from '../../src/web/providers/path-resolver.js'
 import { createTempDir, removeTempDir } from '../test-helpers.js'
 
-vi.mock('../../src/lib/albums/validate.js', () => ({
-  validateAlbumSourceDir: vi.fn(),
+vi.mock('../../src/lib/albums/organize-files.js', () => ({
+  organizeAlbumFiles: vi.fn(),
 }))
 
-describe('manage-albums validation controller errors', () => {
+describe('manage-albums organization controller errors', () => {
   let controller: ManageAlbumsController
   let sourceDir: string
 
   beforeEach(async () => {
-    sourceDir = await createTempDir('web-validation-source-')
+    sourceDir = await createTempDir('web-organization-source-')
     controller = new ManageAlbumsController(new WebPathResolver({
       destDir: sourceDir,
       scratchDir: sourceDir,
       sourceDir,
     }))
-    vi.mocked(validateAlbumSourceDir).mockReset()
+    vi.mocked(organizeAlbumFiles).mockReset()
   })
 
   afterEach(async () => {
     await removeTempDir(sourceDir)
   })
 
-  it.each([
-    'Multiple albums found: Album A, Album B',
-    'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
-  ])('maps album conflicts to the existing HTTP 400 body: %s', async (message) => {
-    vi.mocked(validateAlbumSourceDir).mockRejectedValue(new UserInputError(message))
+  it('maps multiple albums to the existing HTTP 400 body', async () => {
+    const message = 'Multiple albums found: Album A, Album B'
+    vi.mocked(organizeAlbumFiles).mockRejectedValue(new UserInputError(message))
 
-    await expect(controller.validate({ dirName: 'music' })).rejects.toMatchObject({
+    await expect(controller.organizeFiles({})).rejects.toMatchObject({
       response: {
         error: 'Bad Request',
         message,

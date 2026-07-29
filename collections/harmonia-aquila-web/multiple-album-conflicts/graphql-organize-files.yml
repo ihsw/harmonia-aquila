@@ -1,0 +1,39 @@
+info:
+  name: graphql-organize-files
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseUrl}}/graphql"
+  body:
+    type: json
+    data: |-
+      {
+        "query": "mutation { albumOrganizeFiles(input: {}) { filename } }"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns the multiple-album BAD_USER_INPUT contract", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+          const error = json.errors[0];
+
+          expect(res.getStatus()).to.eql(200);
+          expect(error.extensions).to.have.property("code", "BAD_USER_INPUT");
+          expect(error.message).to.match(/^Multiple albums found:/);
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

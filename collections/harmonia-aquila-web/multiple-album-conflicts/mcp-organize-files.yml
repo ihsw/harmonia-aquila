@@ -1,0 +1,51 @@
+info:
+  name: mcp-organize-files
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{baseUrl}}/mcp"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 202,
+        "method": "tools/call",
+        "params": {
+          "name": "manage_albums_organize_files",
+          "arguments": {
+            "albumDir": "./"
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Accept", "application/json, text/event-stream");
+        req.setHeader("MCP-Protocol-Version", bru.getEnvVar("mcpProtocolVersion"));
+    - type: tests
+      code: |-
+        test("returns the multiple-album MCP tool error contract", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(200);
+          expect(json).to.have.property("id", 202);
+          expect(json.result).to.have.property("isError", true);
+          expect(json.result.content[0].text).to.match(/^Multiple albums found:/);
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

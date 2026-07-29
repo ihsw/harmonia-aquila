@@ -13,7 +13,7 @@ export type { ValidateAlbumSourceDirJsonOutput, ValidateAlbumSourceDirJsonOutput
 export function registerValidateAlbumSourceDirCommand(program: Command): void {
   const validateCommand = program
     .command('validate')
-    .description('Validate FLAC and MP3 metadata needed to organize an album source directory')
+    .description('Validate one album per run of FLAC and MP3 metadata; fail for multiple albums or artists')
     .requiredOption('--dir-name <dirName>', 'directory to validate')
     .option('--limit <count>', 'maximum number of files to validate')
     .option('--artist-filename-strategy <strategy>', 'metadata field to use for the artist portion of the filename: artist, albumartist, label, producer', 'artist')

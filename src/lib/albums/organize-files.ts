@@ -9,6 +9,7 @@ import { UserInputError } from '../errors.js'
 import { getAudioFiles, parseLimit } from './audio-files.js'
 import {
   type ArtistFilenameStrategy,
+  assertSingleAlbumDirectory,
   assertSingleArtistPerAlbumDirectory,
   formatTrackNumber,
   getAlbumDestination,
@@ -138,6 +139,7 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
       .join('; ')}`)
   }
 
+  assertSingleAlbumDirectory(plannedCopies)
   assertSingleArtistPerAlbumDirectory(plannedCopies)
 
   const albumDestinationPaths = [...new Set(plannedCopies.map(plannedCopy => dirname(plannedCopy.destinationPath)))]

@@ -102,8 +102,10 @@ describe('web MCP manage-albums summarize and organize tools', () => {
     expect(organizeAlbumFiles).not.toHaveBeenCalled()
   })
 
-  it('returns organization conflicts as tool error content', async () => {
-    const message = 'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)'
+  it.each([
+    'Multiple albums found: Album A, Album B',
+    'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+  ])('returns organization conflicts as tool error content: %s', async (message) => {
     vi.mocked(organizeAlbumFiles).mockRejectedValue(new UserInputError(message))
 
     const organizeResponse = await callTool(12, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, { albumDir: 'music/' })

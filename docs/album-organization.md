@@ -20,16 +20,19 @@ npm run build
 
 Do not run `fix-tags` during this suitable-candidate pass, and do not use overwrite behavior or manual merges for duplicate destination album folders.
 
-`organize-files` also fails before copying when one plan would create the same
-normalized album directory name for multiple normalized artist directories.
-Treat that result as a metadata or source-selection issue; it has no bypass
-and must not be worked around with manual destination merges.
+`organize-files` accepts one normalized album directory per run. It fails with
+`Multiple albums found:` when the selected files resolve to multiple albums,
+and it still fails when one normalized album directory resolves for multiple
+normalized artist directories. Album conflicts are checked after missing
+metadata and exact duplicate destinations, but before artist conflicts,
+destination inspection, or copying. Treat either result as a metadata or
+source-selection issue: there is no bypass, split, or automatic selection.
 
 Run `manage-albums validate` before organization. Validation applies the same
-normalized album-to-artist collision rule and fails with the same message, so
-a successful validation cannot hide a layout conflict that `organize-files`
-would reject. Missing metadata and exact duplicate file destinations remain
-reported as invalid validation rows.
+one-album-per-run and album-to-artist collision rules, so successful validation
+cannot hide a layout conflict that `organize-files` would reject. Rows without
+a computable destination and exact duplicate file destinations remain reported
+as invalid validation rows instead of contributing album identities.
 
 ## Reconciled suitable-candidate processing spec
 

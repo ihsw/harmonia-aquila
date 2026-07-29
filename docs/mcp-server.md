@@ -50,10 +50,13 @@ directory within the configured scratch root. Omitted or `false` retains
 source-root behavior. Traversal outside the selected root is rejected before
 metadata validation, and the tool never accepts a client-supplied root.
 
-Validation and organization both reject a plan that would create the same
-normalized album directory for multiple normalized artist directories.
-`manage_albums_validate` reports the conflict as tool-error content instead of
-returning rows; organization reports it before writing destination files.
+Validation and organization both accept one normalized album directory per
+tool call. Multiple albums produce tool-error content beginning
+`Multiple albums found:`; one album associated with multiple normalized artist
+directories remains an error. There is no bypass. `manage_albums_validate`
+remains read-only and returns no rows for either conflict.
+`manage_albums_organize_files` remains a dry run unless `execute: true` is
+explicit and checks both conflicts before destination inspection or writes.
 
 ### Web server logging
 

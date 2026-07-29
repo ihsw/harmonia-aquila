@@ -72,6 +72,42 @@ rmdir "$WEB_SCRATCH_DIR"
 The collection includes both the REST web routes and the scoped `/mcp` endpoint
 for the current manage-albums and manage-audiobooks tool surface.
 
+### Multiple-album conflict smoke test
+
+The dedicated six-request group requires a temporary flat source containing
+two tracks with distinct album tags. Build it from read-only sample tracks;
+never edit those source files or anything under `etc/**`:
+
+```sh
+MULTI_ALBUM_ROOT="$(mktemp -d)"
+mkdir "$MULTI_ALBUM_ROOT/source" "$MULTI_ALBUM_ROOT/scratch" "$MULTI_ALBUM_ROOT/destination"
+cp "etc/albums/1-source-files/Across The Universe Soundtrack/1-01 Girl.mp3" "$MULTI_ALBUM_ROOT/source/across.mp3"
+cp "etc/albums/1-source-files/Requiem For A Dream - OST/01.Summer - Summer Overture.mp3" "$MULTI_ALBUM_ROOT/source/requiem.mp3"
+npm run build
+npm run web:serve -- --source-dir "$MULTI_ALBUM_ROOT/source" --scratch-dir "$MULTI_ALBUM_ROOT/scratch" --dest-dir "$MULTI_ALBUM_ROOT/destination" --host 127.0.0.1 --port 3000 >"$MULTI_ALBUM_ROOT/web.log" 2>&1 &
+MULTI_ALBUM_SERVER_PID=$!
+```
+
+Run only the conflict group. Its organization requests are dry runs and never
+set `execute`:
+
+```sh
+cd collections/harmonia-aquila-web
+../../node_modules/.bin/bru run multiple-album-conflicts -r --env local --bail
+cd ../..
+```
+
+Stop only the captured process and remove only the known temporary files and
+directories:
+
+```sh
+kill "$MULTI_ALBUM_SERVER_PID"
+wait "$MULTI_ALBUM_SERVER_PID" || true
+rm "$MULTI_ALBUM_ROOT/source/across.mp3" "$MULTI_ALBUM_ROOT/source/requiem.mp3" "$MULTI_ALBUM_ROOT/web.log"
+rmdir "$MULTI_ALBUM_ROOT/source" "$MULTI_ALBUM_ROOT/scratch" "$MULTI_ALBUM_ROOT/destination"
+rmdir "$MULTI_ALBUM_ROOT"
+```
+
 ## Hermetic Rules
 
 The test suite is fully hermetic:
