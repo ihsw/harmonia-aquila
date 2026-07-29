@@ -34,6 +34,7 @@ __tests__/web/graphql/album.resolver.test.ts
 __tests__/web/graphql/graphql.integration.test.ts
 __tests__/web/mcp.manage-albums.test.ts
 collections/harmonia-aquila-web/environments/local.yml
+collections/harmonia-aquila-web/mcp/tools-list.yml
 docs/graphql.md
 docs/mcp-server.md
 docs/testing.md

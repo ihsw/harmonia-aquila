@@ -1,5 +1,7 @@
 import type { INestApplication } from '@nestjs/common'
+import { mkdir } from 'node:fs/promises'
 import type { Server } from 'node:http'
+import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { createWebApp } from '../../../src/web/main.js'
@@ -26,6 +28,7 @@ describe('web GraphQL endpoint', () => {
     destDir = await createTempDir('graphql-dest-')
     scratchDir = await createTempDir('graphql-scratch-')
     sourceDir = await createTempDir('graphql-source-')
+    await mkdir(path.join(scratchDir, 'scratch-only'))
     app = await createWebApp({ destDir, scratchDir, sourceDir })
     await app.listen(0, '127.0.0.1')
     const address = (app.getHttpServer() as Server).address()
@@ -53,7 +56,9 @@ describe('web GraphQL endpoint', () => {
       }
     }`)
     const result = await postGraphql(`{
-      albumList(input: {})
+      albumListDefault: albumList(input: {})
+      albumListSource: albumList(input: { useScratchDir: false })
+      albumListScratch: albumList(input: { useScratchDir: true })
       albumSummarizeSourceDir(input: { dirName: "." }) { filename }
       audiobookCrawl(input: { dirName: "." }) { filename }
     }`)
@@ -76,7 +81,9 @@ describe('web GraphQL endpoint', () => {
     ]))
     expect(result).toEqual({
       data: {
-        albumList: [],
+        albumListDefault: [],
+        albumListScratch: ['scratch-only/'],
+        albumListSource: [],
         albumSummarizeSourceDir: [],
         audiobookCrawl: [],
       },
@@ -94,6 +101,7 @@ describe('web GraphQL endpoint', () => {
     }`)
     const userInputError = await postGraphql('{ audiobookValidate(input: { fileName: "../escape.m4b" }) { filename } }')
     const listTraversal = await postGraphql('{ albumList(input: { prefix: "../" }) }')
+    const listInvalidSelector = await postGraphql('{ albumList(input: { useScratchDir: "yes" }) }', 400)
     const internalError = await postGraphql('{ audiobookValidate(input: { fileName: "missing.m4b" }) { filename } }')
 
     expect(dryRun).toEqual({ data: { albumFixTags: [] } })
@@ -109,20 +117,23 @@ describe('web GraphQL endpoint', () => {
     expect(listTraversal.errors?.[0]).toMatchObject({
       extensions: { code: 'BAD_USER_INPUT' },
     })
+    expect(listInvalidSelector.errors?.[0]).toMatchObject({
+      extensions: { code: 'GRAPHQL_VALIDATION_FAILED' },
+    })
     expect(internalError.errors?.[0]).toMatchObject({
       extensions: { code: 'INTERNAL_SERVER_ERROR' },
       message: 'Internal server error',
     })
   })
 
-  async function postGraphql(query: string): Promise<GraphqlResponse> {
+  async function postGraphql(query: string, expectedStatus = 200): Promise<GraphqlResponse> {
     const response = await fetch(`${baseUrl}/graphql`, {
       body: JSON.stringify({ query }),
       headers: { 'content-type': 'application/json' },
       method: 'POST',
     })
 
-    expect(response.status).toBe(200)
+    expect(response.status).toBe(expectedStatus)
 
     return response.json() as Promise<GraphqlResponse>
   }

@@ -5,6 +5,9 @@ import { Field, InputType } from '@nestjs/graphql'
 export class AlbumListInput {
   @Field(() => String, { nullable: true })
   public prefix?: string
+
+  @Field(() => Boolean, { nullable: true })
+  public useScratchDir?: boolean
 }
 
 @InputType()

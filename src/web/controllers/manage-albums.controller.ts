@@ -28,7 +28,9 @@ export class ManageAlbumsController {
       const options = parseRequest(listAlbumQuerySchema, query)
 
       return await listAlbumSourceDir({
-        sourceDir: this.pathResolver.sourceDir,
+        sourceDir: options.useScratchDir === true
+          ? this.pathResolver.scratchDir
+          : this.pathResolver.sourceDir,
         ...optionalEntry('prefix', options.prefix),
       })
     }

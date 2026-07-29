@@ -28,8 +28,10 @@ The web endpoint resolves all source paths inside the configured `--source-dir`,
 all audiobook destination paths inside `--dest-dir`, and album scratch output
 inside `--scratch-dir`; tool schemas do not expose root override inputs.
 
-`manage_albums_list` is read-only. Its optional `prefix` selects the configured
-source root when empty, or a slash-terminated source-root-relative directory.
+`manage_albums_list` is read-only. It lists the configured source root by
+default; pass `useScratchDir: true` to list the configured scratch root. Its
+optional `prefix` selects the chosen root when empty, or a slash-terminated
+chosen-root-relative directory. The tool never accepts a client-supplied root.
 `manage_albums_organize_files` requires `albumDir`, a slash-terminated folder
 path returned by that list operation, and resolves it within the configured
 source root. Its output defaults to the configured source root; pass

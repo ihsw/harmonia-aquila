@@ -32,13 +32,17 @@ query {
 ```
 
 List direct entries at the configured source root, or provide a slash-terminated
-source-root-relative `prefix` to list one subdirectory:
+selected-root-relative `prefix` to list one subdirectory. Omitted or false
+`useScratchDir` selects `--source-dir`; true selects `--scratch-dir`:
 
 ```graphql
 query {
   albumList(input: { prefix: "" })
+  stagedAlbums: albumList(input: { prefix: "", useScratchDir: true })
 }
 ```
+
+`albumList` never accepts a client-supplied root path.
 
 Mutations are dry runs unless `execute: true` is explicit. This mutation
 returns the proposed tag changes without writing files:

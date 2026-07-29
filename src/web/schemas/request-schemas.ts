@@ -103,6 +103,7 @@ export const summarizeSourceDirQuerySchema = z.object({
 
 export const listAlbumQuerySchema = z.object({
   prefix: optionalString('prefix'),
+  useScratchDir: optionalQueryBoolean(),
 })
 
 export const validateAlbumQuerySchema = z.object({

@@ -8,7 +8,9 @@ export function createManageAlbumsListTool(context: WebMcpToolContext): WebMcpTo
   return defineWebMcpTool({
     handler: async (input) => {
       const paths = await listAlbumSourceDir({
-        sourceDir: context.pathResolver.sourceDir,
+        sourceDir: input.useScratchDir === true
+          ? context.pathResolver.scratchDir
+          : context.pathResolver.sourceDir,
         ...optionalEntry('prefix', input.prefix),
       })
       return jsonToolContent(paths)
@@ -16,9 +18,9 @@ export function createManageAlbumsListTool(context: WebMcpToolContext): WebMcpTo
     name: MANAGE_ALBUMS_LIST_TOOL_NAME,
     options: {
       annotations: { readOnlyHint: true },
-      description: 'List immediate entries under the configured source directory.',
+      description: 'List immediate entries under the configured source or scratch directory.',
       inputSchema: manageAlbumsListInputSchema,
-      title: 'Manage albums list source directory',
+      title: 'Manage albums list source or scratch directory',
     },
   })
 }

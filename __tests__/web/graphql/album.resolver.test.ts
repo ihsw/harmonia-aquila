@@ -41,16 +41,19 @@ describe('AlbumResolver', () => {
     await removeTempDir(roots.sourceDir)
   })
 
-  it('maps albumList input through configured source root', async () => {
+  it('selects the album list root from useScratchDir and preserves prefix', async () => {
     vi.mocked(listAlbumSourceDir).mockResolvedValue(['a.flac', 'sub/'])
 
-    const noPrefix = await resolver.albumList({})
-
-    await resolver.albumList({ prefix: 'sub/' })
+    const defaultResult = await resolver.albumList({})
+    await resolver.albumList({ useScratchDir: false })
+    await resolver.albumList({ useScratchDir: true })
+    await resolver.albumList({ prefix: 'sub/', useScratchDir: true })
 
     expect(listAlbumSourceDir).toHaveBeenNthCalledWith(1, { sourceDir: roots.sourceDir })
-    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(2, { prefix: 'sub/', sourceDir: roots.sourceDir })
-    expect(noPrefix).toEqual(['a.flac', 'sub/'])
+    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(2, { sourceDir: roots.sourceDir })
+    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(3, { sourceDir: roots.scratchDir })
+    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(4, { prefix: 'sub/', sourceDir: roots.scratchDir })
+    expect(defaultResult).toEqual(['a.flac', 'sub/'])
   })
 
   it('maps read-only query inputs through the source root', async () => {

@@ -1,0 +1,50 @@
+info:
+  name: call-manage-albums-list
+  type: http
+  seq: 38
+
+http:
+  method: POST
+  url: "{{baseUrl}}/mcp"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 110,
+        "method": "tools/call",
+        "params": {
+          "name": "manage_albums_list",
+          "arguments": {}
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Accept", "application/json, text/event-stream");
+        req.setHeader("MCP-Protocol-Version", bru.getEnvVar("mcpProtocolVersion"));
+    - type: tests
+      code: |-
+        test("tool response content is a source list array", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+          const rows = JSON.parse(json.result.content[0].text);
+
+          expect(res.getStatus()).to.eql(200);
+          expect(json).to.have.property("id", 110);
+          expect(rows).to.be.an("array");
+          expect(rows).to.not.include(bru.getEnvVar("scratchAlbumEntry"));
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

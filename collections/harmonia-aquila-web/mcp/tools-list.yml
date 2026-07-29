@@ -37,6 +37,7 @@ runtime:
 
           expect(json).to.have.property("id", 101);
           expect(toolNames).to.eql([
+            "manage_albums_list",
             "manage_albums_summarize_source_dir",
             "manage_albums_validate",
             "manage_albums_fix_tags",

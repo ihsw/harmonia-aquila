@@ -3,21 +3,23 @@ variables:
   - name: baseUrl
     value: http://127.0.0.1:3000
   - name: summarizeDirName
-    value: .
+    value: albums/1-source-files/Across The Universe Soundtrack
   - name: albumListPrefix
     value: ''
   - name: albumListNestedPrefix
     value: albums/
+  - name: scratchAlbumEntry
+    value: scratch-only/
   - name: albumOrganizeDir
-    value: albums/1-source-files/lufia2 ost/
+    value: albums/1-source-files/Across The Universe Soundtrack/
   - name: ignoreNonAudioFiles
     value: 'true'
   - name: traversalDirName
     value: ..
   - name: sampleAlbumFileName
-    value: StarTropics/Y. Hirai - StarTropics OST - 01 - Opening.mp3
+    value: albums/1-source-files/Across The Universe Soundtrack/1-01 Girl.mp3
   - name: graphqlAlbumDirName
-    value: albums/1-source-files/lufia2 ost
+    value: albums/1-source-files/Across The Universe Soundtrack
   - name: graphqlAudiobookDirName
     value: audiobooks
   - name: graphqlAudiobookFileName

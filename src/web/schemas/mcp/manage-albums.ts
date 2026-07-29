@@ -8,6 +8,7 @@ export const MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME = 'manage_albums_organize_fi
 
 export const manageAlbumsListInputSchema = {
   prefix: z.string().optional(),
+  useScratchDir: z.boolean().optional(),
 }
 
 export const manageAlbumsSummarizeSourceDirInputSchema = {

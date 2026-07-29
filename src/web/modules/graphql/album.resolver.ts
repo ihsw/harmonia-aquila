@@ -37,7 +37,9 @@ export class AlbumResolver {
     @Args('input', { type: () => AlbumListInput }) input: AlbumListInput,
   ): Promise<ListAlbumSourceDirJsonOutput> {
     return listAlbumSourceDir({
-      sourceDir: this.pathResolver.sourceDir,
+      sourceDir: input.useScratchDir === true
+        ? this.pathResolver.scratchDir
+        : this.pathResolver.sourceDir,
       ...optionalEntry('prefix', input.prefix),
     })
   }

@@ -86,25 +86,31 @@ describe('web controllers', () => {
     await removeTempDir(roots.sourceDir)
   })
 
-  it('maps album GET list query to configured source root', async () => {
+  it('selects the album list root from useScratchDir', async () => {
     vi.mocked(listAlbumSourceDir).mockResolvedValue(['a.flac', 'sub/'])
 
-    const result = await albumController.list({})
+    const defaultResult = await albumController.list({})
+    await albumController.list({ useScratchDir: 'false' })
+    await albumController.list({ useScratchDir: 'true' })
 
-    expect(result).toEqual(['a.flac', 'sub/'])
-    expect(listAlbumSourceDir).toHaveBeenCalledWith({ sourceDir: roots.sourceDir })
+    expect(defaultResult).toEqual(['a.flac', 'sub/'])
+    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(1, { sourceDir: roots.sourceDir })
+    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(2, { sourceDir: roots.sourceDir })
+    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(3, { sourceDir: roots.scratchDir })
   })
 
-  it('passes optional prefix to list', async () => {
+  it('preserves the prefix when listing the scratch root', async () => {
     vi.mocked(listAlbumSourceDir).mockResolvedValue(['sub/track.flac'])
 
-    await albumController.list({ prefix: 'sub/' })
+    await albumController.list({ prefix: 'sub/', useScratchDir: 'true' })
 
-    expect(listAlbumSourceDir).toHaveBeenCalledWith({ prefix: 'sub/', sourceDir: roots.sourceDir })
+    expect(listAlbumSourceDir).toHaveBeenCalledWith({ prefix: 'sub/', sourceDir: roots.scratchDir })
   })
 
-  it('rejects non-string prefix before calling list', async () => {
+  it('rejects invalid list query values before calling list', async () => {
     await expect(albumController.list({ prefix: ['a', 'b'] })).rejects.toBeInstanceOf(BadRequestException)
+    await expect(albumController.list({ useScratchDir: 'maybe' })).rejects.toBeInstanceOf(BadRequestException)
+    await expect(albumController.list({ useScratchDir: ['true', 'false'] })).rejects.toBeInstanceOf(BadRequestException)
 
     expect(listAlbumSourceDir).not.toHaveBeenCalled()
   })
