@@ -34,6 +34,9 @@ runtime:
           const json = typeof body === "string" ? JSON.parse(body) : body;
           const tools = json.result.tools;
           const toolNames = tools.map((tool) => tool.name);
+          const validateTool = tools.find(
+            (tool) => tool.name === "manage_albums_validate"
+          );
 
           expect(json).to.have.property("id", 101);
           expect(toolNames).to.eql([
@@ -49,6 +52,16 @@ runtime:
             "manage_audiobooks_merge",
             "manage_audiobooks_set_metadata"
           ]);
+          expect(validateTool.annotations).to.have.property(
+            "readOnlyHint",
+            true
+          );
+          expect(
+            validateTool.inputSchema.properties.useScratchDir
+          ).to.have.property("type", "boolean");
+          expect(validateTool.inputSchema.required || []).to.not.include(
+            "useScratchDir"
+          );
         });
   assertions:
     - expression: res.status

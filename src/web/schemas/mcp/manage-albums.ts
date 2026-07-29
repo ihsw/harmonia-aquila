@@ -25,6 +25,7 @@ export const manageAlbumsValidateInputSchema = {
   ignoreNonAudioFiles: z.boolean().optional(),
   limit: z.number().int().nonnegative().optional(),
   titleFilenameStrategy: z.string().optional(),
+  useScratchDir: z.boolean().optional(),
 }
 
 export const manageAlbumsFixTagsInputSchema = {

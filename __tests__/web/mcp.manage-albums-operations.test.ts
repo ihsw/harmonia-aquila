@@ -2,12 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { organizeAlbumFiles } from '../../src/lib/albums/organize-files.js'
 import { summarizeAlbumSourceDir } from '../../src/lib/albums/summarize-source-dir.js'
-import { validateAlbumSourceDir } from '../../src/lib/albums/validate.js'
 import { UserInputError } from '../../src/lib/errors.js'
 import {
   MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME,
   MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME,
-  MANAGE_ALBUMS_VALIDATE_TOOL_NAME,
 } from '../../src/web/schemas/mcp/manage-albums.js'
 
 import { closeWebMcpTestApp, createWebMcpTestApp, getToolText, postMcp, type WebMcpTestApp } from './mcp-test-helpers.js'
@@ -18,18 +16,14 @@ vi.mock('../../src/lib/albums/organize-files.js', () => ({
 vi.mock('../../src/lib/albums/summarize-source-dir.js', () => ({
   summarizeAlbumSourceDir: vi.fn(),
 }))
-vi.mock('../../src/lib/albums/validate.js', () => ({
-  validateAlbumSourceDir: vi.fn(),
-}))
 
-describe('web MCP manage-albums read and organize tools', () => {
+describe('web MCP manage-albums summarize and organize tools', () => {
   let testApp: WebMcpTestApp | undefined
 
   beforeEach(async () => {
     testApp = await createWebMcpTestApp()
     vi.mocked(organizeAlbumFiles).mockReset()
     vi.mocked(summarizeAlbumSourceDir).mockReset()
-    vi.mocked(validateAlbumSourceDir).mockReset()
   })
 
   afterEach(async () => {
@@ -37,22 +31,15 @@ describe('web MCP manage-albums read and organize tools', () => {
     testApp = undefined
   })
 
-  it('maps summarize, validate, and organize options to configured roots', async () => {
+  it('maps summarize and organize options to configured roots', async () => {
     const currentTestApp = requireTestApp()
     vi.mocked(summarizeAlbumSourceDir).mockResolvedValue([{ filename: 'a.flac' } as never])
-    vi.mocked(validateAlbumSourceDir).mockResolvedValue([{ status: 'valid' } as never])
     vi.mocked(organizeAlbumFiles).mockResolvedValue([{ action: 'organize' } as never])
 
     await callTool(1, MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME, {
       dirName: 'music',
       ignoreNonAudioFiles: true,
       limit: 2,
-    })
-    await callTool(2, MANAGE_ALBUMS_VALIDATE_TOOL_NAME, {
-      artistFilenameStrategy: 'albumartist',
-      dirName: 'music',
-      limit: 5,
-      titleFilenameStrategy: 'subtitle',
     })
     await callTool(3, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
       albumDir: 'music/',
@@ -65,12 +52,6 @@ describe('web MCP manage-albums read and organize tools', () => {
       dirName: `${currentTestApp.sourceDir}/music`,
       ignoreNonAudioFiles: true,
       limit: '2',
-    })
-    expect(validateAlbumSourceDir).toHaveBeenCalledWith({
-      artistFilenameStrategy: 'albumartist',
-      dirName: `${currentTestApp.sourceDir}/music`,
-      limit: '5',
-      titleFilenameStrategy: 'subtitle',
     })
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
       destDir: currentTestApp.destDir,
@@ -102,7 +83,6 @@ describe('web MCP manage-albums read and organize tools', () => {
 
   it('rejects traversal and malformed input before domain operations', async () => {
     const summarizeTraversal = await callTool(6, MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME, { dirName: '..' })
-    const validateInvalid = await callTool(7, MANAGE_ALBUMS_VALIDATE_TOOL_NAME, { limit: -1 })
     const organizeMissing = await callTool(8, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {})
     const organizeMalformed = await callTool(9, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, { albumDir: 'music' })
     const organizeTraversal = await callTool(10, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
@@ -114,43 +94,21 @@ describe('web MCP manage-albums read and organize tools', () => {
     })
 
     expect(getToolText(summarizeTraversal)).toContain('--source-dir')
-    expect(getToolText(validateInvalid)).toContain('Invalid arguments')
     expect(getToolText(organizeMissing)).toContain('albumDir')
     expect(getToolText(organizeMalformed)).toContain('albumDir must end with /')
     expect(getToolText(organizeTraversal)).toContain('--source-dir')
     expect(getToolText(organizeScratchTraversal)).toContain('--scratch-dir')
     expect(summarizeAlbumSourceDir).not.toHaveBeenCalled()
-    expect(validateAlbumSourceDir).not.toHaveBeenCalled()
     expect(organizeAlbumFiles).not.toHaveBeenCalled()
   })
 
-  it('returns validation and organization conflicts as tool error content', async () => {
+  it('returns organization conflicts as tool error content', async () => {
     const message = 'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)'
-    vi.mocked(validateAlbumSourceDir).mockRejectedValue(new UserInputError(message))
     vi.mocked(organizeAlbumFiles).mockRejectedValue(new UserInputError(message))
 
-    const validateResponse = await callTool(11, MANAGE_ALBUMS_VALIDATE_TOOL_NAME, { dirName: 'music' })
     const organizeResponse = await callTool(12, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, { albumDir: 'music/' })
 
-    expect(getToolText(validateResponse)).toContain(message)
     expect(getToolText(organizeResponse)).toContain(message)
-  })
-
-  it('discovers validation as read-only', async () => {
-    const response = await postMcp(requireTestApp().baseUrl, {
-      id: 13,
-      jsonrpc: '2.0',
-      method: 'tools/list',
-      params: {},
-    })
-    const tools = (response.result as {
-      tools?: Array<{ annotations?: { readOnlyHint?: boolean }, name?: string }>
-    }).tools ?? []
-
-    expect(tools.find(tool => tool.name === MANAGE_ALBUMS_VALIDATE_TOOL_NAME)).toMatchObject({
-      annotations: { readOnlyHint: true },
-      name: MANAGE_ALBUMS_VALIDATE_TOOL_NAME,
-    })
   })
 
   async function callTool(id: number, name: string, toolArguments: unknown) {
