@@ -77,7 +77,9 @@ describe('manage-albums validate', () => {
   })
 
   it('reports validation user input errors through commander', async () => {
-    mockValidateAlbumSourceDir.mockRejectedValue(new UserInputError('invalid validation input'))
+    mockValidateAlbumSourceDir.mockRejectedValue(new UserInputError(
+      'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+    ))
     vi.spyOn(process, 'exit').mockImplementation((): never => {
       throw new Error('exit')
     })
@@ -88,5 +90,6 @@ describe('manage-albums validate', () => {
         '--dir-name', 'source',
       ]),
     ).rejects.toThrow('exit')
+    expect(infoSpy).not.toHaveBeenCalled()
   })
 })

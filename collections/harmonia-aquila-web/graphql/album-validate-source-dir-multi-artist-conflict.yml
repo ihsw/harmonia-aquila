@@ -1,0 +1,45 @@
+info:
+  name: album-validate-source-dir-multi-artist-conflict
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/graphql"
+  body:
+    type: json
+    data: |-
+      {
+        "query": "query AlbumValidation($input: AlbumValidationInput!) { albumValidateSourceDir(input: $input) { filename status issues } }",
+        "variables": {
+          "input": {
+            "dirName": "{{graphqlAlbumDirName}}",
+            "ignoreNonAudioFiles": true
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns BAD_USER_INPUT for the shared album collision", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+          const error = json.errors[0];
+
+          expect(res.getStatus()).to.eql(200);
+          expect(error.extensions).to.have.property("code", "BAD_USER_INPUT");
+          expect(error.message).to.include("Multiple artists resolve to the same album directory:");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

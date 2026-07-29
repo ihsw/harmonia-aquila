@@ -1,7 +1,7 @@
 info:
-  name: call-manage-albums-fix-tags-scratch-output
+  name: call-manage-albums-fix-tags-path-traversal
   type: http
-  seq: 30
+  seq: 31
 
 http:
   method: POST
@@ -11,13 +11,12 @@ http:
     data: |-
       {
         "jsonrpc": "2.0",
-        "id": 104,
+        "id": 106,
         "method": "tools/call",
         "params": {
           "name": "manage_albums_fix_tags",
           "arguments": {
-            "albumDir": "{{albumOrganizeDir}}",
-            "limit": 0
+            "albumDir": "../outside/"
           }
         }
       }
@@ -35,14 +34,14 @@ runtime:
           expect(res.getStatus()).to.eql(200);
         });
 
-        test("tool response content is a JSON array", function () {
+        test("tool response rejects source traversal", function () {
           const body = res.getBody();
           const json = typeof body === "string" ? JSON.parse(body) : body;
-          const rows = JSON.parse(json.result.content[0].text);
 
-          expect(json).to.have.property("id", 104);
-          expect(json.result).not.to.have.property("isError", true);
-          expect(rows).to.be.an("array");
+          expect(json).to.have.property("id", 106);
+          expect(json.result).to.have.property("isError", true);
+          expect(json.result.content[0].text).to.include("albumDir");
+          expect(json.result.content[0].text).to.include("--source-dir");
         });
   assertions:
     - expression: res.status

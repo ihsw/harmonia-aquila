@@ -6,6 +6,8 @@ export const MANAGE_ALBUMS_VALIDATE_TOOL_NAME = 'manage_albums_validate'
 export const MANAGE_ALBUMS_FIX_TAGS_TOOL_NAME = 'manage_albums_fix_tags'
 export const MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME = 'manage_albums_organize_files'
 
+const albumDirSchema = z.string().min(1, 'albumDir is required').endsWith('/', 'albumDir must end with /')
+
 export const manageAlbumsListInputSchema = {
   prefix: z.string().optional(),
   useScratchDir: z.boolean().optional(),
@@ -27,6 +29,7 @@ export const manageAlbumsValidateInputSchema = {
 
 export const manageAlbumsFixTagsInputSchema = {
   albumArtistsStrategy: z.string().optional(),
+  albumDir: albumDirSchema,
   albumStrategy: z.string().optional(),
   destinationStrategy: z.string().optional(),
   execute: z.boolean().optional(),
@@ -41,7 +44,7 @@ export const manageAlbumsFixTagsInputSchema = {
 }
 
 export const manageAlbumsOrganizeFilesInputSchema = {
-  albumDir: z.string().min(1, 'albumDir is required').endsWith('/', 'albumDir must end with /'),
+  albumDir: albumDirSchema,
   artistFilenameStrategy: z.string().optional(),
   execute: z.boolean().optional(),
   ignoreAudioFilesWithoutTracks: z.boolean().optional(),

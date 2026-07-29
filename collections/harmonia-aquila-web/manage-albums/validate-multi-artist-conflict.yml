@@ -1,0 +1,35 @@
+info:
+  name: validate-multi-artist-conflict
+  type: http
+  seq: 12
+
+http:
+  method: GET
+  url: "{{baseUrl}}/manage-albums/validate?dirName={{summarizeDirName}}&ignoreNonAudioFiles=true"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("400 status code", function () {
+          expect(res.getStatus()).to.eql(400);
+        });
+
+        test("response reports the shared album collision", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(json).to.have.property("statusCode", 400);
+          expect(json.message).to.include("Multiple artists resolve to the same album directory:");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

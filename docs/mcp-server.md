@@ -36,11 +36,15 @@ chosen-root-relative directory. The tool never accepts a client-supplied root.
 path returned by that list operation, and resolves it within the configured
 source root. Its output defaults to the configured source root; pass
 `useScratchDir: true` to select the configured scratch root.
-`manage_albums_fix_tags` always plans or writes output under the scratch root.
-Both tools reject arbitrary root overrides. Organization also rejects any plan
-that would create the same normalized album directory for multiple normalized
-artist directories; the tool reports that validation failure before writing
-destination files.
+`manage_albums_fix_tags` also requires a slash-terminated `albumDir` returned
+by `manage_albums_list`, resolves it within the configured source root, and
+always plans or writes output under the scratch root. Both tools reject
+arbitrary root overrides.
+
+Validation and organization both reject a plan that would create the same
+normalized album directory for multiple normalized artist directories.
+`manage_albums_validate` reports the conflict as tool-error content instead of
+returning rows; organization reports it before writing destination files.
 
 ### Web server logging
 

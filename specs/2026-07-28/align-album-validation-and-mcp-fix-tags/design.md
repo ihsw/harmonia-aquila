@@ -40,9 +40,12 @@ __tests__/lib/albums/validate.test.ts
 __tests__/commands/manage-albums/validate.test.ts
 __tests__/commands/manage-albums/organize-files.test.ts
 __tests__/web/controllers.test.ts
+__tests__/web/manage-albums-validation-errors.test.ts
 __tests__/web/graphql/album.resolver.test.ts
 __tests__/web/graphql/graphql.integration.test.ts
 __tests__/web/mcp.manage-albums.test.ts
+__tests__/web/mcp.manage-albums-operations.test.ts
+__tests__/web/mcp.manage-albums-fix-tags.test.ts
 collections/harmonia-aquila-web/manage-albums/validate*.yml
 collections/harmonia-aquila-web/graphql/album-validate-source-dir*.yml
 collections/harmonia-aquila-web/mcp/call-manage-albums-validate*.yml
@@ -204,9 +207,9 @@ Focused checks:
 
 1. `./node_modules/.bin/vitest run __tests__/lib/albums/validate.test.ts`
 2. `./node_modules/.bin/vitest run __tests__/commands/manage-albums/validate.test.ts __tests__/commands/manage-albums/organize-files.test.ts`
-3. `./node_modules/.bin/vitest run __tests__/web/controllers.test.ts`
+3. `./node_modules/.bin/vitest run __tests__/web/controllers.test.ts __tests__/web/manage-albums-validation-errors.test.ts`
 4. `./node_modules/.bin/vitest run __tests__/web/graphql/album.resolver.test.ts __tests__/web/graphql/graphql.integration.test.ts`
-5. `./node_modules/.bin/vitest run __tests__/web/mcp.manage-albums.test.ts`
+5. `./node_modules/.bin/vitest run __tests__/web/mcp.manage-albums.test.ts __tests__/web/mcp.manage-albums-operations.test.ts __tests__/web/mcp.manage-albums-fix-tags.test.ts`
 
 Final checks:
 

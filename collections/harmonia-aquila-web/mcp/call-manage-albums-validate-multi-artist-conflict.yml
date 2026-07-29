@@ -1,7 +1,7 @@
 info:
-  name: call-manage-albums-fix-tags-scratch-output
+  name: call-manage-albums-validate-multi-artist-conflict
   type: http
-  seq: 30
+  seq: 32
 
 http:
   method: POST
@@ -11,13 +11,13 @@ http:
     data: |-
       {
         "jsonrpc": "2.0",
-        "id": 104,
+        "id": 107,
         "method": "tools/call",
         "params": {
-          "name": "manage_albums_fix_tags",
+          "name": "manage_albums_validate",
           "arguments": {
-            "albumDir": "{{albumOrganizeDir}}",
-            "limit": 0
+            "dirName": "{{summarizeDirName}}",
+            "ignoreNonAudioFiles": true
           }
         }
       }
@@ -35,14 +35,13 @@ runtime:
           expect(res.getStatus()).to.eql(200);
         });
 
-        test("tool response content is a JSON array", function () {
+        test("tool response reports the shared album collision", function () {
           const body = res.getBody();
           const json = typeof body === "string" ? JSON.parse(body) : body;
-          const rows = JSON.parse(json.result.content[0].text);
 
-          expect(json).to.have.property("id", 104);
-          expect(json.result).not.to.have.property("isError", true);
-          expect(rows).to.be.an("array");
+          expect(json).to.have.property("id", 107);
+          expect(json.result).to.have.property("isError", true);
+          expect(json.result.content[0].text).to.include("Multiple artists resolve to the same album directory:");
         });
   assertions:
     - expression: res.status

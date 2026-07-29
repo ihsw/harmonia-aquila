@@ -5,6 +5,32 @@ import { UserInputError } from '../errors.js'
 export type ArtistFilenameStrategy = 'albumartist' | 'artist' | 'label' | 'producer'
 export type TitleFilenameStrategy = 'subtitle' | 'title'
 
+export interface AlbumOutputIdentity {
+  albumDirectory: string
+  artistDirectory: string
+}
+
+export function assertSingleArtistPerAlbumDirectory(identities: Iterable<AlbumOutputIdentity>): void {
+  const artistsByAlbumDirectory = new Map<string, Set<string>>()
+
+  for (const identity of identities) {
+    const artistDirectories = artistsByAlbumDirectory.get(identity.albumDirectory) ?? new Set<string>()
+
+    artistDirectories.add(identity.artistDirectory)
+    artistsByAlbumDirectory.set(identity.albumDirectory, artistDirectories)
+  }
+
+  const conflicts = [...artistsByAlbumDirectory.entries()]
+    .filter(([, artistDirectories]) => artistDirectories.size > 1)
+    .sort(([firstAlbumDirectory], [secondAlbumDirectory]) => firstAlbumDirectory.localeCompare(secondAlbumDirectory))
+
+  if (conflicts.length > 0) {
+    throw new UserInputError(`Multiple artists resolve to the same album directory: ${conflicts
+      .map(([albumDirectory, artistDirectories]) => `${albumDirectory} (${[...artistDirectories].sort().join(', ')})`)
+      .join('; ')}`)
+  }
+}
+
 export function sanitizePathSegment(value: string): string {
   return Array.from(value).map((character) => {
     if (character.charCodeAt(0) < 32 || '<>:"/\\|?*'.includes(character)) {

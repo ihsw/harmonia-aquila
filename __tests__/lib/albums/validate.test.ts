@@ -84,6 +84,66 @@ describe('validateAlbumSourceDir', () => {
     expect(rows[1]?.issues).toEqual(['duplicate destination: Artist/Album/01 - Title.flac'])
   })
 
+  it('rejects sanitized album output names shared by multiple artists', async () => {
+    await createTempFile(tempDir, 'track01.flac')
+    await createTempFile(tempDir, 'track02.flac')
+    vi.mocked(parseFile)
+      .mockResolvedValueOnce(makeAudioMetadata({
+        album: 'Same/Album',
+        artist: 'Artist B',
+        title: 'Track One',
+        track: { no: 1, of: null },
+      }))
+      .mockResolvedValueOnce(makeAudioMetadata({
+        album: 'Same:Album',
+        artist: 'Artist A',
+        title: 'Track Two',
+        track: { no: 2, of: null },
+      }))
+
+    await expect(validateAlbumSourceDir({ dirName: tempDir })).rejects.toThrow(
+      'Multiple artists resolve to the same album directory: Same-Album (Artist A, Artist B)',
+    )
+  })
+
+  it('applies the limit before checking multi-artist album conflicts', async () => {
+    await createTempFile(tempDir, 'track01.flac')
+    await createTempFile(tempDir, 'track02.flac')
+    vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata({
+      album: 'Same Album',
+      artist: 'Artist A',
+      title: 'Track',
+      track: { no: 1, of: null },
+    }))
+
+    const rows = await validateAlbumSourceDir({ dirName: tempDir, limit: '1' })
+
+    expect(rows).toHaveLength(1)
+    expect(parseFile).toHaveBeenCalledTimes(1)
+  })
+
+  it('allows multiple tracks from one artist and album', async () => {
+    await createTempFile(tempDir, 'track01.flac')
+    await createTempFile(tempDir, 'track02.flac')
+    vi.mocked(parseFile)
+      .mockResolvedValueOnce(makeAudioMetadata({
+        album: 'Same Album',
+        artist: 'Artist A',
+        title: 'Track One',
+        track: { no: 1, of: null },
+      }))
+      .mockResolvedValueOnce(makeAudioMetadata({
+        album: 'Same Album',
+        artist: 'Artist A',
+        title: 'Track Two',
+        track: { no: 2, of: null },
+      }))
+
+    const rows = await validateAlbumSourceDir({ dirName: tempDir })
+
+    expect(rows.map(row => row.status)).toEqual(['valid', 'valid'])
+  })
+
   it('honors limit and strategy options', async () => {
     await createTempFile(tempDir, 'track01.flac')
     await createTempFile(tempDir, 'track02.flac')

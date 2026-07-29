@@ -11,28 +11,32 @@ export function createManageAlbumsFixTagsTool(
   context: WebMcpToolContext,
 ): WebMcpToolRegistration {
   return defineWebMcpTool({
-    handler: async input => jsonToolContent(await fixAlbumTags({
-      destDir: context.pathResolver.scratchDir,
-      sourceDir: context.pathResolver.sourceDir,
-      ...optionalEntry('albumArtistsStrategy', input.albumArtistsStrategy),
-      ...optionalEntry('albumStrategy', input.albumStrategy),
-      ...optionalEntry('destinationStrategy', input.destinationStrategy),
-      ...optionalEntry('execute', input.execute),
-      ...optionalNumberEntry('limit', input.limit),
-      ...optionalEntry('producerStrategy', input.producerStrategy),
-      ...optionalEntry('resetTrack', input.resetTrack),
-      ...optionalEntry('setAlbum', input.setAlbum),
-      ...optionalEntry('setAlbumArtist', input.setAlbumArtist),
-      ...optionalEntry('setArtist', input.setArtist),
-      ...optionalEntry('setMetadata', input.setMetadata),
-      ...optionalEntry('swapArtistAlbumartist', input.swapArtistAlbumartist),
-    })),
+    handler: async (input) => {
+      const sourceDir = await context.pathResolver.resolveSource(input.albumDir, 'albumDir')
+
+      return jsonToolContent(await fixAlbumTags({
+        destDir: context.pathResolver.scratchDir,
+        sourceDir,
+        ...optionalEntry('albumArtistsStrategy', input.albumArtistsStrategy),
+        ...optionalEntry('albumStrategy', input.albumStrategy),
+        ...optionalEntry('destinationStrategy', input.destinationStrategy),
+        ...optionalEntry('execute', input.execute),
+        ...optionalNumberEntry('limit', input.limit),
+        ...optionalEntry('producerStrategy', input.producerStrategy),
+        ...optionalEntry('resetTrack', input.resetTrack),
+        ...optionalEntry('setAlbum', input.setAlbum),
+        ...optionalEntry('setAlbumArtist', input.setAlbumArtist),
+        ...optionalEntry('setArtist', input.setArtist),
+        ...optionalEntry('setMetadata', input.setMetadata),
+        ...optionalEntry('swapArtistAlbumartist', input.swapArtistAlbumartist),
+      }))
+    },
     name: MANAGE_ALBUMS_FIX_TAGS_TOOL_NAME,
     options: {
       annotations: {
         readOnlyHint: false,
       },
-      description: 'Fix album tags under the configured source directory and plan output under the scratch directory.',
+      description: 'Fix tags in an album directory returned by manage_albums_list and plan output under the scratch directory.',
       inputSchema: manageAlbumsFixTagsInputSchema,
       title: 'Manage albums fix tags',
     },

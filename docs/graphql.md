@@ -67,6 +67,11 @@ would be created for more than one normalized artist directory. This safeguard
 applies to dry runs and `execute: true`, cannot be bypassed, and is returned as
 `BAD_USER_INPUT` before any destination files are created.
 
+`albumValidateSourceDir` applies the same safeguard before returning validation
+rows. A normalized album directory associated with multiple normalized artist
+directories is returned as `BAD_USER_INPUT`; missing metadata and exact
+duplicate file destinations continue to appear as invalid rows.
+
 GraphQL errors with `extensions.code` equal to `BAD_USER_INPUT` identify
 invalid inputs or paths outside configured roots. Unexpected failures return
 `INTERNAL_SERVER_ERROR` without exposing filesystem paths or stack traces.

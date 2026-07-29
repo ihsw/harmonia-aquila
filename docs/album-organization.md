@@ -25,6 +25,12 @@ normalized album directory name for multiple normalized artist directories.
 Treat that result as a metadata or source-selection issue; it has no bypass
 and must not be worked around with manual destination merges.
 
+Run `manage-albums validate` before organization. Validation applies the same
+normalized album-to-artist collision rule and fails with the same message, so
+a successful validation cannot hide a layout conflict that `organize-files`
+would reject. Missing metadata and exact duplicate file destinations remain
+reported as invalid validation rows.
+
 ## Reconciled suitable-candidate processing spec
 
 - Spec: `specs/2026-07-09/process-reconciled-suitable-source-albums/`

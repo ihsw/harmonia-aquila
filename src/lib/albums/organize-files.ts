@@ -9,6 +9,7 @@ import { UserInputError } from '../errors.js'
 import { getAudioFiles, parseLimit } from './audio-files.js'
 import {
   type ArtistFilenameStrategy,
+  assertSingleArtistPerAlbumDirectory,
   formatTrackNumber,
   getAlbumDestination,
   getArtistFilename,
@@ -137,24 +138,7 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
       .join('; ')}`)
   }
 
-  const artistsByAlbumDirectory = new Map<string, Set<string>>()
-
-  for (const plannedCopy of plannedCopies) {
-    const artistDirectories = artistsByAlbumDirectory.get(plannedCopy.albumDirectory) ?? new Set<string>()
-
-    artistDirectories.add(plannedCopy.artistDirectory)
-    artistsByAlbumDirectory.set(plannedCopy.albumDirectory, artistDirectories)
-  }
-
-  const multiArtistAlbumDirectories = [...artistsByAlbumDirectory.entries()]
-    .filter(([, artistDirectories]) => artistDirectories.size > 1)
-    .sort(([firstAlbumDirectory], [secondAlbumDirectory]) => firstAlbumDirectory.localeCompare(secondAlbumDirectory))
-
-  if (multiArtistAlbumDirectories.length > 0) {
-    throw new UserInputError(`Multiple artists resolve to the same album directory: ${multiArtistAlbumDirectories
-      .map(([albumDirectory, artistDirectories]) => `${albumDirectory} (${[...artistDirectories].sort().join(', ')})`)
-      .join('; ')}`)
-  }
+  assertSingleArtistPerAlbumDirectory(plannedCopies)
 
   const albumDestinationPaths = [...new Set(plannedCopies.map(plannedCopy => dirname(plannedCopy.destinationPath)))]
   const existingAlbumDestinations = await Promise.all(

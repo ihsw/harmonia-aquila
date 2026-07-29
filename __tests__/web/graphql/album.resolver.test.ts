@@ -127,4 +127,14 @@ describe('AlbumResolver', () => {
       'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
     )
   })
+
+  it('preserves validation multi-artist conflicts for GraphQL error filtering', async () => {
+    vi.mocked(validateAlbumSourceDir).mockRejectedValue(new UserInputError(
+      'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+    ))
+
+    await expect(resolver.albumValidateSourceDir({ dirName: 'albums' })).rejects.toThrow(
+      'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+    )
+  })
 })

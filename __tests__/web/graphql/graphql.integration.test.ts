@@ -2,10 +2,16 @@ import type { INestApplication } from '@nestjs/common'
 import { mkdir } from 'node:fs/promises'
 import type { Server } from 'node:http'
 import path from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { validateAlbumSourceDir } from '../../../src/lib/albums/validate.js'
+import { UserInputError } from '../../../src/lib/errors.js'
 import { createWebApp } from '../../../src/web/main.js'
 import { createTempDir, removeTempDir } from '../../test-helpers.js'
+
+vi.mock('../../../src/lib/albums/validate.js', () => ({
+  validateAlbumSourceDir: vi.fn(),
+}))
 
 interface GraphqlResponse {
   data?: Record<string, unknown>
@@ -29,6 +35,8 @@ describe('web GraphQL endpoint', () => {
     scratchDir = await createTempDir('graphql-scratch-')
     sourceDir = await createTempDir('graphql-source-')
     await mkdir(path.join(scratchDir, 'scratch-only'))
+    vi.mocked(validateAlbumSourceDir).mockReset()
+    vi.mocked(validateAlbumSourceDir).mockResolvedValue([])
     app = await createWebApp({ destDir, scratchDir, sourceDir })
     await app.listen(0, '127.0.0.1')
     const address = (app.getHttpServer() as Server).address()
@@ -91,6 +99,10 @@ describe('web GraphQL endpoint', () => {
   })
 
   it('keeps mutations dry-run by default and translates resolver errors safely', async () => {
+    const validationConflictMessage
+      = 'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)'
+    vi.mocked(validateAlbumSourceDir).mockRejectedValueOnce(new UserInputError(validationConflictMessage))
+
     const dryRun = await postGraphql('mutation { albumFixTags(input: {}) { album } }')
     const organizeDefault = await postGraphql('mutation { albumOrganizeFiles(input: { limit: "0" }) { filename } }')
     const organizeScratch = await postGraphql(`mutation {
@@ -98,6 +110,9 @@ describe('web GraphQL endpoint', () => {
     }`)
     const organizeInvalidStrategy = await postGraphql(`mutation {
       albumOrganizeFiles(input: { artistFilenameStrategy: "invalid" }) { filename }
+    }`)
+    const validationConflict = await postGraphql(`{
+      albumValidateSourceDir(input: { dirName: "." }) { filename }
     }`)
     const userInputError = await postGraphql('{ audiobookValidate(input: { fileName: "../escape.m4b" }) { filename } }')
     const listTraversal = await postGraphql('{ albumList(input: { prefix: "../" }) }')
@@ -109,6 +124,10 @@ describe('web GraphQL endpoint', () => {
     expect(organizeScratch).toEqual({ data: { albumOrganizeFiles: [] } })
     expect(organizeInvalidStrategy.errors?.[0]).toMatchObject({
       extensions: { code: 'BAD_USER_INPUT' },
+    })
+    expect(validationConflict.errors?.[0]).toMatchObject({
+      extensions: { code: 'BAD_USER_INPUT' },
+      message: validationConflictMessage,
     })
     expect(userInputError.errors?.[0]).toMatchObject({
       extensions: { code: 'BAD_USER_INPUT' },
