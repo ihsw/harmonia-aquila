@@ -25,17 +25,19 @@ endpoint exposes scoped album and audiobook tools matching the current
 | `manage_audiobooks_set_metadata` | `manage-audiobooks set-metadata` |
 
 The web endpoint resolves all source paths inside the configured `--source-dir`,
-all audiobook destination paths inside `--dest-dir`, and album scratch output
-inside `--scratch-dir`; tool schemas do not expose root override inputs.
+all audiobook and album organization destinations inside `--dest-dir`, and
+album tag-fix staging output inside `--scratch-dir`; tool schemas do not expose
+root override inputs.
 
 `manage_albums_list` is read-only. It lists the configured source root by
 default; pass `useScratchDir: true` to list the configured scratch root. Its
 optional `prefix` selects the chosen root when empty, or a slash-terminated
 chosen-root-relative directory. The tool never accepts a client-supplied root.
 `manage_albums_organize_files` requires `albumDir`, a slash-terminated folder
-path returned by that list operation, and resolves it within the configured
-source root. Its output defaults to the configured source root; pass
-`useScratchDir: true` to select the configured scratch root.
+path returned by that list operation. It resolves the folder within the
+configured source root by default; pass `useScratchDir: true` to resolve it
+within the configured scratch root instead. Organization output always targets
+the configured destination root.
 `manage_albums_fix_tags` also requires a slash-terminated `albumDir` returned
 by `manage_albums_list`, resolves it within the configured source root, and
 always plans or writes output under the scratch root. Both tools reject

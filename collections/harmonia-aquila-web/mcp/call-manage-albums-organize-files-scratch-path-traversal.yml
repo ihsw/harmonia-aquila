@@ -1,7 +1,7 @@
 info:
-  name: call-manage-albums-organize-files-source-input
+  name: call-manage-albums-organize-files-scratch-path-traversal
   type: http
-  seq: 31
+  seq: 32
 
 http:
   method: POST
@@ -11,14 +11,13 @@ http:
     data: |-
       {
         "jsonrpc": "2.0",
-        "id": 105,
+        "id": 108,
         "method": "tools/call",
         "params": {
           "name": "manage_albums_organize_files",
           "arguments": {
-            "albumDir": "{{albumOrganizeDir}}",
-            "ignoreNonAudioFiles": true,
-            "limit": 0
+            "albumDir": "../outside/",
+            "useScratchDir": true
           }
         }
       }
@@ -36,13 +35,14 @@ runtime:
           expect(res.getStatus()).to.eql(200);
         });
 
-        test("source album plans output under the configured destination", function () {
+        test("scratch selection enforces the scratch root", function () {
           const body = res.getBody();
           const json = typeof body === "string" ? JSON.parse(body) : body;
-          const rows = JSON.parse(json.result.content[0].text);
 
-          expect(json).to.have.property("id", 105);
-          expect(rows).to.be.an("array");
+          expect(json).to.have.property("id", 108);
+          expect(json.result).to.have.property("isError", true);
+          expect(json.result.content[0].text).to.include("albumDir");
+          expect(json.result.content[0].text).to.include("--scratch-dir");
         });
   assertions:
     - expression: res.status

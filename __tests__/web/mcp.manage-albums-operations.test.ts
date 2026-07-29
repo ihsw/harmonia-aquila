@@ -73,14 +73,14 @@ describe('web MCP manage-albums read and organize tools', () => {
       titleFilenameStrategy: 'subtitle',
     })
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
-      destDir: currentTestApp.scratchDir,
+      destDir: currentTestApp.destDir,
       execute: true,
       limit: '4',
-      sourceDir: `${currentTestApp.sourceDir}/music`,
+      sourceDir: `${currentTestApp.scratchDir}/music`,
     })
   })
 
-  it('defaults organize output to source and accepts explicit false', async () => {
+  it('defaults organize input to source and always outputs to destination', async () => {
     const currentTestApp = requireTestApp()
     vi.mocked(organizeAlbumFiles).mockResolvedValue([])
 
@@ -91,11 +91,11 @@ describe('web MCP manage-albums read and organize tools', () => {
     })
 
     expect(organizeAlbumFiles).toHaveBeenNthCalledWith(1, {
-      destDir: currentTestApp.sourceDir,
+      destDir: currentTestApp.destDir,
       sourceDir: `${currentTestApp.sourceDir}/music`,
     })
     expect(organizeAlbumFiles).toHaveBeenNthCalledWith(2, {
-      destDir: currentTestApp.sourceDir,
+      destDir: currentTestApp.destDir,
       sourceDir: `${currentTestApp.sourceDir}/music`,
     })
   })
@@ -108,12 +108,17 @@ describe('web MCP manage-albums read and organize tools', () => {
     const organizeTraversal = await callTool(10, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
       albumDir: '../outside/',
     })
+    const organizeScratchTraversal = await callTool(11, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
+      albumDir: '../outside/',
+      useScratchDir: true,
+    })
 
     expect(getToolText(summarizeTraversal)).toContain('--source-dir')
     expect(getToolText(validateInvalid)).toContain('Invalid arguments')
     expect(getToolText(organizeMissing)).toContain('albumDir')
     expect(getToolText(organizeMalformed)).toContain('albumDir must end with /')
     expect(getToolText(organizeTraversal)).toContain('--source-dir')
+    expect(getToolText(organizeScratchTraversal)).toContain('--scratch-dir')
     expect(summarizeAlbumSourceDir).not.toHaveBeenCalled()
     expect(validateAlbumSourceDir).not.toHaveBeenCalled()
     expect(organizeAlbumFiles).not.toHaveBeenCalled()

@@ -12,12 +12,12 @@ export function createManageAlbumsOrganizeFilesTool(
 ): WebMcpToolRegistration {
   return defineWebMcpTool({
     handler: async (input) => {
-      const sourceDir = await context.pathResolver.resolveSource(input.albumDir, 'albumDir')
+      const sourceDir = input.useScratchDir === true
+        ? await context.pathResolver.resolveScratch(input.albumDir, 'albumDir')
+        : await context.pathResolver.resolveSource(input.albumDir, 'albumDir')
 
       return jsonToolContent(await organizeAlbumFiles({
-        destDir: input.useScratchDir === true
-          ? context.pathResolver.scratchDir
-          : context.pathResolver.sourceDir,
+        destDir: context.pathResolver.destDir,
         sourceDir,
         ...optionalEntry('artistFilenameStrategy', input.artistFilenameStrategy),
         ...optionalEntry('execute', input.execute),
@@ -32,7 +32,7 @@ export function createManageAlbumsOrganizeFilesTool(
       annotations: {
         readOnlyHint: false,
       },
-      description: 'Organize files from an album directory returned by manage_albums_list into the configured source or scratch directory.',
+      description: 'Organize files from a source or scratch album directory returned by manage_albums_list into the configured destination directory.',
       inputSchema: manageAlbumsOrganizeFilesInputSchema,
       title: 'Manage albums organize files',
     },

@@ -28,6 +28,10 @@ export class WebPathResolver {
     return this.resolveWithinRoot(this.roots.sourceDir, requestPath, fieldName, '--source-dir')
   }
 
+  public async resolveScratch(requestPath: string, fieldName: string): Promise<string> {
+    return this.resolveWithinRoot(this.roots.scratchDir, requestPath, fieldName, '--scratch-dir')
+  }
+
   public async resolveDest(requestPath: string, fieldName: string): Promise<string> {
     return this.resolveWithinRoot(this.roots.destDir, requestPath, fieldName, '--dest-dir')
   }
