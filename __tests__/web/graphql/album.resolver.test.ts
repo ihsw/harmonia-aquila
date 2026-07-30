@@ -87,12 +87,13 @@ describe('AlbumResolver', () => {
     vi.mocked(fixAlbumTags).mockResolvedValue([])
     vi.mocked(organizeAlbumFiles).mockResolvedValue([])
 
-    await resolver.albumFixTags({ albumStrategy: 'grouping' })
+    await resolver.albumFixTags({ albumStrategy: 'grouping', discStrategy: 'infer' })
     await resolver.albumOrganizeFiles({ ignoreNonAudioFiles: true })
 
     expect(fixAlbumTags).toHaveBeenCalledWith({
       albumStrategy: 'grouping',
       destDir: roots.scratchDir,
+      discStrategy: 'infer',
       sourceDir: roots.sourceDir,
     })
     expect(organizeAlbumFiles).toHaveBeenCalledWith({

@@ -20,6 +20,7 @@ export function createManageAlbumsFixTagsTool(
         ...optionalEntry('albumArtistsStrategy', input.albumArtistsStrategy),
         ...optionalEntry('albumStrategy', input.albumStrategy),
         ...optionalEntry('destinationStrategy', input.destinationStrategy),
+        ...optionalEntry('discStrategy', input.discStrategy),
         ...optionalEntry('execute', input.execute),
         ...optionalNumberEntry('limit', input.limit),
         ...optionalEntry('producerStrategy', input.producerStrategy),

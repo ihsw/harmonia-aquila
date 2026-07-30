@@ -1,0 +1,52 @@
+info:
+  name: call-manage-albums-fix-tags-invalid-disc-strategy
+  type: http
+  seq: 31
+
+http:
+  method: POST
+  url: "{{baseUrl}}/mcp"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 105,
+        "method": "tools/call",
+        "params": {
+          "name": "manage_albums_fix_tags",
+          "arguments": {
+            "albumDir": "{{albumOrganizeDir}}",
+            "discStrategy": "guess"
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Accept", "application/json, text/event-stream");
+        req.setHeader("MCP-Protocol-Version", bru.getEnvVar("mcpProtocolVersion"));
+    - type: tests
+      code: |-
+        test("returns a disc strategy tool error without executing", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(200);
+          expect(json).to.have.property("id", 105);
+          expect(json.result).to.have.property("isError", true);
+          expect(json.result.content[0].text).to.include("--disc-strategy");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

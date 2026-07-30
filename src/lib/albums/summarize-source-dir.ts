@@ -9,6 +9,7 @@ import {
   getAudioFiles,
   parseLimit,
 } from './audio-files.js'
+import { formatDiscNumber } from './disc-metadata.js'
 
 export interface SummarizeSourceDirOptions {
   dirName: string
@@ -22,6 +23,8 @@ export interface SummarizeSourceDirJsonOutputRow {
   artist: string
   albumartist: string
   bitrate: string
+  discNumber: string
+  discTotal: string
   duration: string
   filename: string
   originalalbum: string
@@ -53,6 +56,8 @@ export async function summarizeAlbumSourceDir(options: SummarizeSourceDirOptions
         albumartist: metadata.common.albumartist ?? '',
         artist: metadata.common.artist ?? '',
         bitrate: formatAudioBitrate(metadata.format.bitrate),
+        discNumber: formatDiscNumber(metadata.common.disk.no),
+        discTotal: formatDiscNumber(metadata.common.disk.of),
         duration: formatAudioDuration(metadata.format.duration),
         filename: file.name,
         grouping: metadata.common.grouping ?? '',

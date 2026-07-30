@@ -118,6 +118,7 @@ export const fixTagsBodySchema = z.object({
   albumArtistsStrategy: optionalString('albumArtistsStrategy'),
   albumStrategy: optionalString('albumStrategy'),
   destinationStrategy: optionalString('destinationStrategy'),
+  discStrategy: optionalString('discStrategy'),
   execute: optionalBodyBoolean(),
   limit: optionalString('limit'),
   producerStrategy: optionalString('producerStrategy'),

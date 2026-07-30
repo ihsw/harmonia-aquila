@@ -6,6 +6,7 @@ input AlbumFixTagsInput {
   albumArtistsStrategy: String
   albumStrategy: String
   destinationStrategy: String
+  discStrategy: String
   execute: Boolean
   limit: String
   producerStrategy: String
@@ -21,9 +22,13 @@ type AlbumFixTagsRow {
   album: String!
   albumartists: [String!]
   artist: String!
+  discNumber: Int
+  discTotal: Int
   newAlbum: String
   newAlbumartists: [String!]
   newArtists: [String!]
+  newDiscNumber: Int
+  newDiscTotal: Int
   newProducers: [String!]
   newTitle: String
   newTrackNumber: Int
@@ -53,6 +58,8 @@ type AlbumOrganizeFilesRow {
   artistFilename: String!
   artistFilenameStrategy: String!
   destination: String!
+  discNumber: String!
+  discTotal: String!
   filename: String!
   titleFilename: String!
   titleFilenameStrategy: String!
@@ -70,6 +77,8 @@ type AlbumSummaryRow {
   albumartist: String!
   artist: String!
   bitrate: String!
+  discNumber: String!
+  discTotal: String!
   duration: String!
   filename: String!
   grouping: String!
@@ -95,6 +104,8 @@ type AlbumValidationRow {
   artistFilename: String!
   artistFilenameStrategy: String!
   destination: String!
+  discNumber: String!
+  discTotal: String!
   filename: String!
   issues: [String!]!
   status: String!

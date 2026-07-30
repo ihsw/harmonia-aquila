@@ -51,6 +51,9 @@ export class AlbumFixTagsInput {
   @Field(() => String, { nullable: true })
   public destinationStrategy?: string
 
+  @Field(() => String, { nullable: true })
+  public discStrategy?: string
+
   @Field(() => Boolean, { nullable: true })
   public execute?: boolean
 

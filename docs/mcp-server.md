@@ -44,6 +44,13 @@ by `manage_albums_list`, resolves it within the configured source root, and
 always plans or writes output under the scratch root. Both tools reject
 arbitrary root overrides.
 
+`manage_albums_fix_tags` accepts optional `discStrategy: "infer"`. It splits
+filename-ordered tracks into strictly increasing runs and reports current and
+proposed disc number/total values without writing unless `execute: true` is
+explicit. Summary, validation, and organization rows expose disc metadata;
+multi-disc organization uses `Disc DD` subdirectories, while legacy
+single-disc destinations do not change.
+
 `manage_albums_validate` is read-only. It resolves `dirName` within the
 configured source root by default; pass `useScratchDir: true` to validate a
 directory within the configured scratch root. Omitted or `false` retains
@@ -127,7 +134,7 @@ Use Zod schemas with native types:
 - Repeated `--file-name` values become a `fileNames: string[]` field.
 - CLI strategy values become enums:
   `destinationStrategy`, `albumStrategy`, `albumArtistsStrategy`,
-  `producerStrategy`, `artistFilenameStrategy`, and
+  `discStrategy`, `producerStrategy`, `artistFilenameStrategy`, and
   `titleFilenameStrategy`.
 - Omit the CLI-only `format` option. MCP responses always return structured
   JSON-compatible data.

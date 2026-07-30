@@ -33,6 +33,7 @@ export const manageAlbumsFixTagsInputSchema = {
   albumDir: albumDirSchema,
   albumStrategy: z.string().optional(),
   destinationStrategy: z.string().optional(),
+  discStrategy: z.string().optional(),
   execute: z.boolean().optional(),
   limit: z.number().int().nonnegative().optional(),
   producerStrategy: z.string().optional(),

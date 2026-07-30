@@ -10,6 +10,8 @@ interface MockAudioFile {
   tag: {
     album?: string
     albumArtists?: string[]
+    disc?: number
+    discCount?: number
     performers?: string[]
     title?: string
     track?: number
@@ -81,6 +83,8 @@ describe('writeAudioTagFix', () => {
       album: 'Album',
       albumArtists: ['Album Artist'],
       artists: ['Artist'],
+      discNumber: 2,
+      discTotal: 3,
       title: 'Title',
       trackNumber: 3,
     })
@@ -88,10 +92,23 @@ describe('writeAudioTagFix', () => {
     expect(audioFile.tag).toEqual({
       album: 'Album',
       albumArtists: ['Album Artist'],
+      disc: 2,
+      discCount: 3,
       performers: ['Artist'],
       title: 'Title',
       track: 3,
     })
+    expect(audioFile.save).toHaveBeenCalledOnce()
+    expect(audioFile.dispose).toHaveBeenCalledOnce()
+  })
+
+  it.each(['/music/track.mp3', '/music/track.flac'])('writes disc 2 of 3 to %s', (filePath) => {
+    const audioFile = makeAudioFile()
+    mockCreateFromPath.mockReturnValue(audioFile)
+
+    writeAudioTagFix(filePath, { discNumber: 2, discTotal: 3 })
+
+    expect(audioFile.tag).toMatchObject({ disc: 2, discCount: 3 })
     expect(audioFile.save).toHaveBeenCalledOnce()
     expect(audioFile.dispose).toHaveBeenCalledOnce()
   })

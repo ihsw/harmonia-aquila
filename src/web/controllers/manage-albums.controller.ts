@@ -87,6 +87,7 @@ export class ManageAlbumsController {
         ...optionalEntry('albumArtistsStrategy', options.albumArtistsStrategy),
         ...optionalEntry('albumStrategy', options.albumStrategy),
         ...optionalEntry('destinationStrategy', options.destinationStrategy),
+        ...optionalEntry('discStrategy', options.discStrategy),
         ...optionalEntry('execute', options.execute),
         ...optionalEntry('limit', options.limit),
         ...optionalEntry('producerStrategy', options.producerStrategy),

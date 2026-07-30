@@ -10,6 +10,11 @@ export interface AlbumOutputIdentity {
   artistDirectory: string
 }
 
+export interface DiscDestinationContext {
+  discNumber: number | null
+  multiDisc: boolean
+}
+
 export function assertSingleAlbumDirectory(identities: Iterable<AlbumOutputIdentity>): void {
   const albumDirectories = new Set<string>()
 
@@ -109,10 +114,15 @@ export function getAlbumDestination(
   trackNumber: number,
   titleFilename: string,
   sourceFilename: string,
+  discContext: DiscDestinationContext = { discNumber: null, multiDisc: false },
 ): string {
-  return join(
+  const albumDirectory = join(
     sanitizePathSegment(artistFilename),
     sanitizePathSegment(album),
-    `${formatTrackNumber(trackNumber)} - ${sanitizePathSegment(titleFilename)}${extname(sourceFilename)}`,
   )
+  const trackFilename = `${formatTrackNumber(trackNumber)} - ${sanitizePathSegment(titleFilename)}${extname(sourceFilename)}`
+
+  return discContext.multiDisc && discContext.discNumber !== null
+    ? join(albumDirectory, `Disc ${formatTrackNumber(discContext.discNumber)}`, trackFilename)
+    : join(albumDirectory, trackFilename)
 }

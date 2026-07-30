@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "query": "mutation AlbumFixTags($input: AlbumFixTagsInput!) { albumFixTags(input: $input) { album artist title } }",
+        "query": "mutation AlbumFixTags($input: AlbumFixTagsInput!) { albumFixTags(input: $input) { album artist discNumber discTotal newDiscNumber newDiscTotal title } }",
         "variables": {
           "input": {
             "limit": "1"

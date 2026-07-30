@@ -1,0 +1,59 @@
+info:
+  name: call-manage-albums-fix-tags-infer-dry-run
+  type: http
+  seq: 32
+
+http:
+  method: POST
+  url: "{{baseUrl}}/mcp"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 106,
+        "method": "tools/call",
+        "params": {
+          "name": "manage_albums_fix_tags",
+          "arguments": {
+            "albumDir": "{{albumOrganizeDir}}",
+            "discStrategy": "infer",
+            "limit": 2
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Accept", "application/json, text/event-stream");
+        req.setHeader("MCP-Protocol-Version", bru.getEnvVar("mcpProtocolVersion"));
+    - type: tests
+      code: |-
+        test("runs inference as a dry run", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(200);
+          expect(json).to.have.property("id", 106);
+          if (json.result.isError !== true) {
+            const rows = JSON.parse(json.result.content[0].text);
+            expect(rows).to.be.an("array");
+            rows.forEach((row) => {
+              expect(row).to.have.property("newDiscNumber");
+              expect(row).to.have.property("newDiscTotal");
+            });
+          }
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

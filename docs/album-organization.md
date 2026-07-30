@@ -34,6 +34,21 @@ cannot hide a layout conflict that `organize-files` would reject. Rows without
 a computable destination and exact duplicate file destinations remain reported
 as invalid validation rows instead of contributing album identities.
 
+## Multi-disc metadata
+
+MP3 files store disc number/total in ID3v2 `TPOS` (`N` or `N/M`); FLAC uses
+`DISCNUMBER` and `DISCTOTAL`. Summary and validation rows expose normalized
+`discNumber` and `discTotal` values. Repeated track numbers require complete,
+contiguous disc numbers, and duplicate `(discNumber, trackNumber)` pairs or
+inconsistent totals are invalid.
+
+Single-disc albums retain `Artist/Album/TT - Title.ext`. A set with a disc
+number or total greater than 1 is organized as
+`Artist/Album/Disc DD/TT - Title.ext`. To repair a filename-ordered source set,
+run `fix-tags --disc-strategy infer` as a dry run first. Inference starts a new
+disc whenever the next track number repeats or decreases; review every
+`newDiscNumber`/`newDiscTotal` before adding `--execute`.
+
 ## Reconciled suitable-candidate processing spec
 
 - Spec: `specs/2026-07-09/process-reconciled-suitable-source-albums/`

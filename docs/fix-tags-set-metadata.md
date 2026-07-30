@@ -24,6 +24,9 @@ Run the dry-run first. The dry-run JSON reports each track's current
 `newArtists`/`newAlbum`/`newTitle`/`newTrackNumber` values. Pass `--execute`
 only after confirming the plan.
 
+Optional `discNumber` and `discTotal` fields report current and proposed disc
+metadata as `discNumber`/`discTotal` and `newDiscNumber`/`newDiscTotal`.
+
 ## Record contract
 
 Every record — whether a JSON object or a CSV row — must contain all of these
@@ -36,12 +39,16 @@ fields:
 | `album`       | string            | Non-empty                                                    |
 | `trackNumber` | positive integer  | `> 0`, integer; in CSV it is a digits-only string            |
 | `title`       | string            | Non-empty                                                    |
+| `discNumber`  | positive integer  | Optional; required when `discTotal` is present                |
+| `discTotal`   | positive integer  | Optional; must be at least `discNumber`                       |
 
 The command validates strictly and exits with an error (no files copied or
 written) when any of the following is true:
 
 - a record is missing a required field or has an empty required string;
 - a `trackNumber` is not a positive integer;
+- a present disc value is not a positive integer, `discTotal` appears without
+  `discNumber`, or `discNumber` is greater than `discTotal`;
 - a `filename` uses an unsupported extension or contains path separators;
 - two records share the same `filename` (duplicate);
 - a record's `filename` is not present in the source directory (unknown file);
@@ -51,7 +58,8 @@ written) when any of the following is true:
   unterminated or malformed quoted field, or a row's field count differs from
   the header.
 
-Extra JSON keys or CSV columns beyond the required set are ignored.
+Extra JSON keys or CSV columns beyond the required and optional disc fields are
+ignored.
 
 ## Incompatible options
 
@@ -68,6 +76,9 @@ Album-artist and producer options remain compatible because they target
 different fields: `--set-album-artist`, `--album-artists-strategy`, and
 `--producer-strategy` may be combined with `--set-metadata`.
 
+`--disc-strategy infer` conflicts with set-metadata records that contain disc
+fields and with `--reset-track`.
+
 ## JSON example
 
 ```json
@@ -77,6 +88,8 @@ different fields: `--set-album-artist`, `--album-artists-strategy`, and
     "artist": "Iced Earth",
     "album": "Iced Earth",
     "trackNumber": 1,
+    "discNumber": 1,
+    "discTotal": 2,
     "title": "Iced Earth"
   },
   {
@@ -91,14 +104,15 @@ different fields: `--set-album-artist`, `--album-artists-strategy`, and
 
 ## CSV example
 
-The CSV header must include the five required columns in any order. Fields may
+The CSV header must include the five required columns in any order and may add
+`discNumber` and `discTotal`. Fields may
 be quoted; embedded quotes are escaped by doubling them (`""`), following
 RFC 4180.
 
 ```csv
-filename,artist,album,trackNumber,title
-"01 - iced earth.flac",Iced Earth,Iced Earth,1,Iced Earth
-"07 - funeral.flac",Iced Earth,Iced Earth,7,"Funeral, ""Part 1"""
+filename,artist,album,trackNumber,title,discNumber,discTotal
+"01 - iced earth.flac",Iced Earth,Iced Earth,1,Iced Earth,1,2
+"07 - funeral.flac",Iced Earth,Iced Earth,7,"Funeral, ""Part 1""",1,2
 ```
 
 The second row's title parses to `Funeral, "Part 1"`.

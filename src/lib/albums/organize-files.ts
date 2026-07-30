@@ -1,12 +1,15 @@
 import { parseFile } from 'music-metadata'
-import { copyFile, mkdir } from 'node:fs/promises'
-import { dirname, join, relative, resolve } from 'node:path'
+import { join, resolve } from 'node:path'
 import pLimit from 'p-limit'
 
-import { pathExists } from '../../command-utils.js'
 import { UserInputError } from '../errors.js'
 
 import { getAudioFiles, parseLimit } from './audio-files.js'
+import {
+  formatDiscNumber,
+  isMultiDiscSet,
+  throwForDiscSetIssues,
+} from './disc-metadata.js'
 import {
   type ArtistFilenameStrategy,
   assertSingleAlbumDirectory,
@@ -19,6 +22,11 @@ import {
   sanitizePathSegment,
   type TitleFilenameStrategy,
 } from './organization-plan.js'
+import {
+  assertOrganizationDestinationsAvailable,
+  assertUniqueOrganizationDestinations,
+  executeOrganizationCopies,
+} from './organize-files-execution.js'
 
 export interface OrganizeFilesJsonOutputRow {
   action: string
@@ -26,6 +34,8 @@ export interface OrganizeFilesJsonOutputRow {
   artistFilename: string
   artistFilenameStrategy: ArtistFilenameStrategy
   destination: string
+  discNumber: string
+  discTotal: string
   filename: string
   titleFilename: string
   titleFilenameStrategy: TitleFilenameStrategy
@@ -46,11 +56,25 @@ export interface OrganizeFilesOptions {
 export type OrganizeFilesJsonOutput = OrganizeFilesJsonOutputRow[]
 
 interface PlannedCopy {
+  albumDestinationPath: string
   albumDirectory: string
   artistDirectory: string
   destinationPath: string
   row: OrganizeFilesJsonOutputRow
   sourcePath: string
+}
+
+interface ParsedCopy {
+  album: string
+  albumDirectory: string
+  artistDirectory: string
+  artistFilename: string
+  discNumber: number | null
+  discTotal: number | null
+  filename: string
+  sourcePath: string
+  titleFilename: string
+  trackNumber: number
 }
 
 export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise<OrganizeFilesJsonOutput> {
@@ -64,8 +88,8 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
   )
   const filesToOrganize = limit === undefined ? files : files.slice(0, limit)
   const parseMetadata = pLimit(16)
-  const plannedCopiesOrSkipped = await Promise.all(
-    filesToOrganize.map(file => parseMetadata(async (): Promise<PlannedCopy | undefined> => {
+  const parsedCopiesOrSkipped = await Promise.all(
+    filesToOrganize.map(file => parseMetadata(async (): Promise<ParsedCopy | undefined> => {
       const sourcePath = resolve(sourceDirectory, file.name)
       const metadata = await parseFile(sourcePath)
       const album = metadata.common.album ?? ''
@@ -78,6 +102,8 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
       const subtitle = metadata.common.subtitle?.[0] ?? ''
       const titleFilename = titleFilenameStrategy === 'subtitle' ? subtitle : title
       const trackNumber = metadata.common.track.no
+      const discNumber = metadata.common.disk.no
+      const discTotal = metadata.common.disk.of
 
       if (trackNumber === null && options.ignoreAudioFilesWithoutTracks === true) {
         return undefined
@@ -98,84 +124,69 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
         throw new UserInputError(`${file.name} is missing required metadata: track number`)
       }
 
-      const formattedTrackNumber = formatTrackNumber(trackNumber)
-      const destination = getAlbumDestination(artistFilename, album, trackNumber, titleFilename, file.name)
-      const destinationPath = join(destinationDirectory, destination)
-
       return {
+        album,
         albumDirectory: sanitizePathSegment(album),
         artistDirectory: sanitizePathSegment(artistFilename),
-        destinationPath,
-        row: {
-          action: options.execute === true ? 'copied' : 'would copy',
-          album,
-          artistFilename,
-          artistFilenameStrategy,
-          destination,
-          filename: file.name,
-          titleFilename,
-          titleFilenameStrategy,
-          trackNumber: formattedTrackNumber,
-        },
+        artistFilename,
+        discNumber,
+        discTotal,
+        filename: file.name,
         sourcePath,
+        titleFilename,
+        trackNumber,
       }
     })),
   )
-  const plannedCopies = plannedCopiesOrSkipped.filter((plannedCopy): plannedCopy is PlannedCopy => plannedCopy !== undefined)
-  const duplicateDestinations = new Map<string, string[]>()
+  const parsedCopies = parsedCopiesOrSkipped.filter((copy): copy is ParsedCopy => copy !== undefined)
+  const discRecords = parsedCopies.map(copy => ({
+    discNumber: copy.discNumber,
+    discTotal: copy.discTotal,
+    filename: copy.filename,
+    trackNumber: copy.trackNumber,
+  }))
 
-  for (const plannedCopy of plannedCopies) {
-    const matchingFiles = duplicateDestinations.get(plannedCopy.destinationPath) ?? []
+  throwForDiscSetIssues(discRecords)
+  const multiDisc = isMultiDiscSet(discRecords)
+  const plannedCopies: PlannedCopy[] = parsedCopies.map((copy) => {
+    const destination = getAlbumDestination(
+      copy.artistFilename,
+      copy.album,
+      copy.trackNumber,
+      copy.titleFilename,
+      copy.filename,
+      { discNumber: copy.discNumber, multiDisc },
+    )
 
-    matchingFiles.push(plannedCopy.row.filename)
-    duplicateDestinations.set(plannedCopy.destinationPath, matchingFiles)
-  }
+    return {
+      albumDestinationPath: join(destinationDirectory, copy.artistDirectory, copy.albumDirectory),
+      albumDirectory: copy.albumDirectory,
+      artistDirectory: copy.artistDirectory,
+      destinationPath: join(destinationDirectory, destination),
+      row: {
+        action: options.execute === true ? 'copied' : 'would copy',
+        album: copy.album,
+        artistFilename: copy.artistFilename,
+        artistFilenameStrategy,
+        destination,
+        discNumber: formatDiscNumber(copy.discNumber),
+        discTotal: formatDiscNumber(copy.discTotal),
+        filename: copy.filename,
+        titleFilename: copy.titleFilename,
+        titleFilenameStrategy,
+        trackNumber: formatTrackNumber(copy.trackNumber),
+      },
+      sourcePath: copy.sourcePath,
+    }
+  })
 
-  const duplicateDestinationEntries = [...duplicateDestinations.entries()].filter(([, filenames]) => filenames.length > 1)
-
-  if (duplicateDestinationEntries.length > 0) {
-    throw new UserInputError(`Multiple files resolve to the same destination: ${duplicateDestinationEntries
-      .map(([destinationPath, filenames]) => `${relative(destinationDirectory, destinationPath)} (${filenames.join(', ')})`)
-      .join('; ')}`)
-  }
-
+  assertUniqueOrganizationDestinations(plannedCopies, destinationDirectory)
   assertSingleAlbumDirectory(plannedCopies)
   assertSingleArtistPerAlbumDirectory(plannedCopies)
-
-  const albumDestinationPaths = [...new Set(plannedCopies.map(plannedCopy => dirname(plannedCopy.destinationPath)))]
-  const existingAlbumDestinations = await Promise.all(
-    albumDestinationPaths.map(async albumDestinationPath => ({
-      albumDestinationPath,
-      exists: await pathExists(albumDestinationPath),
-    })),
-  )
-  const conflictingAlbumDestinations = existingAlbumDestinations.filter(destination => destination.exists)
-
-  if (conflictingAlbumDestinations.length > 0) {
-    throw new UserInputError(`Destination album directories already exist: ${conflictingAlbumDestinations
-      .map(destination => relative(destinationDirectory, destination.albumDestinationPath))
-      .join(', ')}`)
-  }
-
-  const existingDestinations = await Promise.all(
-    plannedCopies.map(async plannedCopy => ({
-      exists: await pathExists(plannedCopy.destinationPath),
-      plannedCopy,
-    })),
-  )
-  const conflictingDestinations = existingDestinations.filter(destination => destination.exists)
-
-  if (conflictingDestinations.length > 0) {
-    throw new UserInputError(`Destination files already exist: ${conflictingDestinations
-      .map(destination => relative(destinationDirectory, destination.plannedCopy.destinationPath))
-      .join(', ')}`)
-  }
+  await assertOrganizationDestinationsAvailable(plannedCopies, destinationDirectory)
 
   if (options.execute === true) {
-    for (const plannedCopy of plannedCopies) {
-      await mkdir(dirname(plannedCopy.destinationPath), { recursive: true })
-      await copyFile(plannedCopy.sourcePath, plannedCopy.destinationPath)
-    }
+    await executeOrganizationCopies(plannedCopies)
   }
 
   return plannedCopies.map(plannedCopy => plannedCopy.row)

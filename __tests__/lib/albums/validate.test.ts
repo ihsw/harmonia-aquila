@@ -40,6 +40,8 @@ describe('validateAlbumSourceDir', () => {
       artistFilename: 'Artist',
       artistFilenameStrategy: 'artist',
       destination: 'Artist/Album/01 - Title.flac',
+      discNumber: '',
+      discTotal: '',
       filename: 'track01.flac',
       issues: [],
       status: 'valid',
@@ -64,7 +66,7 @@ describe('validateAlbumSourceDir', () => {
     }])
   })
 
-  it('marks duplicate organization destinations invalid', async () => {
+  it('requires disc numbers when track numbers repeat', async () => {
     await createTempFile(tempDir, 'track01.flac')
     await createTempFile(tempDir, 'track01-copy.flac')
     vi.mocked(parseFile).mockResolvedValue(
@@ -80,8 +82,8 @@ describe('validateAlbumSourceDir', () => {
 
     expect(rows).toHaveLength(2)
     expect(rows.map(row => row.status)).toEqual(['invalid', 'invalid'])
-    expect(rows[0]?.issues).toEqual(['duplicate destination: Artist/Album/01 - Title.flac'])
-    expect(rows[1]?.issues).toEqual(['duplicate destination: Artist/Album/01 - Title.flac'])
+    expect(rows[0]?.issues).toEqual(['missing disc number'])
+    expect(rows[1]?.issues).toEqual(['missing disc number'])
   })
 
   it('rejects sanitized album output names shared by multiple artists', async () => {

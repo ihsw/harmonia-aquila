@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "query": "query AlbumSummary($input: AlbumSummaryInput!) { albumSummarizeSourceDir(input: $input) { filename artist album title } }",
+        "query": "query AlbumSummary($input: AlbumSummaryInput!) { albumSummarizeSourceDir(input: $input) { filename artist album discNumber discTotal title } }",
         "variables": {
           "input": {
             "dirName": "{{graphqlAlbumDirName}}",

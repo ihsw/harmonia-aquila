@@ -98,4 +98,37 @@ describe('fix-tags', () => {
       ]),
     ).rejects.toThrow()
   })
+
+  it('accepts disc inference and outputs proposed disc fields', async () => {
+    await createTempFile(sourceDir, 'a.flac')
+    await createTempFile(sourceDir, 'b.flac')
+    mockParseFile
+      .mockResolvedValueOnce(makeAudioMetadata({ title: 'A', track: { no: 1, of: null } }))
+      .mockResolvedValueOnce(makeAudioMetadata({ title: 'B', track: { no: 1, of: null } }))
+
+    await makeProgram().parseAsync([
+      'node', 's', 'fix-tags',
+      '--source-dir', sourceDir,
+      '--dest-dir', destDir,
+      '--disc-strategy', 'infer',
+      '--format', 'json',
+    ])
+
+    const rows = JSON.parse(String(infoSpy.mock.calls[0]?.[0])) as FixTagsJsonOutput
+    expect(rows.map(row => row.newDiscNumber)).toEqual([1, 2])
+    expect(rows.map(row => row.newDiscTotal)).toEqual([2, 2])
+  })
+
+  it('rejects an invalid disc strategy', async () => {
+    vi.spyOn(process, 'exit').mockImplementation((): never => {
+      throw new Error('exit')
+    })
+
+    await expect(makeProgram().parseAsync([
+      'node', 's', 'fix-tags',
+      '--source-dir', sourceDir,
+      '--dest-dir', destDir,
+      '--disc-strategy', 'guess',
+    ])).rejects.toThrow('exit')
+  })
 })

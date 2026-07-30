@@ -24,11 +24,18 @@ describe('summarizeAlbumSourceDir', () => {
   it('returns metadata rows for supported audio files', async () => {
     await createTempFile(tempDir, 'track01.flac')
     vi.mocked(parseFile).mockResolvedValue(
-      makeAudioMetadata({ album: 'Album', artist: 'Artist', title: 'Title' }),
+      makeAudioMetadata({ album: 'Album', artist: 'Artist', disk: { no: 2, of: 3 }, title: 'Title' }),
     )
 
     const rows = await summarizeAlbumSourceDir({ dirName: tempDir })
 
-    expect(rows).toMatchObject([{ album: 'Album', artist: 'Artist', filename: 'track01.flac', title: 'Title' }])
+    expect(rows).toMatchObject([{
+      album: 'Album',
+      artist: 'Artist',
+      discNumber: '02',
+      discTotal: '03',
+      filename: 'track01.flac',
+      title: 'Title',
+    }])
   })
 })

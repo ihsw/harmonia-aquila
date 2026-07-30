@@ -26,6 +26,8 @@ query {
     filename
     artist
     album
+    discNumber
+    discTotal
     title
   }
 }
@@ -49,9 +51,13 @@ returns the proposed tag changes without writing files:
 
 ```graphql
 mutation {
-  albumFixTags(input: { albumStrategy: "grouping" }) {
+  albumFixTags(input: { discStrategy: "infer" }) {
     album
     artist
+    discNumber
+    discTotal
+    newDiscNumber
+    newDiscTotal
     title
   }
 }
@@ -61,6 +67,12 @@ mutation {
 `--scratch-dir`. `albumOrganizeFiles` defaults its output root to the configured
 `--source-dir`; set `useScratchDir: true` to select `--scratch-dir` instead.
 Neither mutation accepts a client-supplied root path.
+
+Disc inference is opt-in and uses filename order. A repeated or decreased
+track number starts the next disc. Review the dry-run values before passing
+`execute: true`. Validation and organization expose formatted disc fields;
+multi-disc organization places tracks below `Disc DD` while preserving the
+legacy single-disc path.
 
 `albumOrganizeFiles` accepts one normalized album directory per request. More
 than one album returns `BAD_USER_INPUT` with a message beginning

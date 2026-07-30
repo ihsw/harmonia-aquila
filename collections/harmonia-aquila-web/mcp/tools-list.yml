@@ -37,6 +37,9 @@ runtime:
           const validateTool = tools.find(
             (tool) => tool.name === "manage_albums_validate"
           );
+          const fixTagsTool = tools.find(
+            (tool) => tool.name === "manage_albums_fix_tags"
+          );
 
           expect(json).to.have.property("id", 101);
           expect(toolNames).to.eql([
@@ -62,6 +65,9 @@ runtime:
           expect(validateTool.inputSchema.required || []).to.not.include(
             "useScratchDir"
           );
+          expect(
+            fixTagsTool.inputSchema.properties.discStrategy
+          ).to.have.property("type", "string");
         });
   assertions:
     - expression: res.status

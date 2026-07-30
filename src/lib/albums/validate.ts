@@ -4,6 +4,11 @@ import pLimit from 'p-limit'
 
 import { getAudioFiles, parseLimit } from './audio-files.js'
 import {
+  formatDiscNumber,
+  isMultiDiscSet,
+  validateDiscSet,
+} from './disc-metadata.js'
+import {
   type ArtistFilenameStrategy,
   assertSingleAlbumDirectory,
   assertSingleArtistPerAlbumDirectory,
@@ -29,6 +34,8 @@ export interface ValidateAlbumSourceDirJsonOutputRow {
   artistFilename: string
   artistFilenameStrategy: ArtistFilenameStrategy
   destination: string
+  discNumber: string
+  discTotal: string
   filename: string
   issues: string[]
   status: 'invalid' | 'valid'
@@ -38,6 +45,13 @@ export interface ValidateAlbumSourceDirJsonOutputRow {
 }
 
 export type ValidateAlbumSourceDirJsonOutput = ValidateAlbumSourceDirJsonOutputRow[]
+
+interface ParsedValidationRow {
+  discNumber: number | null
+  discTotal: number | null
+  row: ValidateAlbumSourceDirJsonOutputRow
+  trackNumber: number | null
+}
 
 function getMissingIssues(
   album: string,
@@ -88,8 +102,8 @@ export async function validateAlbumSourceDir(options: ValidateAlbumSourceDirOpti
   )
   const filesToValidate = limit === undefined ? files : files.slice(0, limit)
   const parseMetadata = pLimit(16)
-  const rows = await Promise.all(
-    filesToValidate.map(file => parseMetadata(async (): Promise<ValidateAlbumSourceDirJsonOutputRow> => {
+  const parsedRows = await Promise.all(
+    filesToValidate.map(file => parseMetadata(async (): Promise<ParsedValidationRow> => {
       const metadata = await parseFile(resolve(targetDirectory, file.name))
       const album = metadata.common.album ?? ''
       const albumartist = metadata.common.albumartist ?? ''
@@ -101,6 +115,8 @@ export async function validateAlbumSourceDir(options: ValidateAlbumSourceDirOpti
       const subtitle = metadata.common.subtitle?.[0] ?? ''
       const titleFilename = titleFilenameStrategy === 'subtitle' ? subtitle : title
       const trackNumber = metadata.common.track.no
+      const discNumber = metadata.common.disk.no
+      const discTotal = metadata.common.disk.of
       const issues = getMissingIssues(
         album,
         artistFilename,
@@ -111,22 +127,60 @@ export async function validateAlbumSourceDir(options: ValidateAlbumSourceDirOpti
       )
 
       return {
-        album,
-        artistFilename,
-        artistFilenameStrategy,
-        destination: issues.length === 0 && trackNumber !== null
-          ? getAlbumDestination(artistFilename, album, trackNumber, titleFilename, file.name)
-          : '',
-        filename: file.name,
-        issues,
-        status: issues.length === 0 ? 'valid' : 'invalid',
-        titleFilename,
-        titleFilenameStrategy,
-        trackNumber: trackNumber === null ? '' : formatTrackNumber(trackNumber),
+        discNumber,
+        discTotal,
+        row: {
+          album,
+          artistFilename,
+          artistFilenameStrategy,
+          destination: '',
+          discNumber: formatDiscNumber(discNumber),
+          discTotal: formatDiscNumber(discTotal),
+          filename: file.name,
+          issues,
+          status: issues.length === 0 ? 'valid' : 'invalid',
+          titleFilename,
+          titleFilenameStrategy,
+          trackNumber: trackNumber === null ? '' : formatTrackNumber(trackNumber),
+        },
+        trackNumber,
       }
     })),
   )
+  const discRecords = parsedRows.map(parsed => ({
+    discNumber: parsed.discNumber,
+    discTotal: parsed.discTotal,
+    filename: parsed.row.filename,
+    trackNumber: parsed.trackNumber,
+  }))
 
+  for (const issue of validateDiscSet(discRecords)) {
+    for (const filename of issue.filenames) {
+      const row = parsedRows.find(parsed => parsed.row.filename === filename)?.row
+
+      if (row !== undefined && !row.issues.includes(issue.message)) {
+        row.issues.push(issue.message)
+        row.status = 'invalid'
+      }
+    }
+  }
+
+  const multiDisc = isMultiDiscSet(discRecords)
+
+  for (const parsed of parsedRows) {
+    if (parsed.row.status === 'valid' && parsed.trackNumber !== null) {
+      parsed.row.destination = getAlbumDestination(
+        parsed.row.artistFilename,
+        parsed.row.album,
+        parsed.trackNumber,
+        parsed.row.titleFilename,
+        parsed.row.filename,
+        { discNumber: parsed.discNumber, multiDisc },
+      )
+    }
+  }
+
+  const rows = parsedRows.map(parsed => parsed.row)
   addDuplicateDestinationIssues(rows)
   const outputIdentities = rows
     .filter(row => row.destination !== '')

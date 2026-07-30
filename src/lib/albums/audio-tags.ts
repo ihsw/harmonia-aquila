@@ -13,6 +13,8 @@ export interface AudioTagFix {
   album?: string
   albumArtists?: string[]
   artists?: string[]
+  discNumber?: number
+  discTotal?: number
   producers?: string[]
   title?: string
   trackNumber?: number
@@ -96,6 +98,14 @@ export function writeAudioTagFix(filePath: string, tagFix: AudioTagFix): void {
 
     if (tagFix.artists !== undefined) {
       audioFile.tag.performers = tagFix.artists
+    }
+
+    if (tagFix.discNumber !== undefined) {
+      audioFile.tag.disc = tagFix.discNumber
+    }
+
+    if (tagFix.discTotal !== undefined) {
+      audioFile.tag.discCount = tagFix.discTotal
     }
 
     if (tagFix.producers !== undefined) {

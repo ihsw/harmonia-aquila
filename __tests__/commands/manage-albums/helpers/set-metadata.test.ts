@@ -49,6 +49,59 @@ describe('set-metadata helper', () => {
     }])
   })
 
+  it.each([
+    {
+      contents: JSON.stringify([{
+        album: 'Album',
+        artist: 'Artist',
+        discNumber: 2,
+        discTotal: 3,
+        filename: 'track01.flac',
+        title: 'Title',
+        trackNumber: 1,
+      }]),
+      extension: 'json',
+    },
+    {
+      contents: 'filename,artist,album,trackNumber,title,discNumber,discTotal\ntrack01.flac,Artist,Album,1,Title,2,3',
+      extension: 'csv',
+    },
+  ])('parses optional disc metadata from $extension', async ({ contents, extension }) => {
+    const metadataPath = await createTempFile(tempDir, `metadata.${extension}`, contents)
+
+    await expect(parseSetMetadataFile(metadataPath)).resolves.toEqual([{
+      album: 'Album',
+      artist: 'Artist',
+      discNumber: 2,
+      discTotal: 3,
+      filename: 'track01.flac',
+      title: 'Title',
+      trackNumber: 1,
+    }])
+  })
+
+  it.each([
+    [{ discNumber: 0 }, 'invalid discNumber'],
+    [{ discNumber: 1.5 }, 'invalid discNumber'],
+    [{ discTotal: 2 }, 'discTotal without discNumber'],
+    [{ discNumber: 3, discTotal: 2 }, 'discNumber greater than discTotal'],
+  ])('rejects invalid disc metadata %j', async (discFields, message) => {
+    const metadataPath = await createTempFile(
+      tempDir,
+      'metadata.json',
+      JSON.stringify([{
+        album: 'Album',
+        artist: 'Artist',
+        filename: 'track01.flac',
+        title: 'Title',
+        trackNumber: 1,
+        ...discFields,
+      }]),
+    )
+
+    await expect(parseSetMetadataFile(metadataPath)).rejects.toThrow(message)
+  })
+
   it('rejects invalid metadata records with a useful message', async () => {
     const metadataPath = await createTempFile(
       tempDir,

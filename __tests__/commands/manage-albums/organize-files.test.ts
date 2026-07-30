@@ -58,6 +58,8 @@ describe('organize-files', () => {
     expect(rows[0]?.action).toBe('would copy')
     expect(rows[0]?.album).toBe('Test Album')
     expect(rows[0]?.artistFilename).toBe('Test Artist')
+    expect(rows[0]?.discNumber).toBe('')
+    expect(rows[0]?.discTotal).toBe('')
     expect(rows[0]?.titleFilename).toBe('Track One')
     expect(rows[0]?.trackNumber).toBe('01')
   })

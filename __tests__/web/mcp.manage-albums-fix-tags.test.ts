@@ -43,6 +43,7 @@ describe('web MCP manage-albums fix-tags tool', () => {
 
     expect(fixTagsTool?.description).toContain('manage_albums_list')
     expect(fixTagsTool?.inputSchema?.properties?.albumDir).toMatchObject({ type: 'string' })
+    expect(fixTagsTool?.inputSchema?.properties?.discStrategy).toMatchObject({ type: 'string' })
     expect(fixTagsTool?.inputSchema?.required).toContain('albumDir')
   })
 
@@ -52,6 +53,7 @@ describe('web MCP manage-albums fix-tags tool', () => {
 
     const response = await callTool(2, {
       albumDir: 'music/',
+      discStrategy: 'infer',
       limit: 3,
       setArtist: 'Artist',
       swapArtistAlbumartist: true,
@@ -59,6 +61,7 @@ describe('web MCP manage-albums fix-tags tool', () => {
 
     expect(fixAlbumTags).toHaveBeenCalledWith({
       destDir: currentTestApp.scratchDir,
+      discStrategy: 'infer',
       limit: '3',
       setArtist: 'Artist',
       sourceDir: `${currentTestApp.sourceDir}/music`,
@@ -91,6 +94,15 @@ describe('web MCP manage-albums fix-tags tool', () => {
     expect(getToolText(traversal)).toContain('--source-dir')
     expect(getToolText(invalid)).toContain('Invalid arguments')
     expect(fixAlbumTags).not.toHaveBeenCalled()
+  })
+
+  it('returns the domain error for an invalid disc strategy', async () => {
+    vi.mocked(fixAlbumTags).mockRejectedValue(new Error('--disc-strategy must be one of: no change, infer'))
+
+    const response = await callTool(8, { albumDir: 'music/', discStrategy: 'guess' })
+
+    expect(getToolText(response)).toContain('--disc-strategy')
+    expect(fixAlbumTags).toHaveBeenCalledWith(expect.objectContaining({ discStrategy: 'guess' }))
   })
 
   async function callTool(id: number, toolArguments: unknown) {

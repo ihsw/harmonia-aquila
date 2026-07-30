@@ -16,6 +16,12 @@ export class AlbumSummaryRow {
   public bitrate!: string
 
   @Field(() => String)
+  public discNumber!: string
+
+  @Field(() => String)
+  public discTotal!: string
+
+  @Field(() => String)
   public duration!: string
 
   @Field(() => String)
@@ -61,6 +67,12 @@ export class AlbumValidationRow {
   public destination!: string
 
   @Field(() => String)
+  public discNumber!: string
+
+  @Field(() => String)
+  public discTotal!: string
+
+  @Field(() => String)
   public filename!: string
 
   @Field(() => [String])
@@ -90,11 +102,23 @@ export class AlbumFixTagsRow {
   @Field(() => String)
   public artist!: string
 
+  @Field(() => Int, { nullable: true })
+  public discNumber?: number
+
+  @Field(() => Int, { nullable: true })
+  public discTotal?: number
+
   @Field(() => [String], { nullable: true })
   public newAlbumartists?: string[]
 
   @Field(() => [String], { nullable: true })
   public newArtists?: string[]
+
+  @Field(() => Int, { nullable: true })
+  public newDiscNumber?: number
+
+  @Field(() => Int, { nullable: true })
+  public newDiscTotal?: number
 
   @Field(() => String, { nullable: true })
   public newAlbum?: string
@@ -134,6 +158,12 @@ export class AlbumOrganizeFilesRow {
 
   @Field(() => String)
   public destination!: string
+
+  @Field(() => String)
+  public discNumber!: string
+
+  @Field(() => String)
+  public discTotal!: string
 
   @Field(() => String)
   public filename!: string
