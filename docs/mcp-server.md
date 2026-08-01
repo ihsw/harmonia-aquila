@@ -1,224 +1,200 @@
 # MCP server
 
-This document records the intended Model Context Protocol (MCP) server for
-Harmonia Aquila. The server exposes the same album and audiobook operations as
-the `manage-albums` and `manage-audiobooks` CLI supercommands.
+Harmonia Aquila exposes its album and audiobook operations through a scoped,
+stateless Streamable HTTP MCP endpoint. The endpoint is part of `web serve`; the
+repository does not provide a separate stdio MCP entrypoint.
 
-## Current scoped web endpoint
+## Start the server
 
-`web serve` also exposes a scoped Streamable HTTP endpoint at `/mcp`. That web
-endpoint exposes scoped album and audiobook tools matching the current
-`manage-albums` and `manage-audiobooks` functionality:
+Build the application and configure the three filesystem roots when starting
+the web server:
 
-| MCP tool | CLI command |
-| --- | --- |
-| `manage_albums_list` | `manage-albums list` |
-| `manage_albums_summarize_source_dir` | `manage-albums summarize-source-dir` |
-| `manage_albums_validate` | `manage-albums validate` |
-| `manage_albums_fix_tags` | `manage-albums fix-tags` |
-| `manage_albums_organize_files` | `manage-albums organize-files` |
-| `manage_audiobooks_validate` | `manage-audiobooks validate` |
-| `manage_audiobooks_crawl` | `manage-audiobooks crawl` |
-| `manage_audiobooks_copy_and_rename` | `manage-audiobooks copy-and-rename` |
-| `manage_audiobooks_convert_file` | `manage-audiobooks convert-file` |
-| `manage_audiobooks_merge` | `manage-audiobooks merge` |
-| `manage_audiobooks_set_metadata` | `manage-audiobooks set-metadata` |
-
-The web endpoint resolves source paths inside the configured `--source-dir` by
-default. Tools that document `useScratchDir` may instead resolve their input
-inside the configured `--scratch-dir`; clients cannot supply an arbitrary root.
-All audiobook and album organization destinations remain inside `--dest-dir`,
-and album tag-fix staging output remains inside `--scratch-dir`.
-
-`manage_albums_list` is read-only. It lists the configured source root by
-default; pass `useScratchDir: true` to list the configured scratch root. Its
-optional `prefix` selects the chosen root when empty, or a slash-terminated
-chosen-root-relative directory. The tool never accepts a client-supplied root.
-`manage_albums_organize_files` requires `albumDir`, a slash-terminated folder
-path returned by that list operation. It resolves the folder within the
-configured source root by default; pass `useScratchDir: true` to resolve it
-within the configured scratch root instead. Organization output always targets
-the configured destination root.
-`manage_albums_fix_tags` also requires a slash-terminated `albumDir` returned
-by `manage_albums_list`, resolves it within the configured source root, and
-always plans or writes output under the scratch root. Both tools reject
-arbitrary root overrides.
-
-`manage_albums_fix_tags` accepts optional `discStrategy: "infer"`. It splits
-filename-ordered tracks into strictly increasing runs and reports current and
-proposed disc number/total values without writing unless `execute: true` is
-explicit. Summary, validation, and organization rows expose disc metadata;
-multi-disc organization uses `Disc DD` subdirectories, while legacy
-single-disc destinations do not change.
-
-`manage_albums_validate` is read-only. It resolves `dirName` within the
-configured source root by default; pass `useScratchDir: true` to validate a
-directory within the configured scratch root. Omitted or `false` retains
-source-root behavior. Traversal outside the selected root is rejected before
-metadata validation, and the tool never accepts a client-supplied root.
-
-Validation and organization both accept one normalized album directory per
-tool call. Multiple albums produce tool-error content beginning
-`Multiple albums found:`; one album associated with multiple normalized artist
-directories remains an error. There is no bypass. `manage_albums_validate`
-remains read-only and returns no rows for either conflict.
-`manage_albums_organize_files` remains a dry run unless `execute: true` is
-explicit and checks both conflicts before destination inspection or writes.
-
-### Web server logging
-
-`web serve` writes newline-delimited Pino JSON records to stderr, leaving stdout
-and `/mcp` response bodies for CLI and protocol output. Records include server
-readiness, completed requests, and unexpected failures. Each response returns a
-safe `x-request-id` for correlating its records; request bodies, query strings,
-authorization and cookie headers, and client filesystem paths are not logged.
-
-The rest of this document describes a broader future stdio MCP server and should
-not be read as the current `web serve` tool surface.
-
-## Goals
-
-- Run as a separate MCP stdio process.
-- Keep the existing Commander CLI and its behavior unchanged.
-- Expose structured inputs and outputs rather than CLI arguments and console
-  output.
-- Preserve dry-run-first behavior and all existing validation, collision, and
-  source-preservation safeguards.
-
-## Server entrypoint and dependencies
-
-Add `@modelcontextprotocol/sdk` and `zod` dependencies, and create an MCP
-entrypoint such as `src/mcp/index.ts`. The entrypoint should create an MCP
-server, register the tools below, and connect through
-`StdioServerTransport`.
-
-Add a package script and, if distribution requires it, a separate executable:
-
-```json
-{
-  "scripts": {
-    "mcp": "node ./build/dist/mcp/index.js"
-  }
-}
+```sh
+npm run build
+npm run web:serve -- \
+  --source-dir /absolute/path/to/source \
+  --scratch-dir /absolute/path/to/scratch \
+  --dest-dir /absolute/path/to/destination \
+  --host 127.0.0.1 \
+  --port 3000
 ```
 
-The server must not share `src/index.ts`, which remains the Commander CLI
-entrypoint.
+Each root must be an existing directory. The MCP endpoint is
+`http://127.0.0.1:3000/mcp` and identifies itself as
+`harmonia-aquila-web` version `1.0.0`.
+
+The endpoint accepts `POST`. `GET /mcp` returns 405. Each POST creates and
+closes its own MCP server and Streamable HTTP transport, so clients do not need
+to manage an MCP session ID. Responses are JSON rather than an SSE stream.
+
+Requests should send these headers:
+
+```http
+Accept: application/json, text/event-stream
+Content-Type: application/json
+MCP-Protocol-Version: 2025-11-25
+```
+
+The protocol version is negotiated by `initialize`; the value above is the
+version exercised by the repository's integration and Bruno tests.
 
 ## Tool surface
 
-Register one MCP tool for every CLI subcommand.
+Tools are registered and discovered in this order:
 
-| MCP tool | CLI command |
-| --- | --- |
-| `album_summarize_source_dir` | `manage-albums summarize-source-dir` |
-| `album_fix_tags` | `manage-albums fix-tags` |
-| `album_organize_files` | `manage-albums organize-files` |
-| `audiobook_validate` | `manage-audiobooks validate` |
-| `audiobook_copy_and_rename` | `manage-audiobooks copy-and-rename` |
-| `audiobook_crawl` | `manage-audiobooks crawl` |
-| `audiobook_merge` | `manage-audiobooks merge` |
-| `audiobook_convert_file` | `manage-audiobooks convert-file` |
-| `audiobook_set_metadata` | `manage-audiobooks set-metadata` |
+| MCP tool | Equivalent CLI command | Read only |
+| --- | --- | --- |
+| `manage_albums_list` | `manage-albums list` | yes |
+| `manage_albums_summarize_source_dir` | `manage-albums summarize-source-dir` | yes |
+| `manage_albums_validate` | `manage-albums validate` | yes |
+| `manage_albums_fix_tags` | `manage-albums fix-tags` | no |
+| `manage_albums_organize_files` | `manage-albums organize-files` | no |
+| `manage_audiobooks_validate` | `manage-audiobooks validate` | yes |
+| `manage_audiobooks_crawl` | `manage-audiobooks crawl` | yes |
+| `manage_audiobooks_copy_and_rename` | `manage-audiobooks copy-and-rename` | no |
+| `manage_audiobooks_convert_file` | `manage-audiobooks convert-file` | no |
+| `manage_audiobooks_merge` | `manage-audiobooks merge` | no |
+| `manage_audiobooks_set_metadata` | `manage-audiobooks set-metadata` | no |
 
-Do not expose a generic command-execution tool. Tool schemas must be explicit
-and only permit the inputs supported by the corresponding operation.
+Discovery advertises `readOnlyHint: true` for read-only tools and
+`readOnlyHint: false` for the others. Write-capable tools remain dry runs unless
+`execute: true` is supplied; they do not currently advertise a
+`destructiveHint` annotation.
 
-## Input and output contracts
+## Configured roots and path confinement
 
-Use Zod schemas with native types:
+Clients select paths inside the roots supplied to `web serve`; they cannot
+replace those roots in tool input. Relative paths are resolved against the
+applicable root. Absolute paths are accepted only when they remain inside that
+root. Traversal and reachable symlink escapes are rejected before the domain
+operation runs.
 
-- Paths and metadata values are strings.
-- `limit`, `jobs`, and `concurrency` are positive or non-negative integers as
-  required by their current CLI validation.
-- Repeated `--file-name` values become a `fileNames: string[]` field.
-- CLI strategy values become enums:
-  `destinationStrategy`, `albumStrategy`, `albumArtistsStrategy`,
-  `discStrategy`, `producerStrategy`, `artistFilenameStrategy`, and
-  `titleFilenameStrategy`.
-- Omit the CLI-only `format` option. MCP responses always return structured
-  JSON-compatible data.
+| Tool | Input root | Output root |
+| --- | --- | --- |
+| `manage_albums_list` | source; scratch when `useScratchDir: true` | none |
+| `manage_albums_summarize_source_dir` | source | none |
+| `manage_albums_validate` | source; scratch when `useScratchDir: true` | none |
+| `manage_albums_fix_tags` | source | scratch |
+| `manage_albums_organize_files` | source; scratch when `useScratchDir: true` | destination |
+| `manage_audiobooks_validate` | source | none |
+| `manage_audiobooks_crawl` | source | none |
+| `manage_audiobooks_copy_and_rename` | source | destination |
+| `manage_audiobooks_convert_file` | source | destination |
+| `manage_audiobooks_merge` | the complete source root | destination |
+| `manage_audiobooks_set_metadata` | source | destination |
 
-Tool results should contain the same row objects currently emitted by each
-CLI command's `--format json` mode. A tool response may additionally provide
-a short text summary, but the row objects are the stable machine-readable
-result.
+`manage_albums_fix_tags.setMetadata` is a host filesystem path to a JSON or CSV
+metadata file. Unlike audio inputs, that auxiliary file path is not confined to
+one of the configured roots, so expose this local endpoint only to trusted
+clients.
 
-## Service extraction
+## Album tool contracts
 
-The current command registrations combine Commander option parsing, error
-reporting, console output, and operation logic. Extract each operation into a
-typed service function before registering it with MCP.
+`manage_albums_list` returns immediate entries as strings. Directory entries
+end in `/`; pass one of those slash-terminated paths as `albumDir` to the tag
+fix or organization tools. Use `./` when the album files are directly in the
+selected root, as they are after fix-tags stages files in scratch. A non-empty
+`prefix` must be a slash-terminated path relative to the selected root.
 
-Each service function should:
+| Tool | Required input | Optional input |
+| --- | --- | --- |
+| `manage_albums_list` | none | `prefix: string`, `useScratchDir: boolean` |
+| `manage_albums_summarize_source_dir` | `dirName: string` | `ignoreNonAudioFiles: boolean`, `limit: non-negative integer` |
+| `manage_albums_validate` | `dirName: string` | `artistFilenameStrategy: string`, `titleFilenameStrategy: string`, `ignoreNonAudioFiles: boolean`, `limit: non-negative integer`, `useScratchDir: boolean` |
+| `manage_albums_fix_tags` | `albumDir: string` ending in `/` | `albumArtistsStrategy`, `albumStrategy`, `destinationStrategy`, `producerStrategy`, `setAlbum`, `setAlbumArtist`, `setArtist`, `setMetadata`: strings; `execute`, `resetTrack`, `swapArtistAlbumartist`: booleans; `limit`: non-negative integer |
+| `manage_albums_organize_files` | `albumDir: string` ending in `/` | `artistFilenameStrategy`, `titleFilenameStrategy`: strings; `execute`, `ignoreAudioFilesWithoutTracks`, `ignoreNonAudioFiles`, `useScratchDir`: booleans; `limit`: non-negative integer |
 
-1. Accept validated native TypeScript options.
-2. Return the existing JSON-output row type.
-3. Throw normal, descriptive errors for invalid inputs and failed operations.
-4. Perform no console output.
+Strategy values are validated by the shared album operations. Defaults are
+`artist`, `title`, `error`, and `no change`, as applicable. MCP uses native
+numbers and booleans rather than CLI string encodings.
 
-The Commander command action remains as an adapter: parse its string options,
-call the service, and use `writeRows` to preserve current plaintext and JSON
-CLI behavior. The MCP handler validates its Zod input, calls the same service,
-and returns its rows as structured content. MCP handlers must not spawn the
-CLI executable.
+Album inspection, validation, tag fixing, and organization operate on one flat
+directory containing `.flac` and `.mp3` files. Non-audio files and
+subdirectories cause an error unless the operation exposes and receives
+`ignoreNonAudioFiles: true`.
 
-## Write safety
+Validation and organization accept only one normalized album directory per
+call. Multiple albums produce tool-error content beginning
+`Multiple albums found:`. One album associated with multiple normalized artist
+directories is also an error. Validation returns no rows for either conflict;
+organization checks both conflicts before destination inspection or writes.
+Missing metadata and exact duplicate destinations appear as invalid validation
+rows, while organization rejects them.
 
-The following tools are read-only:
+## Audiobook tool contracts
 
-- `album_summarize_source_dir`
-- `manage_albums_list`
-- `audiobook_validate`
-- `audiobook_crawl`
+| Tool | Required input | Optional input |
+| --- | --- | --- |
+| `manage_audiobooks_validate` | `fileName: string` | none |
+| `manage_audiobooks_crawl` | `dirName: string` | none |
+| `manage_audiobooks_copy_and_rename` | `fileName: string` | `execute: boolean` |
+| `manage_audiobooks_convert_file` | `fileName: non-empty string[]` | `author`, `narrator`, `title`: strings; `jobs`, `concurrency`: positive integers; `execute: boolean` |
+| `manage_audiobooks_merge` | none | `bypassMetadata`, `execute`: booleans; `jobs: positive integer` |
+| `manage_audiobooks_set_metadata` | `author`, `destFilepath`, `sourceFilepath`, `title`: non-empty strings | `narrator: string`, `execute: boolean` |
 
-All remaining tools can write files or metadata. Their `execute` input must
-default to `false`; the dry-run result must be returned unless a caller
-explicitly passes `execute: true`.
+Conversion defaults to `jobs: 16` and `concurrency: 4`; merge defaults to
+`jobs: 16`. Audiobook validation, copy/rename, crawl, and metadata setting
+retain their M4B and metadata requirements. Executed conversion and merge
+operations retain the existing Docker and `m4b-tool` behavior.
 
-Advertise read-only tools with MCP read-only annotations. Advertise all
-writing tools as destructive, including `audiobook_merge` and
-`audiobook_convert_file`, which invoke Docker and `m4b-tool` when executed.
-Continue to reject existing destinations and duplicate planned destinations.
-Never turn existing exclusive-copy or source-preservation behavior into
-overwrite behavior.
+## Results and errors
 
-## Operation-specific requirements
-
-- Album tools retain `.flac`/`.mp3` validation and the flat-source-directory
-  requirement. `ignoreNonAudioFiles` remains explicit.
-- Audiobook validation, copy/rename, crawl, and metadata setting retain their
-  M4B-only requirements and exact `Performer - Title.m4b` filename checks.
-- Merge and conversion retain `m4b-tool` job and concurrency limits, Docker
-  error propagation, metadata-derived destinations, and post-write M4B
-  validation.
-- `audiobook_set_metadata` continues to copy to a distinct destination and
-  validates written metadata before reporting success.
-
-## Client configuration
-
-After building, a client can launch the server over stdio with a configuration
-equivalent to:
+Successful `tools/call` results contain one text content item. Its text is a
+JSON-encoded array matching the equivalent CLI command's `--format json`
+rows:
 
 ```json
 {
-  "mcpServers": {
-    "harmonia-aquila": {
-      "command": "node",
-      "args": ["/absolute/path/to/harmonia-aquila/build/dist/mcp/index.js"]
+  "content": [
+    {
+      "type": "text",
+      "text": "[{\"action\":\"would copy\"}]"
     }
-  }
+  ]
 }
 ```
 
-The process's working directory and filesystem permissions determine which
-audio files it can inspect or modify. The MCP server should write protocol
-messages only to stdout; diagnostics belong on stderr.
+The server does not currently return MCP `structuredContent`; clients must
+parse `content[0].text` as JSON. Schema failures, path-confinement failures, and
+domain validation failures are returned through the MCP tool-error path and
+must not be treated as successful empty results.
+
+## Example request
+
+After initialization, a client can list tools with a regular JSON-RPC request:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/list",
+  "params": {}
+}
+```
+
+A safe album workflow is to call `manage_albums_list`, summarize and validate
+the selected source album, dry-run `manage_albums_fix_tags`, execute it into
+scratch, validate `dirName: "."` with `useScratchDir: true`, then dry-run and
+execute `manage_albums_organize_files` with `albumDir: "./"` and
+`useScratchDir: true`. Organization always writes to the configured destination
+root.
+
+## Exposure and logging
+
+The default host is `127.0.0.1`. Browser requests with an `Origin` header are
+accepted only for `localhost`, `127.0.0.1`, or IPv6 loopback origins; an absent
+`Origin` header is allowed. The endpoint has no authentication layer, so do not
+bind it to an untrusted network without adding an external access-control
+boundary.
+
+`web serve` writes newline-delimited Pino JSON records to stderr. Records
+include readiness, completed requests, and unexpected failures. Each response
+returns an `x-request-id` for correlation. Request bodies, query strings,
+authorization and cookie headers, and client filesystem paths are not logged.
 
 ## Verification
 
-Add tests that cover MCP initialization and tool discovery, then invoke each
-tool through the MCP client transport. Verify dry-run rows and validation
-errors for every tool. Use temporary directories for filesystem tests and
-mock or isolate Docker-backed merge/conversion tests so they do not require
-an image pull during the normal test suite.
+The protocol tests cover initialization, deterministic discovery, annotations,
+native schemas, root resolution, traversal rejection, domain option mapping,
+tool errors, and dry-run safety. The Bruno collection under
+`collections/harmonia-aquila-web/mcp/` exercises the built HTTP endpoint.
