@@ -1,4 +1,4 @@
-# Tasks: Allow Missing Disc Metadata
+# Tasks: Optional Disc Metadata with Explicit Inference
 
 > ## Hard constraints (re-read before starting)
 >
@@ -37,12 +37,13 @@
 
 ## Phase 2 — Shared disc policy
 
-### 2.1 Relax wholly absent metadata
+### 2.1 Lock optional and repeated-track policy
 
-- [ ] Update `src/lib/albums/disc-metadata.ts` so repeated track numbers alone
-      do not activate disc-number completeness (FR-1).
-- [ ] Make any explicit disc number or disc total activate completeness and
-      preserve the deterministic `missing disc number` issue (FR-3, FR-4).
+- [ ] Confirm or update `src/lib/albums/disc-metadata.ts` so unique-track sets
+      with wholly absent disc fields remain valid (FR-1).
+- [ ] Ensure repeated track numbers, any explicit disc number, or any disc
+      total activate completeness and preserve deterministic
+      `missing disc number` issues (FR-2, FR-5, FR-6).
 - [ ] Preserve numeric, total, continuity, duplicate-tuple, formatting,
       inference, and issue-order behavior (FR-6, NFR-6, NFR-9).
 - [ ] Run `npm run lint -- src/lib/albums/disc-metadata.ts` immediately after
@@ -50,7 +51,8 @@
 
 ### 2.2 Lock the validation matrix
 
-- [ ] Update focused pure tests so all-null `1, 2, 1, 2` is valid.
+- [ ] Preserve focused pure coverage that all-null `1, 2, 3` is valid and
+      all-null `1, 2, 1, 2` reports `missing disc number`.
 - [ ] Add partial-number and orphan-total cases that still report
       `missing disc number` deterministically.
 - [ ] Preserve invalid-number, inconsistent-total, gap, and duplicate-tuple
@@ -60,24 +62,28 @@
 
 ## Phase 3 — Organization and validation behavior
 
-### 3.1 Plan flat repeated-track albums
+### 3.1 Enforce explicit inference for repeated tracks
 
-- [ ] Add an organization dry-run fixture with repeated track numbers,
-      distinct titles, and no disc metadata; assert flat paths, empty disc
-      fields, deterministic ordering, and zero writes (FR-1, FR-2, FR-11).
-- [ ] Add or preserve an exact duplicate-destination case proving repeated
-      tracks do not bypass combined-plan preflight (FR-5).
+- [ ] Add an organization dry-run fixture with repeated track numbers and no
+      disc metadata; with omitted/default `discStrategy`, assert deterministic
+      missing-disc failure and zero writes (FR-2, FR-11).
+- [ ] Repeat the fixture with `discStrategy: "infer"`; assert inference runs
+      before validation and returns complete `Disc DD` rows (FR-3, FR-8).
+- [ ] Preserve a unique-track all-absent fixture with flat paths and empty disc
+      fields (FR-1, FR-4).
+- [ ] Add or preserve an exact duplicate-destination case after valid disc
+      validation, proving combined-plan preflight remains separate (FR-7).
 - [ ] Add partial disc evidence and orphan-total preflight-no-write cases.
 - [ ] Preserve complete two-disc and `discStrategy: "infer"` `Disc DD`
-      coverage, including metadata repairs and row fields (FR-6).
-- [ ] Cover selection-before-validation semantics for `limit` and trackless
-      filtering (FR-7).
+      coverage, including metadata repairs and row fields (FR-8).
+- [ ] Cover selection-before-inference/validation semantics for `limit` and
+      trackless filtering (FR-9).
 - [ ] Run per-file lint immediately after every modified TypeScript test.
 
 ### 3.2 Preserve the combined album-art plan
 
-- [ ] Assert recognized images remain after audio rows and target the flat
-      album root for an all-absent disc set (FR-8).
+- [ ] Assert recognized images remain after audio rows and target the album
+      root for both unique-track flat and inferred multi-disc sets (FR-10).
 - [ ] Assert dry run does not copy audio or images and failure does not alter
       destination content (FR-11).
 - [ ] Run per-file lint after each modified album-art test and run the focused
@@ -85,11 +91,13 @@
 
 ### 3.3 Align validation
 
-- [ ] Update validation tests so wholly absent repeated-track albums are not
-      invalid solely for missing disc metadata (FR-10).
+- [ ] Preserve validation tests proving wholly absent repeated-track albums are
+      invalid for missing disc metadata (FR-2).
+- [ ] Preserve unique-track all-absent validation success (FR-1).
 - [ ] Preserve duplicate-destination issues and strict partial-disc issues.
-- [ ] Assert organization and validation make the same absence/partial policy
-      decision for equivalent effective metadata.
+- [ ] Assert validation and default organization agree for unique, repeated,
+      and partial source metadata; separately assert explicit organization
+      inference makes a repeated sequence valid.
 - [ ] Run per-file lint after each modified validation test and run the focused
       validation group.
 
@@ -97,8 +105,10 @@
 
 ### 4.1 Preserve CLI behavior
 
-- [ ] Assert CLI JSON and plaintext dry runs expose the existing row shape,
-      flat destinations, and empty disc fields for wholly absent metadata.
+- [ ] Assert CLI JSON/plaintext preserves flat unique-track rows and that
+      repeated tracks fail without `--disc-strategy infer`.
+- [ ] Assert `--disc-strategy infer` returns existing inferred disc fields and
+      `Disc DD` destinations for a valid repeated sequence.
 - [ ] Confirm `--execute` remains required for writes and no new option is
       registered (FR-9, FR-11).
 - [ ] Run per-file lint after every CLI test edit and run the focused command
@@ -106,8 +116,9 @@
 
 ### 4.2 Preserve REST and GraphQL behavior
 
-- [ ] Add or update focused REST and GraphQL assertions for a successful
-      all-absent result and a strict partial-disc error.
+- [ ] Add or update focused REST and GraphQL assertions for successful
+      unique-track and explicitly inferred results plus repeated-track default
+      and partial-disc errors.
 - [ ] Preserve configured-root selection, dry-run defaults, status/error
       translation, GraphQL input/row fields, and `BAD_USER_INPUT` behavior.
 - [ ] Regenerate/check `schema.gql`; require no semantic schema delta.
@@ -116,8 +127,8 @@
 
 ### 4.3 Preserve MCP behavior
 
-- [ ] Parse and assert a successful all-absent organize result through the MCP
-      protocol-level test (FR-9).
+- [ ] Parse and assert successful unique-track and explicit-inference organize
+      results through the MCP protocol-level test (FR-11).
 - [ ] Preserve `manage_albums_organize_files` name, native input schema, tool
       order, annotations, configured-root confinement, and execute opt-in.
 - [ ] Preserve tool-error content for partial/invalid explicit disc metadata.
@@ -127,19 +138,20 @@
 
 ### 5.1 Update documentation and skill
 
-- [ ] Update active album organization guidance to explain the wholly absent
-      versus partial policy and the continued duplicate-path check (FR-12).
+- [ ] Update active album organization guidance to explain unique-track
+      optionality, repeated-track failure without inference, explicit
+      inference review, partial metadata, and duplicate-path checks (FR-12).
 - [ ] Update GraphQL, MCP, and testing docs only where they state or enumerate
       affected behavior/tests.
 - [ ] Update `.agents/skills/album-organization/SKILL.md` so missing disc
-      metadata alone is not treated as a blocker when it is absent everywhere,
-      while partial evidence and destination duplicates remain blockers.
+      metadata is accepted for unique tracks, while repeated tracks require
+      complete explicit metadata or reviewed `discStrategy: "infer"` output.
 - [ ] Leave historical specs unchanged.
 
 ### 5.2 Keep smoke requests safe
 
 - [ ] Update only affected REST, GraphQL, or MCP Bruno assertions if needed to
-      demonstrate the relaxed dry run.
+      demonstrate a unique-track dry run and explicit inference behavior.
 - [ ] Keep every request dry-run-only, confined to configured test roots, and
       free of host paths or execution flags.
 - [ ] Preserve traversal, root-override, invalid-strategy, metadata-repair,
@@ -151,8 +163,9 @@
 
 - [ ] Run every focused Vitest command from `design.md` §9 directly with
       `./node_modules/.bin/vitest run`; require exit 0.
-- [ ] Confirm coverage includes all-null repetitions, partial evidence, orphan
-      totals, exact destination duplicates, explicit/inferred multi-disc,
+- [ ] Confirm coverage includes unique all-null success, repeated all-null
+      default failure, repeated explicit-inference success, partial evidence,
+      orphan totals, exact destination duplicates, explicit multi-disc,
       selection, album art, source safety, and all public surfaces.
 
 ### 6.2 Run final repository checks

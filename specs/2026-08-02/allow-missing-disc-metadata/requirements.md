@@ -1,19 +1,20 @@
-# Requirements: Allow Missing Disc Metadata
+# Requirements: Optional Disc Metadata with Explicit Inference
 
 ## 1. Background
 
-The 2026-07-30 spec `add-album-disc-metadata` made repeated track numbers
-evidence of a multi-disc album. `validateDiscSet` therefore reports
-`missing disc number` for every selected track when any track number repeats,
-even when every source file omits both disc number and disc total. Because
-`manage-albums organize-files` runs this validation before destination
-planning, an otherwise organizable flat album cannot reach dry-run output.
+The 2026-07-30 spec `add-album-disc-metadata` allows disc metadata to be absent
+for a flat album whose selected track numbers are unique. It deliberately
+treats repeated track numbers as evidence of a multi-disc set: without disc
+numbers, `validateDiscSet` reports `missing disc number` before organization
+can plan ambiguous flat destinations.
 
-Disc metadata remains useful when it is present or deliberately inferred, but
-its complete absence should mean “organize as a flat album,” not “reject the
-album.” Existing destination collision checks can safely decide whether
-repeated track numbers actually create ambiguous output paths. This spec
-updates the shared policy so validation and organization remain consistent.
+Disc metadata must remain optional for ordinary flat albums, but repeated
+track numbers must not silently bypass disc identity. The supported escape is
+the existing explicit `discStrategy: "infer"` / `--disc-strategy infer`
+workflow, which projects disc numbers and totals from filename-ordered track
+boundaries before shared validation and destination planning. This spec locks
+that distinction across organization and validation rather than relaxing the
+repeated-track safeguard.
 
 This spec builds on `migrate-fix-tags-into-organize-files` and
 `copy-album-art-with-organize-files`: effective repaired metadata is validated
@@ -22,12 +23,13 @@ target the effective album root.
 
 ## 2. Goal
 
-`manage-albums organize-files` MUST accept an album when all selected audio
-files omit disc number and disc total, including albums with repeated track
-numbers. Such albums MUST use the existing flat `Artist/Album/TT - Title.ext`
-layout. Explicit or inferred disc metadata MUST retain the current completeness,
-validity, tuple, and `Disc DD` behavior, and ordinary duplicate-destination
-preflight MUST remain authoritative.
+`manage-albums organize-files` MUST accept missing disc number/total metadata
+when selected track numbers are unique and MUST use the existing flat
+`Artist/Album/TT - Title.ext` layout. Repeated track numbers without disc
+metadata MUST remain a validation error unless `discStrategy: "infer"` is
+explicitly selected and successfully produces complete effective disc
+metadata. Explicit and inferred disc sets MUST retain strict validation and
+`Disc DD` destinations.
 
 ## 3. Scope
 
@@ -57,45 +59,49 @@ preflight MUST remain authoritative.
 
 ## 4. Functional Requirements
 
-- **FR-1 — Absence is valid** When every selected audio row has
-  `discNumber = null` and `discTotal = null`, shared disc validation MUST NOT
-  report `missing disc number`, regardless of repeated track numbers.
-- **FR-2 — Flat destination** A set satisfying FR-1 MUST be treated as
-  non-multi-disc and MUST use `Artist/Album/TT - Title.ext`; its output rows
-  MUST retain empty formatted `discNumber` and `discTotal` values.
-- **FR-3 — Explicit evidence remains strict** If any selected row has a disc
+- **FR-1 — Optional for unique tracks** When every selected audio row has
+  `discNumber = null` and `discTotal = null` and all present track numbers are
+  unique, shared disc validation MUST NOT report `missing disc number`.
+- **FR-2 — Repeated-track safeguard** When a selected track number repeats and
+  effective disc numbers remain absent, validation and organization MUST
+  report deterministic `missing disc number` issues and MUST NOT plan or write
+  destinations.
+- **FR-3 — Explicit inference exception** `discStrategy: "infer"` (CLI:
+  `--disc-strategy infer`) MUST run before disc-set validation; when inference
+  succeeds, its complete effective disc numbers/totals MUST resolve the
+  missing-disc condition before validation and produce the existing multi-disc
+  plan. Omitted/default `no change` MUST NOT infer or suppress the error.
+- **FR-4 — Flat destination** A set satisfying FR-1 MUST be treated as
+  non-multi-disc and MUST use `Artist/Album/TT - Title.ext`; output rows MUST
+  retain empty formatted `discNumber` and `discTotal` values.
+- **FR-5 — Explicit evidence remains strict** If any selected row has a disc
   number or disc total, every selected row MUST have a valid positive disc
   number, and existing completeness, total, continuity, and
   `(discNumber, trackNumber)` validation MUST remain in force.
-- **FR-4 — Orphan totals** A present disc total without a disc number MUST
+- **FR-6 — Orphan totals** A present disc total without a disc number MUST
   produce the existing deterministic `missing disc number` issue and MUST NOT
   create a mixed flat/`Disc DD` plan.
-- **FR-5 — Destination uniqueness** Repeated track numbers without disc
-  metadata MAY organize only when their complete planned destination paths are
-  unique; exact duplicate destinations MUST retain the existing deterministic
-  preflight error before any write.
-- **FR-6 — Multi-disc parity** Complete explicit disc metadata and metadata
+- **FR-7 — Destination uniqueness** Exact duplicate destinations MUST retain
+  the existing deterministic preflight error before any write; this remains a
+  separate guard after disc validation and MUST NOT replace FR-2.
+- **FR-8 — Multi-disc parity** Complete explicit disc metadata and metadata
   produced by `discStrategy: "infer"` MUST preserve current `Disc DD`
   destinations, formatted row fields, metadata repairs, and write verification.
-- **FR-7 — Selection semantics** `limit` and
+- **FR-9 — Selection semantics** `limit` and
   `ignoreAudioFilesWithoutTracks` MUST continue to select audio rows before
-  disc-set validation; FR-1–FR-6 MUST apply only to the selected rows.
-- **FR-8 — Combined plan parity** Album-art discovery, ordering, album-root
+  inference/validation; repeated-track decisions MUST apply only to selected
+  rows.
+- **FR-10 — Combined plan parity** Album-art discovery, ordering, album-root
   placement, collision handling, and execution MUST remain unchanged for flat
   and explicit multi-disc albums.
-- **FR-9 — Surface parity** CLI, REST, GraphQL, and MCP MUST expose the shared
+- **FR-11 — Surface parity and source safety** CLI, REST, GraphQL, and MCP MUST expose the shared
   result and error behavior without new inputs or output fields; dry run MUST
-  remain the default and execution MUST remain explicit.
-- **FR-10 — Validation parity** `manage-albums validate` MUST use the same
-  absence policy as organization, so an all-absent repeated-track set is not
-  marked invalid solely for missing disc metadata while partial disc evidence
-  remains invalid.
-- **FR-11 — Source safety** Dry run and failed preflight MUST NOT modify source
-  audio, source images, destination content, or ignored sidecars.
+  remain the default, execution MUST remain explicit, and failed
+  inference/validation MUST NOT modify source or destination content.
 - **FR-12 — Documentation** Active guidance MUST explain that disc metadata is
-  optional only when wholly absent, repeated track numbers remain subject to
-  destination uniqueness, and explicit/inferred multi-disc metadata remains
-  strict.
+  optional for unique-track flat albums; repeated tracks require complete
+  explicit metadata or successful opt-in inference; inference is never the
+  default; and destination collision checks remain in force afterward.
 
 ## 5. Non-Functional Requirements
 
@@ -123,16 +129,17 @@ preflight MUST remain authoritative.
 
 ## 6. Acceptance Criteria
 
-1. Pure validation accepts tracks `1, 2, 1, 2` when every disc field is null.
-2. Organization dry-run returns flat audio rows for repeated track numbers
-   with distinct titles and empty disc fields, without writes.
-3. Two all-absent rows that resolve to the same complete destination still
-   fail duplicate-destination preflight before writes.
+1. Pure validation accepts unique tracks `1, 2, 3` when every disc field is
+   null and rejects all-null `1, 2, 1, 2` with `missing disc number`.
+2. Organization with repeated track numbers and omitted/default
+   `discStrategy` fails before destination inspection or writes.
+3. The same filename-ordered repeated sequence with `discStrategy: "infer"`
+   produces complete effective disc metadata and `Disc 01`/`Disc 02` rows.
 4. A partial set, an orphan disc total, invalid numbers, inconsistent totals,
    gaps, and duplicate disc/track tuples retain deterministic failures.
-5. A complete two-disc set and `discStrategy: "infer"` retain `Disc 01` and
-   `Disc 02` plans and execution behavior.
+5. Unique-track all-absent albums retain flat destinations; exact duplicate
+   destination preflight remains unchanged after valid disc checks.
 6. Validation, CLI, REST, GraphQL, and MCP regression tests demonstrate the
-   same all-absent/partial behavior without contract changes.
+   same unique/repeated/inferred behavior without contract changes.
 7. Focused tests, final `npm run lint`, `npm run build`, and `npm test` pass;
    scope and media-tree audits are clean.
