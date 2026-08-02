@@ -17,9 +17,7 @@ http:
           "name": "manage_albums_organize_files",
           "arguments": {
             "albumDir": "{{albumOrganizeDir}}",
-            "ignoreNonAudioFiles": true,
-            "limit": 0,
-            "setAlbum": "Reviewed Album"
+            "ignoreNonAudioFiles": true
           }
         }
       }
@@ -44,6 +42,13 @@ runtime:
 
           expect(json).to.have.property("id", 105);
           expect(rows).to.be.an("array");
+          expect(rows.every((row) => ["audio", "albumArt"].includes(row.fileType))).to.eql(true);
+          expect(rows).to.deep.include({
+            action: "would copy",
+            destination: "Disasterpeace/Hyper Light Drifter/cover.png",
+            fileType: "albumArt",
+            filename: "cover.png"
+          });
         });
   assertions:
     - expression: res.status

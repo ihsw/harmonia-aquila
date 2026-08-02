@@ -11,7 +11,7 @@ variables:
   - name: scratchAlbumEntry
     value: albums/
   - name: albumOrganizeDir
-    value: albums/2-fixed-tag-files/
+    value: albums/1-source-files/Disasterpeace/Hyper Light Drifter/
   - name: ignoreNonAudioFiles
     value: 'true'
   - name: traversalDirName

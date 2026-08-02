@@ -105,10 +105,12 @@ Strategy values are validated by the shared album operations. Defaults are
 `artist`, `title`, `error`, and `no change`, as applicable. MCP uses native
 numbers and booleans rather than CLI string encodings.
 
-Album inspection, validation, tag fixing, and organization operate on one flat
-directory containing `.flac` and `.mp3` files. Non-audio files and
-subdirectories cause an error unless the operation exposes and receives
-`ignoreNonAudioFiles: true`.
+Album inspection and validation operate on one flat directory containing
+`.flac` and `.mp3` files. Organization additionally accepts direct regular
+`.avif`, `.bmp`, `.gif`, `.jpeg`, `.jpg`, `.png`, `.tif`, `.tiff`, and `.webp`
+files case-insensitively. It emits `audio` and `albumArt` `fileType` rows and
+places art at the effective album root. Other sidecars, subdirectories, and
+symlinks cause an error unless `ignoreNonAudioFiles: true` is supplied.
 
 Validation and organization accept only one normalized album directory per
 call. Multiple albums produce tool-error content beginning
@@ -145,7 +147,7 @@ rows:
   "content": [
     {
       "type": "text",
-      "text": "[{\"action\":\"would copy\"}]"
+      "text": "[{\"action\":\"would copy\",\"destination\":\"Artist/Album/cover.jpg\",\"fileType\":\"albumArt\",\"filename\":\"cover.jpg\"}]"
     }
   ]
 }
@@ -171,10 +173,12 @@ After initialization, a client can list tools with a regular JSON-RPC request:
 
 A safe album workflow is to call `manage_albums_list`, summarize and validate
 the selected album, then dry-run `manage_albums_organize_files` with any needed
-metadata repair options. Review both `tagChanges` and destination fields before
+metadata repair options. Review every `fileType`, `tagChanges`, and destination
+field, including adjacent art at the album root, before
 repeating the identical input with `execute: true`. Organization repairs a
 temporary copy before publishing to the configured destination root and never
-changes source audio.
+changes source audio or images. Collision preflight and the selected destination
+strategy apply to the combined audio-and-art plan.
 
 ## Exposure and logging
 

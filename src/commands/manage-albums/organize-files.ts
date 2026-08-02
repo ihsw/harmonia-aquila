@@ -13,8 +13,8 @@ export type { OrganizeFilesJsonOutput, OrganizeFilesJsonOutputRow } from '../../
 export function registerOrganizeFilesCommand(program: Command): void {
   const organizeFilesCommand = program
     .command('organize-files')
-    .description('Copy one album per run into ArtistName/AlbumName/TrackNumber - Title.ext; fail for multiple albums or artists')
-    .requiredOption('--source-dir <sourceDir>', 'directory containing FLAC and MP3 files to organize')
+    .description('Repair and organize one album per run plus adjacent album art; fail for multiple albums or artists')
+    .requiredOption('--source-dir <sourceDir>', 'directory containing FLAC/MP3 album files and optional album art')
     .requiredOption('--dest-dir <destDir>', 'directory to copy organized files into')
     .option('--limit <count>', 'maximum number of files to copy')
     .option('--destination-strategy <strategy>', 'what to do when a destination file exists: error, ignore, overwrite', 'error')
@@ -53,7 +53,7 @@ export function registerOrganizeFilesCommand(program: Command): void {
         outputRows,
         options.execute === true
           ? undefined
-          : 'Dry run: no files were copied or changed. Pass --execute to repair and organize files.',
+          : 'Dry run: no files were copied or changed. Pass --execute to repair metadata and organize audio plus album art.',
       )
     })
 }

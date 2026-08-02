@@ -7,13 +7,17 @@ import { UserInputError } from '../errors.js'
 const SUPPORTED_AUDIO_EXTENSIONS = ['.flac', '.mp3'] as const
 const SUPPORTED_AUDIO_EXTENSION_SET = new Set<string>(SUPPORTED_AUDIO_EXTENSIONS)
 const SUPPORTED_AUDIO_EXTENSIONS_DISPLAY = SUPPORTED_AUDIO_EXTENSIONS.join(', ')
+const SUPPORTED_ALBUM_ART_EXTENSIONS = ['.avif', '.bmp', '.gif', '.jpeg', '.jpg', '.png', '.tif', '.tiff', '.webp'] as const
+const SUPPORTED_ALBUM_ART_EXTENSION_SET = new Set<string>(SUPPORTED_ALBUM_ART_EXTENSIONS)
 
 export interface AudioFilesResult {
+  albumArtFiles: Dirent[]
   files: Dirent[]
   targetDirectory: string
 }
 
 export interface GetAudioFilesOptions {
+  acceptAlbumArt?: boolean
   ignoreNonAudioFiles?: boolean
 }
 
@@ -25,8 +29,20 @@ export function isSupportedAudioExtension(extension: string): boolean {
   return SUPPORTED_AUDIO_EXTENSION_SET.has(extension.toLowerCase())
 }
 
+export function getSupportedAlbumArtExtensions(): readonly string[] {
+  return SUPPORTED_ALBUM_ART_EXTENSIONS
+}
+
+export function isSupportedAlbumArtExtension(extension: string): boolean {
+  return SUPPORTED_ALBUM_ART_EXTENSION_SET.has(extension.toLowerCase())
+}
+
 function isSupportedAudioFile(file: Dirent): boolean {
   return file.isFile() && isSupportedAudioExtension(extname(file.name))
+}
+
+function isSupportedAlbumArtFile(file: Dirent): boolean {
+  return file.isFile() && isSupportedAlbumArtExtension(extname(file.name))
 }
 
 export async function getAudioFiles(dirName: string, options: GetAudioFilesOptions = {}): Promise<AudioFilesResult> {
@@ -39,7 +55,10 @@ export async function getAudioFiles(dirName: string, options: GetAudioFilesOptio
 
   const directoryEntries = await readdir(targetDirectory, { withFileTypes: true })
   const files = directoryEntries.filter(isSupportedAudioFile)
-  const invalidFiles = directoryEntries.filter(file => !isSupportedAudioFile(file))
+  const albumArtFiles = options.acceptAlbumArt === true ? directoryEntries.filter(isSupportedAlbumArtFile) : []
+  const invalidFiles = directoryEntries.filter((file) => {
+    return !isSupportedAudioFile(file) && !(options.acceptAlbumArt === true && isSupportedAlbumArtFile(file))
+  })
 
   if (options.ignoreNonAudioFiles !== true && invalidFiles.length > 0) {
     throw new UserInputError(
@@ -49,7 +68,7 @@ export async function getAudioFiles(dirName: string, options: GetAudioFilesOptio
     )
   }
 
-  return { files, targetDirectory }
+  return { albumArtFiles, files, targetDirectory }
 }
 
 export function parseLimit(limitOption: string | undefined): number | undefined {

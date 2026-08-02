@@ -43,7 +43,7 @@ export function createManageAlbumsOrganizeFilesTool(
       annotations: {
         readOnlyHint: false,
       },
-      description: 'Plan metadata repairs and organize a source or scratch album returned by manage_albums_list into the configured destination.',
+      description: 'Plan metadata repairs and organize audio plus adjacent album art from manage_albums_list into the configured destination.',
       inputSchema: manageAlbumsOrganizeFilesInputSchema,
       title: 'Manage albums organize files',
     },

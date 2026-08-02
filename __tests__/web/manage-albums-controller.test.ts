@@ -73,9 +73,12 @@ describe('album web controller', () => {
   })
 
   it('maps organize options with dry-run and destination defaults', async () => {
-    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+    const artRows = [{
+      action: 'would copy', destination: 'Artist/Album/cover.jpg', fileType: 'albumArt', filename: 'cover.jpg',
+    }] as const
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([...artRows])
 
-    await controller.organizeFiles({})
+    const result = await controller.organizeFiles({})
     await controller.organizeFiles({ useScratchDir: true })
 
     expect(organizeAlbumFiles).toHaveBeenNthCalledWith(1, {
@@ -84,6 +87,7 @@ describe('album web controller', () => {
     expect(organizeAlbumFiles).toHaveBeenNthCalledWith(2, {
       destDir: roots.scratchDir, sourceDir: roots.sourceDir,
     })
+    expect(result).toEqual(artRows)
   })
 
   it('maps metadata repair fields through organize-files', async () => {

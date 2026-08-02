@@ -36,13 +36,13 @@ describe('organize-files metadata repair', () => {
       track: { no: 1, of: null },
     }))
 
-    const rows = await organizeAlbumFiles({
+    const rows = (await organizeAlbumFiles({
       artistFilenameStrategy: 'albumartist',
       destDir,
       setAlbum: 'New Album',
       setAlbumArtist: 'Various Artists',
       sourceDir,
-    })
+    })).filter(row => row.fileType === 'audio')
 
     expect(rows[0]).toMatchObject({
       action: 'would copy',

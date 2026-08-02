@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "query": "mutation AlbumOrganizeFiles($input: AlbumOrganizeFilesInput!) { albumOrganizeFiles(input: $input) { action filename tagChanges { newAlbum } } }",
+        "query": "mutation AlbumOrganizeFiles($input: AlbumOrganizeFilesInput!) { albumOrganizeFiles(input: $input) { action destination fileType filename tagChanges { newAlbum } } }",
         "variables": {
           "input": {
             "ignoreNonAudioFiles": true,
@@ -33,6 +33,7 @@ runtime:
           expect(res.getStatus()).to.eql(200);
           expect(json).to.not.have.property("errors");
           expect(json).to.have.nested.property("data.albumOrganizeFiles").that.is.an("array");
+          expect(json.data.albumOrganizeFiles.every((row) => ["audio", "albumArt"].includes(row.fileType))).to.eql(true);
         });
   assertions:
     - expression: res.status

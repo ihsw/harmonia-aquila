@@ -7,6 +7,7 @@ import {
 } from '../../commands/manage-albums/helpers/set-metadata.js'
 import { getErrorMessage, UserInputError } from '../errors.js'
 
+import { planAlbumArtCopies } from './album-art-planner.js'
 import { getAudioFiles, parseLimit } from './audio-files.js'
 import { normalizeMetadataFixOptions } from './metadata-fix-options.js'
 import { planMetadataFixes } from './metadata-fix-planner.js'
@@ -43,9 +44,9 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
   const limit = parseLimit(options.limit)
   const normalized = normalizeMetadataFixOptions(options)
   const records = await readSetMetadata(normalized.setMetadata)
-  const { files, targetDirectory: sourceDirectory } = await getAudioFiles(
+  const { albumArtFiles, files, targetDirectory: sourceDirectory } = await getAudioFiles(
     options.sourceDir,
-    { ignoreNonAudioFiles: options.ignoreNonAudioFiles === true },
+    { acceptAlbumArt: true, ignoreNonAudioFiles: options.ignoreNonAudioFiles === true },
   )
   const selectedFiles = (limit === undefined ? files : files.slice(0, limit)).map(file => file.name)
   let recordsByFilename: Map<string, SetMetadataRecord> | undefined
@@ -61,7 +62,15 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
   const sources = await parseAlbumSources(sourceDirectory, selectedFiles)
   const fixes = planMetadataFixes(sources, recordsByFilename, normalized)
   const destinationDirectory = resolve(options.destDir)
-  const planned = planOrganizationCopies(fixes, options, destinationDirectory)
+  const audioPlans = planOrganizationCopies(fixes, options, destinationDirectory)
+  const albumArtPlans = planAlbumArtCopies(
+    albumArtFiles,
+    sourceDirectory,
+    destinationDirectory,
+    audioPlans,
+    options.execute === true,
+  )
+  const planned = [...audioPlans, ...albumArtPlans]
 
   await prepareOrganizationDestinations(
     planned,

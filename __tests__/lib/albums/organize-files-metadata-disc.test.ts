@@ -31,7 +31,8 @@ describe('organize-files repaired disc metadata', () => {
       .mockResolvedValueOnce(metadata('Three', 1))
       .mockResolvedValueOnce(metadata('Four', 2))
 
-    const rows = await organizeAlbumFiles({ destDir, discStrategy: 'infer', sourceDir })
+    const rows = (await organizeAlbumFiles({ destDir, discStrategy: 'infer', sourceDir }))
+      .filter(row => row.fileType === 'audio')
 
     expect(rows.map(row => [row.destination, row.tagChanges.newDiscNumber, row.tagChanges.newDiscTotal]))
       .toEqual([

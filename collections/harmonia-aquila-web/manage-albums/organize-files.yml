@@ -30,6 +30,7 @@ runtime:
 
           expect(json).to.be.an("array");
           expect(json).to.have.length(0);
+          expect(json.every((row) => ["audio", "albumArt"].includes(row.fileType))).to.eql(true);
         });
   assertions:
     - expression: res.status

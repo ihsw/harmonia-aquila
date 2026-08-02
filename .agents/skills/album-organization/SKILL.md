@@ -11,8 +11,10 @@ stage repaired files or call a separate tag-fixing operation.
 
 ## Establish the boundary
 
-Work on one album-sized flat directory at a time. Album operations support
-`.flac` and `.mp3`; reject subdirectories and sidecars unless
+Work on one album-sized flat directory at a time. Album audio supports `.flac`
+and `.mp3`. During organization, direct regular `.avif`, `.bmp`, `.gif`,
+`.jpeg`, `.jpg`, `.png`, `.tif`, `.tiff`, and `.webp` files are treated as
+album art. Reject other sidecars, subdirectories, and symlinks unless
 `ignoreNonAudioFiles` is deliberately enabled. Keep ambiguous duplicates in
 quarantine rather than deleting them.
 
@@ -63,19 +65,22 @@ are strings. MCP uses native booleans and non-negative integers. MCP
 5. Dry-run `organize-files` once with every required repair and filename option.
    It parses each source once, projects the repaired metadata, and plans the
    final destination from that effective metadata without writing.
-6. Review every row. Confirm `tagChanges`, effective album/artist/track/disc
-   fields, filename strategies, action, and destination. Require one selected
-   row per intended track and unique, collision-free destinations.
+6. Review every row. Confirm `fileType`, action, and destination. For `audio`
+   rows, also confirm `tagChanges`, effective album/artist/track/disc fields,
+   and filename strategies. For `albumArt` rows, confirm each recognized source
+   image appears once at the effective album root, never under `Disc DD`.
 7. Repeat the identical request with only `execute`/`--execute` added. Execution
    repairs a temporary copy, verifies it, and publishes it at the organized
-   destination; it never changes source audio.
+   destination. Images are staged and published without metadata writes. It
+   never changes source audio or images.
 8. Re-list, summarize, or validate the organized output when the chosen
    interface exposes that root. Retain the dry-run and execution rows as audit
    evidence and require parity apart from the action changing from
    `would copy` to `copied`.
 
 Never use `limit` for final validation or execution because it can hide
-conflicts. Keep `destinationStrategy` at `error` unless the user has reviewed
+conflicts. The limit selects audio only; art is planned only when at least one
+audio row survives. Keep `destinationStrategy` at `error` unless the user has reviewed
 the exact destination file. `ignore` and `overwrite` apply only to exact files;
 they are not duplicate-resolution or album-directory cleanup tools.
 
@@ -166,6 +171,7 @@ mutation DryRunOrganize {
     useScratchDir: true
   }) {
     action
+    fileType
     filename
     album
     artistFilename
@@ -196,6 +202,6 @@ destination root. Treat tool-error content as failure, including path, schema,
 metadata conflict, duplicate, collision, and multiple-album/artist errors.
 
 The desired outcome is one reviewed operation that produces one selected copy
-of every track, applies the approved metadata repairs only to destination
-copies, and publishes a collision-free album whose execution matches its dry
-run.
+of every track and recognized adjacent image, applies approved metadata repairs
+only to destination audio copies, and publishes collision-free audio plus album
+art whose execution matches its dry run.

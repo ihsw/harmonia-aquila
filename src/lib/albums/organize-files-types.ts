@@ -17,19 +17,28 @@ export type OrganizationAction
     | 'would ignore'
     | 'would overwrite'
 
-export interface OrganizeFilesJsonOutputRow {
+export interface OrganizeFilesSharedJsonOutputRow {
   action: OrganizationAction
+  destination: string
+  fileType: 'albumArt' | 'audio'
+  filename: string
+}
+
+export interface OrganizeFilesAudioJsonOutputRow extends OrganizeFilesSharedJsonOutputRow {
   album: string
   artistFilename: string
   artistFilenameStrategy: ArtistFilenameStrategy
-  destination: string
   discNumber: string
   discTotal: string
-  filename: string
+  fileType: 'audio'
   tagChanges: MetadataFixJsonOutputRow
   titleFilename: string
   titleFilenameStrategy: TitleFilenameStrategy
   trackNumber: string
+}
+
+export interface OrganizeFilesAlbumArtJsonOutputRow extends OrganizeFilesSharedJsonOutputRow {
+  fileType: 'albumArt'
 }
 
 export interface OrganizeFilesOptions extends MetadataFixOptions {
@@ -43,6 +52,7 @@ export interface OrganizeFilesOptions extends MetadataFixOptions {
   titleFilenameStrategy?: string
 }
 
+export type OrganizeFilesJsonOutputRow = OrganizeFilesAlbumArtJsonOutputRow | OrganizeFilesAudioJsonOutputRow
 export type OrganizeFilesJsonOutput = OrganizeFilesJsonOutputRow[]
 
 export interface PlannedOrganizationCopy {
@@ -52,5 +62,5 @@ export interface PlannedOrganizationCopy {
   destinationStrategy: DestinationStrategy
   row: OrganizeFilesJsonOutputRow
   sourcePath: string
-  tagFix: AudioTagFix
+  tagFix?: AudioTagFix
 }

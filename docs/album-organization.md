@@ -28,6 +28,15 @@ metadata and exact duplicate destinations, but before artist conflicts,
 destination inspection, or copying. Treat either result as a metadata or
 source-selection issue: there is no bypass, split, or automatic selection.
 
+Direct regular image files beside the album audio are included in the same
+plan when their extensions are `.avif`, `.bmp`, `.gif`, `.jpeg`, `.jpg`,
+`.png`, `.tif`, `.tiff`, or `.webp` (case-insensitive). Image rows have
+`fileType: "albumArt"` and target the effective `Artist/Album` root, including
+for multi-disc albums; audio rows have `fileType: "audio"`. Other sidecars,
+directories, and symlinks remain errors unless `--ignore-non-audio-files` is
+explicit. Collision strategy and preflight cover the combined audio-and-art
+plan before execution writes anything.
+
 Run `manage-albums validate` before organization. Validation applies the same
 one-album-per-run and album-to-artist collision rules, so successful validation
 cannot hide a layout conflict that `organize-files` would reject. Rows without
@@ -66,7 +75,7 @@ Use each candidate's listed dry-run mode. Candidates promoted from sidecar folde
 - Executable candidates: 7
 - Blocked candidates: 34
 
-This spec covers the current OC ReMix-style source folders in `etc/1-source-files`. Run every listed dry-run with `--ignore-non-audio-files --artist-filename-strategy albumartist`, execute only candidates that resolve under `OverClocked ReMix/`, and copy each candidate's `albumArt.likelyAlbumArtFiles` into the resolved destination album folder after the audio copy succeeds. MP3/mp3s alternates are blocked when a FLAC/flacs source resolves to the same destination; same-quality FLAC disc folders that collapse into the same `OverClocked ReMix/<Album>` destination are blocked until multi-disc merge handling is designed; Blood on the Asphalt, Chrono Symphonic, and Super Metroid entries remain blocked until metadata is repaired.
+This spec covers the current OC ReMix-style source folders in `etc/1-source-files`. Run every listed dry-run with `--ignore-non-audio-files --artist-filename-strategy albumartist`, and execute only candidates that resolve under `OverClocked ReMix/`. Its historical manual album-art copy step is obsolete: recognized adjacent images now appear in and execute with the combined organization plan. MP3/mp3s alternates are blocked when a FLAC/flacs source resolves to the same destination; same-quality FLAC disc folders that collapse into the same `OverClocked ReMix/<Album>` destination are blocked until multi-disc merge handling is designed; Blood on the Asphalt, Chrono Symphonic, and Super Metroid entries remain blocked until metadata is repaired.
 
 ## Missing OC Remix source-album processing spec
 

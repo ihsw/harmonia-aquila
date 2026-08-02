@@ -52,6 +52,8 @@ paths from repaired metadata and returns both effects without writing files:
 ```graphql
 mutation {
   albumOrganizeFiles(input: { discStrategy: "infer" }) {
+    fileType
+    filename
     album
     discNumber
     discTotal
@@ -63,6 +65,14 @@ mutation {
   }
 }
 ```
+
+Organization rows form a discriminated result. Every row includes `fileType`,
+`action`, `filename`, and `destination`. Audio rows use `fileType: "audio"`
+and populate metadata and filename fields. Adjacent recognized images use
+`fileType: "albumArt"`; audio-only fields such as `album`, `discNumber`, and
+`tagChanges` are null. Recognized `.avif`, `.bmp`, `.gif`, `.jpeg`, `.jpg`,
+`.png`, `.tif`, `.tiff`, and `.webp` files are placed at the album root rather
+than under `Disc DD`. Destination collision handling applies to both variants.
 
 `albumOrganizeFiles` defaults its output root to the configured
 `--source-dir`; set `useScratchDir: true` to select `--scratch-dir` instead.

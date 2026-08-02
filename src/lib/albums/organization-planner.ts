@@ -85,6 +85,7 @@ export function planOrganizationCopies(
         destination,
         discNumber: formatDiscNumber(effective.discNumber),
         discTotal: formatDiscNumber(effective.discTotal),
+        fileType: 'audio',
         filename: source.filename,
         tagChanges: fix.row,
         titleFilename,
@@ -96,13 +97,17 @@ export function planOrganizationCopies(
     }
   })
 
-  assertSingleAlbumDirectory(planned.map(plan => ({
-    albumDirectory: sanitizePathSegment(plan.row.album),
-    artistDirectory: sanitizePathSegment(plan.row.artistFilename),
-  })))
-  assertSingleArtistPerAlbumDirectory(planned.map(plan => ({
-    albumDirectory: sanitizePathSegment(plan.row.album),
-    artistDirectory: sanitizePathSegment(plan.row.artistFilename),
-  })))
+  const albumDirectories = planned.map((plan) => {
+    if (plan.row.fileType !== 'audio') {
+      throw new Error('Audio organization planner produced a non-audio row')
+    }
+    return {
+      albumDirectory: sanitizePathSegment(plan.row.album),
+      artistDirectory: sanitizePathSegment(plan.row.artistFilename),
+    }
+  })
+
+  assertSingleAlbumDirectory(albumDirectories)
+  assertSingleArtistPerAlbumDirectory(albumDirectories)
   return planned
 }

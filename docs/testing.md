@@ -112,7 +112,7 @@ rmdir "$MULTI_ALBUM_ROOT"
 
 The test suite is fully hermetic:
 
-- **No real media files.** Tests create empty placeholder files (`.flac`, `.mp3`, `.m4b`) in temporary directories.
+- **No real media files.** Tests create placeholder audio and image files in temporary directories.
 - **No Docker.** `mergeWithM4bTool` is mocked at the module boundary; dry-run tests assert it is never called.
 - **No network.** All metadata reads use `vi.mock('music-metadata', ...)` with deterministic fixture factories.
 - **No native writes.** `node-taglib-sharp`'s `File.createFromPath` is mocked; real tag writes never occur.
@@ -138,8 +138,12 @@ __tests__/commands/manage-albums/organize-files.test.ts
 __tests__/commands/manage-albums/organize-files-disc.test.ts
 __tests__/lib/albums/organize-files-metadata.test.ts
 __tests__/lib/albums/organize-files-metadata-disc.test.ts
+__tests__/lib/albums/audio-files-album-art.test.ts
+__tests__/lib/albums/organize-files-album-art.test.ts
+__tests__/lib/albums/organize-files-album-art-execution.test.ts
 __tests__/web/manage-albums-organize-metadata.test.ts
 __tests__/web/graphql/album-disc-metadata.test.ts
+__tests__/web/graphql/album-organize-output.integration.test.ts
 __tests__/commands/manage-audiobooks/validate.test.ts
 __tests__/commands/manage-audiobooks/copy-and-rename.test.ts
 __tests__/commands/manage-audiobooks/crawl.test.ts

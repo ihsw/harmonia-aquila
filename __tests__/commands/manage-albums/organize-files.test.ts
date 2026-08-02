@@ -41,6 +41,7 @@ describe('organize-files', () => {
 
   it('plans a dry-run copy with correct metadata fields in JSON output', async () => {
     await createTempFile(sourceDir, 'track01.flac')
+    await createTempFile(sourceDir, 'cover.png')
     mockParseFile.mockResolvedValue(
       makeAudioMetadata({ album: 'Test Album', artist: 'Test Artist', title: 'Track One', track: { no: 1, of: null } }),
     )
@@ -54,14 +55,16 @@ describe('organize-files', () => {
 
     const rawArg: unknown = infoSpy.mock.calls[0]?.[0]
     const rows = JSON.parse(String(rawArg)) as OrganizeFilesJsonOutput
-    expect(rows).toHaveLength(1)
-    expect(rows[0]?.action).toBe('would copy')
-    expect(rows[0]?.album).toBe('Test Album')
-    expect(rows[0]?.artistFilename).toBe('Test Artist')
-    expect(rows[0]?.discNumber).toBe('')
-    expect(rows[0]?.discTotal).toBe('')
-    expect(rows[0]?.titleFilename).toBe('Track One')
-    expect(rows[0]?.trackNumber).toBe('01')
+    const audioRow = rows.find(row => row.fileType === 'audio')
+    expect(rows).toHaveLength(2)
+    expect(audioRow).toMatchObject({
+      action: 'would copy', album: 'Test Album', artistFilename: 'Test Artist',
+      discNumber: '', discTotal: '', fileType: 'audio', titleFilename: 'Track One', trackNumber: '01',
+    })
+    expect(rows[1]).toEqual({
+      action: 'would copy', destination: 'Test Artist/Test Album/cover.png',
+      fileType: 'albumArt', filename: 'cover.png',
+    })
   })
 
   it('errors when a file is missing required metadata (no track number)', async () => {

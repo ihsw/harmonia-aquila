@@ -33,15 +33,18 @@ describe('web MCP manage-albums summarize and organize tools', () => {
 
   it('maps summarize and organize options to configured roots', async () => {
     const currentTestApp = requireTestApp()
+    const artRow = {
+      action: 'copied', destination: 'Artist/Album/cover.jpg', fileType: 'albumArt', filename: 'cover.jpg',
+    } as const
     vi.mocked(summarizeAlbumSourceDir).mockResolvedValue([{ filename: 'a.flac' } as never])
-    vi.mocked(organizeAlbumFiles).mockResolvedValue([{ action: 'organize' } as never])
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([artRow])
 
     await callTool(1, MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME, {
       dirName: 'music',
       ignoreNonAudioFiles: true,
       limit: 2,
     })
-    await callTool(3, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
+    const organizeResponse = await callTool(3, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
       albumDir: 'music/',
       destinationStrategy: 'overwrite',
       discStrategy: 'infer',
@@ -65,6 +68,7 @@ describe('web MCP manage-albums summarize and organize tools', () => {
       setAlbumArtist: 'Various Artists',
       sourceDir: `${currentTestApp.scratchDir}/music`,
     })
+    expect(JSON.parse(getToolText(organizeResponse))).toEqual([artRow])
   })
 
   it('discovers merged metadata inputs and no standalone repair tool', async () => {

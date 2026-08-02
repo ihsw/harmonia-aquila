@@ -42,7 +42,8 @@ describe('organize-files disc metadata', () => {
         track: { no: 1, of: null },
       }))
 
-    const rows = await organizeAlbumFiles({ destDir, sourceDir })
+    const rows = (await organizeAlbumFiles({ destDir, sourceDir }))
+      .filter(row => row.fileType === 'audio')
 
     expect(rows.map(row => [row.destination, row.discNumber, row.discTotal])).toEqual([
       ['Artist/Album/Disc 01/01 - First.flac', '01', '02'],

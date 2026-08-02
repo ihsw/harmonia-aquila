@@ -136,17 +136,18 @@ async function publishOrganizationCopy(plan: PlannedOrganizationCopy): Promise<v
 
   try {
     await copyFile(plan.sourcePath, stagedPath)
-    if (Object.keys(plan.tagFix).length > 0) {
+    if (plan.tagFix !== undefined && Object.keys(plan.tagFix).length > 0) {
       writeAudioTagFix(stagedPath, plan.tagFix)
       await verifyTagFix(stagedPath, plan.tagFix)
     }
     await rename(stagedPath, plan.destinationPath)
   }
   catch (error) {
-    throw new Error(
-      `Failed to repair and organize "${plan.row.filename}" with metadata ${JSON.stringify(plan.tagFix)}`,
-      { cause: error },
-    )
+    const message = plan.tagFix === undefined
+      ? `Failed to organize album art "${plan.row.filename}"`
+      : `Failed to repair and organize "${plan.row.filename}" with metadata ${JSON.stringify(plan.tagFix)}`
+
+    throw new Error(message, { cause: error })
   }
   finally {
     await rm(stagedPath, { force: true })

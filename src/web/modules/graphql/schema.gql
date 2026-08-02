@@ -49,17 +49,18 @@ input AlbumOrganizeFilesInput {
 
 type AlbumOrganizeFilesRow {
   action: String!
-  album: String!
-  artistFilename: String!
-  artistFilenameStrategy: String!
+  album: String
+  artistFilename: String
+  artistFilenameStrategy: String
   destination: String!
-  discNumber: String!
-  discTotal: String!
+  discNumber: String
+  discTotal: String
+  fileType: String!
   filename: String!
-  tagChanges: AlbumMetadataChangesRow!
-  titleFilename: String!
-  titleFilenameStrategy: String!
-  trackNumber: String!
+  tagChanges: AlbumMetadataChangesRow
+  titleFilename: String
+  titleFilenameStrategy: String
+  trackNumber: String
 }
 
 input AlbumSummaryInput {

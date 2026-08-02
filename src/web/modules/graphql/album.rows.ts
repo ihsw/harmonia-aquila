@@ -147,36 +147,39 @@ export class AlbumOrganizeFilesRow {
   @Field(() => String)
   public action!: string
 
-  @Field(() => String)
-  public album!: string
+  @Field(() => String, { nullable: true })
+  public album?: string
 
-  @Field(() => String)
-  public artistFilename!: string
+  @Field(() => String, { nullable: true })
+  public artistFilename?: string
 
-  @Field(() => String)
-  public artistFilenameStrategy!: string
+  @Field(() => String, { nullable: true })
+  public artistFilenameStrategy?: string
 
   @Field(() => String)
   public destination!: string
 
-  @Field(() => String)
-  public discNumber!: string
+  @Field(() => String, { nullable: true })
+  public discNumber?: string
+
+  @Field(() => String, { nullable: true })
+  public discTotal?: string
 
   @Field(() => String)
-  public discTotal!: string
+  public fileType!: string
 
   @Field(() => String)
   public filename!: string
 
-  @Field(() => AlbumMetadataChangesRow)
-  public tagChanges!: AlbumMetadataChangesRow
+  @Field(() => AlbumMetadataChangesRow, { nullable: true })
+  public tagChanges?: AlbumMetadataChangesRow
 
-  @Field(() => String)
-  public titleFilename!: string
+  @Field(() => String, { nullable: true })
+  public titleFilename?: string
 
-  @Field(() => String)
-  public titleFilenameStrategy!: string
+  @Field(() => String, { nullable: true })
+  public titleFilenameStrategy?: string
 
-  @Field(() => String)
-  public trackNumber!: string
+  @Field(() => String, { nullable: true })
+  public trackNumber?: string
 }
