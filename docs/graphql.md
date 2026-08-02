@@ -11,8 +11,8 @@ configured when starting `web serve`; clients cannot override those roots.
 | Queries | Mutations |
 | --- | --- |
 | `albumList` | |
-| `albumSummarizeSourceDir` | `albumFixTags` |
-| `albumValidateSourceDir` | `albumOrganizeFiles` |
+| `albumSummarizeSourceDir` | `albumOrganizeFiles` |
+| `albumValidateSourceDir` | |
 | `audiobookValidate` | `audiobookCopyAndRename` |
 | `audiobookCrawl` | `audiobookConvertFiles` |
 | | `audiobookMerge` |
@@ -46,27 +46,27 @@ query {
 
 `albumList` never accepts a client-supplied root path.
 
-Mutations are dry runs unless `execute: true` is explicit. This mutation
-returns the proposed tag changes without writing files:
+Mutations are dry runs unless `execute: true` is explicit. Organization plans
+paths from repaired metadata and returns both effects without writing files:
 
 ```graphql
 mutation {
-  albumFixTags(input: { discStrategy: "infer" }) {
+  albumOrganizeFiles(input: { discStrategy: "infer" }) {
     album
-    artist
     discNumber
     discTotal
-    newDiscNumber
-    newDiscTotal
-    title
+    destination
+    tagChanges {
+      newDiscNumber
+      newDiscTotal
+    }
   }
 }
 ```
 
-`albumFixTags` always plans or writes its output under the configured
-`--scratch-dir`. `albumOrganizeFiles` defaults its output root to the configured
+`albumOrganizeFiles` defaults its output root to the configured
 `--source-dir`; set `useScratchDir: true` to select `--scratch-dir` instead.
-Neither mutation accepts a client-supplied root path.
+It never accepts a client-supplied root path or changes source audio.
 
 Disc inference is opt-in and uses filename order. A repeated or decreased
 track number starts the next disc. Review the dry-run values before passing

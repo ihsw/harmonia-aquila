@@ -18,7 +18,8 @@ http:
           "arguments": {
             "albumDir": "{{albumOrganizeDir}}",
             "ignoreNonAudioFiles": true,
-            "limit": 0
+            "limit": 0,
+            "setAlbum": "Reviewed Album"
           }
         }
       }

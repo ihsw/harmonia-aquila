@@ -5,7 +5,6 @@ import type { Logger } from 'pino'
 
 const REQUEST_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/
 const SAFE_PATHS = new Set([
-  '/manage-albums/fix-tags',
   '/manage-albums/organize-files',
   '/manage-albums/summarize-source-dir',
   '/manage-albums/validate',

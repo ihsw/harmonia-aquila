@@ -3,7 +3,6 @@ import { z } from 'zod/v4'
 export const MANAGE_ALBUMS_LIST_TOOL_NAME = 'manage_albums_list'
 export const MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME = 'manage_albums_summarize_source_dir'
 export const MANAGE_ALBUMS_VALIDATE_TOOL_NAME = 'manage_albums_validate'
-export const MANAGE_ALBUMS_FIX_TAGS_TOOL_NAME = 'manage_albums_fix_tags'
 export const MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME = 'manage_albums_organize_files'
 
 const albumDirSchema = z.string().min(1, 'albumDir is required').endsWith('/', 'albumDir must end with /')
@@ -28,13 +27,16 @@ export const manageAlbumsValidateInputSchema = {
   useScratchDir: z.boolean().optional(),
 }
 
-export const manageAlbumsFixTagsInputSchema = {
+export const manageAlbumsOrganizeFilesInputSchema = {
   albumArtistsStrategy: z.string().optional(),
   albumDir: albumDirSchema,
   albumStrategy: z.string().optional(),
+  artistFilenameStrategy: z.string().optional(),
   destinationStrategy: z.string().optional(),
   discStrategy: z.string().optional(),
   execute: z.boolean().optional(),
+  ignoreAudioFilesWithoutTracks: z.boolean().optional(),
+  ignoreNonAudioFiles: z.boolean().optional(),
   limit: z.number().int().nonnegative().optional(),
   producerStrategy: z.string().optional(),
   resetTrack: z.boolean().optional(),
@@ -43,15 +45,6 @@ export const manageAlbumsFixTagsInputSchema = {
   setArtist: z.string().optional(),
   setMetadata: z.string().optional(),
   swapArtistAlbumartist: z.boolean().optional(),
-}
-
-export const manageAlbumsOrganizeFilesInputSchema = {
-  albumDir: albumDirSchema,
-  artistFilenameStrategy: z.string().optional(),
-  execute: z.boolean().optional(),
-  ignoreAudioFilesWithoutTracks: z.boolean().optional(),
-  ignoreNonAudioFiles: z.boolean().optional(),
-  limit: z.number().int().nonnegative().optional(),
   titleFilenameStrategy: z.string().optional(),
   useScratchDir: z.boolean().optional(),
 }

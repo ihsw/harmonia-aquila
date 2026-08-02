@@ -2,23 +2,12 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-input AlbumFixTagsInput {
-  albumArtistsStrategy: String
-  albumStrategy: String
-  destinationStrategy: String
-  discStrategy: String
-  execute: Boolean
-  limit: String
-  producerStrategy: String
-  resetTrack: Boolean
-  setAlbum: String
-  setAlbumArtist: String
-  setArtist: String
-  setMetadata: String
-  swapArtistAlbumartist: Boolean
+input AlbumListInput {
+  prefix: String
+  useScratchDir: Boolean
 }
 
-type AlbumFixTagsRow {
+type AlbumMetadataChangesRow {
   album: String!
   albumartists: [String!]
   artist: String!
@@ -37,17 +26,23 @@ type AlbumFixTagsRow {
   trackNumber: String
 }
 
-input AlbumListInput {
-  prefix: String
-  useScratchDir: Boolean
-}
-
 input AlbumOrganizeFilesInput {
+  albumArtistsStrategy: String
+  albumStrategy: String
   artistFilenameStrategy: String
+  destinationStrategy: String
+  discStrategy: String
   execute: Boolean
   ignoreAudioFilesWithoutTracks: Boolean
   ignoreNonAudioFiles: Boolean
   limit: String
+  producerStrategy: String
+  resetTrack: Boolean
+  setAlbum: String
+  setAlbumArtist: String
+  setArtist: String
+  setMetadata: String
+  swapArtistAlbumartist: Boolean
   titleFilenameStrategy: String
   useScratchDir: Boolean
 }
@@ -61,6 +56,7 @@ type AlbumOrganizeFilesRow {
   discNumber: String!
   discTotal: String!
   filename: String!
+  tagChanges: AlbumMetadataChangesRow!
   titleFilename: String!
   titleFilenameStrategy: String!
   trackNumber: String!
@@ -206,7 +202,6 @@ type AudiobookValidationRow {
 }
 
 type Mutation {
-  albumFixTags(input: AlbumFixTagsInput!): [AlbumFixTagsRow!]!
   albumOrganizeFiles(input: AlbumOrganizeFilesInput!): [AlbumOrganizeFilesRow!]!
   audiobookConvertFiles(input: AudiobookConvertFilesInput!): [AudiobookConvertFilesRow!]!
   audiobookCopyAndRename(input: AudiobookCopyAndRenameInput!): [AudiobookCopyAndRenameRow!]!

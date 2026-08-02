@@ -1,7 +1,6 @@
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { fixAlbumTags } from '../../../src/lib/albums/fix-tags.js'
 import { listAlbumSourceDir } from '../../../src/lib/albums/list.js'
 import { organizeAlbumFiles } from '../../../src/lib/albums/organize-files.js'
 import { summarizeAlbumSourceDir } from '../../../src/lib/albums/summarize-source-dir.js'
@@ -11,7 +10,6 @@ import { AlbumResolver } from '../../../src/web/modules/graphql/album.resolver.j
 import { WebPathResolver, type WebRoots } from '../../../src/web/providers/path-resolver.js'
 import { createTempDir, removeTempDir } from '../../test-helpers.js'
 
-vi.mock('../../../src/lib/albums/fix-tags.js', () => ({ fixAlbumTags: vi.fn() }))
 vi.mock('../../../src/lib/albums/list.js', () => ({ listAlbumSourceDir: vi.fn() }))
 vi.mock('../../../src/lib/albums/organize-files.js', () => ({ organizeAlbumFiles: vi.fn() }))
 vi.mock('../../../src/lib/albums/summarize-source-dir.js', () => ({ summarizeAlbumSourceDir: vi.fn() }))
@@ -28,7 +26,6 @@ describe('AlbumResolver', () => {
       sourceDir: await createTempDir('graphql-album-source-'),
     }
     resolver = new AlbumResolver(new WebPathResolver(roots))
-    vi.mocked(fixAlbumTags).mockReset()
     vi.mocked(listAlbumSourceDir).mockReset()
     vi.mocked(organizeAlbumFiles).mockReset()
     vi.mocked(summarizeAlbumSourceDir).mockReset()
@@ -84,20 +81,17 @@ describe('AlbumResolver', () => {
   })
 
   it('maps mutations with configured roots and dry-run defaults', async () => {
-    vi.mocked(fixAlbumTags).mockResolvedValue([])
     vi.mocked(organizeAlbumFiles).mockResolvedValue([])
 
-    await resolver.albumFixTags({ albumStrategy: 'grouping', discStrategy: 'infer' })
-    await resolver.albumOrganizeFiles({ ignoreNonAudioFiles: true })
-
-    expect(fixAlbumTags).toHaveBeenCalledWith({
+    await resolver.albumOrganizeFiles({
       albumStrategy: 'grouping',
-      destDir: roots.scratchDir,
       discStrategy: 'infer',
-      sourceDir: roots.sourceDir,
+      ignoreNonAudioFiles: true,
     })
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
+      albumStrategy: 'grouping',
       destDir: roots.sourceDir,
+      discStrategy: 'infer',
       ignoreNonAudioFiles: true,
       sourceDir: roots.sourceDir,
     })

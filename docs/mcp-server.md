@@ -47,7 +47,6 @@ Tools are registered and discovered in this order:
 | `manage_albums_list` | `manage-albums list` | yes |
 | `manage_albums_summarize_source_dir` | `manage-albums summarize-source-dir` | yes |
 | `manage_albums_validate` | `manage-albums validate` | yes |
-| `manage_albums_fix_tags` | `manage-albums fix-tags` | no |
 | `manage_albums_organize_files` | `manage-albums organize-files` | no |
 | `manage_audiobooks_validate` | `manage-audiobooks validate` | yes |
 | `manage_audiobooks_crawl` | `manage-audiobooks crawl` | yes |
@@ -74,7 +73,6 @@ operation runs.
 | `manage_albums_list` | source; scratch when `useScratchDir: true` | none |
 | `manage_albums_summarize_source_dir` | source | none |
 | `manage_albums_validate` | source; scratch when `useScratchDir: true` | none |
-| `manage_albums_fix_tags` | source | scratch |
 | `manage_albums_organize_files` | source; scratch when `useScratchDir: true` | destination |
 | `manage_audiobooks_validate` | source | none |
 | `manage_audiobooks_crawl` | source | none |
@@ -83,7 +81,7 @@ operation runs.
 | `manage_audiobooks_merge` | the complete source root | destination |
 | `manage_audiobooks_set_metadata` | source | destination |
 
-`manage_albums_fix_tags.setMetadata` is a host filesystem path to a JSON or CSV
+`manage_albums_organize_files.setMetadata` is a host filesystem path to a JSON or CSV
 metadata file. Unlike audio inputs, that auxiliary file path is not confined to
 one of the configured roots, so expose this local endpoint only to trusted
 clients.
@@ -93,7 +91,7 @@ clients.
 `manage_albums_list` returns immediate entries as strings. Directory entries
 end in `/`; pass one of those slash-terminated paths as `albumDir` to the tag
 fix or organization tools. Use `./` when the album files are directly in the
-selected root, as they are after fix-tags stages files in scratch. A non-empty
+selected root. A non-empty
 `prefix` must be a slash-terminated path relative to the selected root.
 
 | Tool | Required input | Optional input |
@@ -101,8 +99,7 @@ selected root, as they are after fix-tags stages files in scratch. A non-empty
 | `manage_albums_list` | none | `prefix: string`, `useScratchDir: boolean` |
 | `manage_albums_summarize_source_dir` | `dirName: string` | `ignoreNonAudioFiles: boolean`, `limit: non-negative integer` |
 | `manage_albums_validate` | `dirName: string` | `artistFilenameStrategy: string`, `titleFilenameStrategy: string`, `ignoreNonAudioFiles: boolean`, `limit: non-negative integer`, `useScratchDir: boolean` |
-| `manage_albums_fix_tags` | `albumDir: string` ending in `/` | `albumArtistsStrategy`, `albumStrategy`, `destinationStrategy`, `producerStrategy`, `setAlbum`, `setAlbumArtist`, `setArtist`, `setMetadata`: strings; `execute`, `resetTrack`, `swapArtistAlbumartist`: booleans; `limit`: non-negative integer |
-| `manage_albums_organize_files` | `albumDir: string` ending in `/` | `artistFilenameStrategy`, `titleFilenameStrategy`: strings; `execute`, `ignoreAudioFilesWithoutTracks`, `ignoreNonAudioFiles`, `useScratchDir`: booleans; `limit`: non-negative integer |
+| `manage_albums_organize_files` | `albumDir: string` ending in `/` | `albumArtistsStrategy`, `albumStrategy`, `artistFilenameStrategy`, `destinationStrategy`, `discStrategy`, `producerStrategy`, `setAlbum`, `setAlbumArtist`, `setArtist`, `setMetadata`, `titleFilenameStrategy`: strings; `execute`, `ignoreAudioFilesWithoutTracks`, `ignoreNonAudioFiles`, `resetTrack`, `swapArtistAlbumartist`, `useScratchDir`: booleans; `limit`: non-negative integer |
 
 Strategy values are validated by the shared album operations. Defaults are
 `artist`, `title`, `error`, and `no change`, as applicable. MCP uses native
@@ -173,11 +170,11 @@ After initialization, a client can list tools with a regular JSON-RPC request:
 ```
 
 A safe album workflow is to call `manage_albums_list`, summarize and validate
-the selected source album, dry-run `manage_albums_fix_tags`, execute it into
-scratch, validate `dirName: "."` with `useScratchDir: true`, then dry-run and
-execute `manage_albums_organize_files` with `albumDir: "./"` and
-`useScratchDir: true`. Organization always writes to the configured destination
-root.
+the selected album, then dry-run `manage_albums_organize_files` with any needed
+metadata repair options. Review both `tagChanges` and destination fields before
+repeating the identical input with `execute: true`. Organization repairs a
+temporary copy before publishing to the configured destination root and never
+changes source audio.
 
 ## Exposure and logging
 

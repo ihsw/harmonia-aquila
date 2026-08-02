@@ -10,7 +10,9 @@ http:
     type: json
     data: |-
       {
-        "artistFilenameStrategy": "invalid"
+        "artistFilenameStrategy": "invalid",
+        "ignoreNonAudioFiles": true,
+        "limit": "0"
       }
   auth: inherit
 

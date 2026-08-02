@@ -17,6 +17,7 @@ http:
           "name": "manage_albums_validate",
           "arguments": {
             "dirName": "{{scratchAlbumEntry}}",
+            "ignoreNonAudioFiles": true,
             "limit": 0,
             "useScratchDir": true
           }

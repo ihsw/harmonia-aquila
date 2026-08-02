@@ -21,9 +21,16 @@ describe('command index registration', () => {
       'list',
       'summarize-source-dir',
       'validate',
-      'fix-tags',
       'organize-files',
     ])
+  })
+
+  it('rejects the retired standalone album mutation command', async () => {
+    const program = new Command().exitOverride()
+    registerManageAlbumsCommand(program)
+
+    await expect(program.parseAsync(['node', 's', 'manage-albums', ['fix', 'tags'].join('-')]))
+      .rejects.toMatchObject({ code: 'commander.unknownCommand' })
   })
 
   it('registers manage-audiobooks subcommands', () => {

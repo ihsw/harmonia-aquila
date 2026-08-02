@@ -37,8 +37,8 @@ runtime:
           const validateTool = tools.find(
             (tool) => tool.name === "manage_albums_validate"
           );
-          const fixTagsTool = tools.find(
-            (tool) => tool.name === "manage_albums_fix_tags"
+          const organizeTool = tools.find(
+            (tool) => tool.name === "manage_albums_organize_files"
           );
 
           expect(json).to.have.property("id", 101);
@@ -46,7 +46,6 @@ runtime:
             "manage_albums_list",
             "manage_albums_summarize_source_dir",
             "manage_albums_validate",
-            "manage_albums_fix_tags",
             "manage_albums_organize_files",
             "manage_audiobooks_validate",
             "manage_audiobooks_crawl",
@@ -66,7 +65,7 @@ runtime:
             "useScratchDir"
           );
           expect(
-            fixTagsTool.inputSchema.properties.discStrategy
+            organizeTool.inputSchema.properties.discStrategy
           ).to.have.property("type", "string");
         });
   assertions:

@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{baseUrl}}/manage-albums/validate?dirName={{summarizeDirName}}&ignoreNonAudioFiles=true"
+  url: "{{baseUrl}}/manage-albums/validate?dirName={{summarizeDirName}}&ignoreNonAudioFiles=true&artistFilenameStrategy=artist"
   auth: inherit
 
 runtime:

@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Inject, Post, Query } from '@nestjs/common'
 
-import { fixAlbumTags } from '../../lib/albums/fix-tags.js'
 import { listAlbumSourceDir } from '../../lib/albums/list.js'
 import { organizeAlbumFiles } from '../../lib/albums/organize-files.js'
 import { summarizeAlbumSourceDir } from '../../lib/albums/summarize-source-dir.js'
@@ -8,7 +7,6 @@ import { validateAlbumSourceDir } from '../../lib/albums/validate.js'
 import { throwHttpError } from '../http-errors.js'
 import { WebPathResolver } from '../providers/path-resolver.js'
 import {
-  fixTagsBodySchema,
   listAlbumQuerySchema,
   optionalEntry,
   organizeFilesBodySchema,
@@ -73,37 +71,6 @@ export class ManageAlbumsController {
     }
   }
 
-  @Post('fix-tags')
-  public async fixTags(@Body() rawBody: unknown): Promise<unknown> {
-    try {
-      const options = parseRequest(fixTagsBodySchema, rawBody, {
-        destDir: 'destDir is configured by web serve --scratch-dir',
-        sourceDir: 'sourceDir is configured by web serve --source-dir',
-      })
-
-      return await fixAlbumTags({
-        destDir: this.pathResolver.scratchDir,
-        sourceDir: this.pathResolver.sourceDir,
-        ...optionalEntry('albumArtistsStrategy', options.albumArtistsStrategy),
-        ...optionalEntry('albumStrategy', options.albumStrategy),
-        ...optionalEntry('destinationStrategy', options.destinationStrategy),
-        ...optionalEntry('discStrategy', options.discStrategy),
-        ...optionalEntry('execute', options.execute),
-        ...optionalEntry('limit', options.limit),
-        ...optionalEntry('producerStrategy', options.producerStrategy),
-        ...optionalEntry('resetTrack', options.resetTrack),
-        ...optionalEntry('setAlbum', options.setAlbum),
-        ...optionalEntry('setAlbumArtist', options.setAlbumArtist),
-        ...optionalEntry('setArtist', options.setArtist),
-        ...optionalEntry('setMetadata', options.setMetadata),
-        ...optionalEntry('swapArtistAlbumartist', options.swapArtistAlbumartist),
-      })
-    }
-    catch (error) {
-      throwHttpError(error)
-    }
-  }
-
   @Post('organize-files')
   public async organizeFiles(@Body() rawBody: unknown): Promise<unknown> {
     try {
@@ -117,11 +84,22 @@ export class ManageAlbumsController {
           ? this.pathResolver.scratchDir
           : this.pathResolver.sourceDir,
         sourceDir: this.pathResolver.sourceDir,
+        ...optionalEntry('albumArtistsStrategy', options.albumArtistsStrategy),
+        ...optionalEntry('albumStrategy', options.albumStrategy),
         ...optionalEntry('artistFilenameStrategy', options.artistFilenameStrategy),
+        ...optionalEntry('destinationStrategy', options.destinationStrategy),
+        ...optionalEntry('discStrategy', options.discStrategy),
         ...optionalEntry('execute', options.execute),
         ...optionalEntry('ignoreAudioFilesWithoutTracks', options.ignoreAudioFilesWithoutTracks),
         ...optionalEntry('ignoreNonAudioFiles', options.ignoreNonAudioFiles),
         ...optionalEntry('limit', options.limit),
+        ...optionalEntry('producerStrategy', options.producerStrategy),
+        ...optionalEntry('resetTrack', options.resetTrack),
+        ...optionalEntry('setAlbum', options.setAlbum),
+        ...optionalEntry('setAlbumArtist', options.setAlbumArtist),
+        ...optionalEntry('setArtist', options.setArtist),
+        ...optionalEntry('setMetadata', options.setMetadata),
+        ...optionalEntry('swapArtistAlbumartist', options.swapArtistAlbumartist),
         ...optionalEntry('titleFilenameStrategy', options.titleFilenameStrategy),
       })
     }

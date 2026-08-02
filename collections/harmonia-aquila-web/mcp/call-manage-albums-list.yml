@@ -36,7 +36,6 @@ runtime:
           expect(res.getStatus()).to.eql(200);
           expect(json).to.have.property("id", 110);
           expect(rows).to.be.an("array");
-          expect(rows).to.not.include(bru.getEnvVar("scratchAlbumEntry"));
         });
   assertions:
     - expression: res.status

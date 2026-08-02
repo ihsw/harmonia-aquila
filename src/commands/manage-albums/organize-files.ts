@@ -17,11 +17,22 @@ export function registerOrganizeFilesCommand(program: Command): void {
     .requiredOption('--source-dir <sourceDir>', 'directory containing FLAC and MP3 files to organize')
     .requiredOption('--dest-dir <destDir>', 'directory to copy organized files into')
     .option('--limit <count>', 'maximum number of files to copy')
+    .option('--destination-strategy <strategy>', 'what to do when a destination file exists: error, ignore, overwrite', 'error')
+    .option('--album-strategy <strategy>', 'how to update album: no change, grouping, originalalbum', 'no change')
+    .option('--set-album <album>', 'set album metadata to the provided value')
+    .option('--album-artists-strategy <strategy>', 'how to update albumartists: no change, aggregate, blank', 'no change')
+    .option('--set-album-artist <albumArtist>', 'set album artist metadata to the provided value')
+    .option('--set-artist <artist>', 'set artist metadata to the provided value')
+    .option('--set-metadata <path>', 'set per-track metadata, including optional disc fields, from JSON or CSV')
+    .option('--disc-strategy <strategy>', 'how to update disc metadata: no change, infer', 'no change')
+    .option('--producer-strategy <strategy>', 'how to update producers: no change, blank, aggregate, copy-from-album-artists', 'no change')
+    .option('--reset-track', 'reset track number metadata from alphabetical source order within each album')
+    .option('--swap-artist-albumartist', 'swap artist and albumartist metadata')
     .option('--artist-filename-strategy <strategy>', 'metadata field to use for the artist portion of the filename: artist, albumartist, label, producer', 'artist')
     .option('--title-filename-strategy <strategy>', 'metadata field to use for the title portion of the filename: subtitle, title', 'title')
     .option('--ignore-non-audio-files', 'ignore non-audio files in the source directory')
     .option('--ignore-audio-files-without-tracks', 'ignore audio files without track number metadata')
-    .option('--execute', 'copy files')
+    .option('--execute', 'repair metadata and copy files into organized destinations')
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
     .action(async (options: OrganizeFilesOptions & { format?: string }) => {
       const outputFormat = parseOutputFormat(organizeFilesCommand, options.format)
@@ -40,7 +51,9 @@ export function registerOrganizeFilesCommand(program: Command): void {
       writeRows(
         outputFormat,
         outputRows,
-        options.execute === true ? undefined : 'Dry run: no files were copied. Pass --execute to copy files.',
+        options.execute === true
+          ? undefined
+          : 'Dry run: no files were copied or changed. Pass --execute to repair and organize files.',
       )
     })
 }

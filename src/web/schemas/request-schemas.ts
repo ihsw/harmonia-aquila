@@ -114,12 +114,15 @@ export const validateAlbumQuerySchema = z.object({
   titleFilenameStrategy: optionalString('titleFilenameStrategy'),
 })
 
-export const fixTagsBodySchema = z.object({
+export const organizeFilesBodySchema = z.object({
   albumArtistsStrategy: optionalString('albumArtistsStrategy'),
   albumStrategy: optionalString('albumStrategy'),
+  artistFilenameStrategy: optionalString('artistFilenameStrategy'),
   destinationStrategy: optionalString('destinationStrategy'),
   discStrategy: optionalString('discStrategy'),
   execute: optionalBodyBoolean(),
+  ignoreAudioFilesWithoutTracks: optionalBodyBoolean(),
+  ignoreNonAudioFiles: optionalBodyBoolean(),
   limit: optionalString('limit'),
   producerStrategy: optionalString('producerStrategy'),
   resetTrack: optionalBodyBoolean(),
@@ -128,14 +131,6 @@ export const fixTagsBodySchema = z.object({
   setArtist: optionalString('setArtist'),
   setMetadata: optionalString('setMetadata'),
   swapArtistAlbumartist: optionalBodyBoolean(),
-})
-
-export const organizeFilesBodySchema = z.object({
-  artistFilenameStrategy: optionalString('artistFilenameStrategy'),
-  execute: optionalBodyBoolean(),
-  ignoreAudioFilesWithoutTracks: optionalBodyBoolean(),
-  ignoreNonAudioFiles: optionalBodyBoolean(),
-  limit: optionalString('limit'),
   titleFilenameStrategy: optionalString('titleFilenameStrategy'),
   useScratchDir: optionalBodyBoolean(),
 })

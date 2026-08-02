@@ -11,7 +11,8 @@ http:
     data: |-
       {
         "ignoreNonAudioFiles": true,
-        "limit": "0"
+        "limit": "0",
+        "setAlbum": "Reviewed Album"
       }
   auth: inherit
 
@@ -28,6 +29,7 @@ runtime:
           const json = typeof body === "string" ? JSON.parse(body) : body;
 
           expect(json).to.be.an("array");
+          expect(json).to.have.length(0);
         });
   assertions:
     - expression: res.status

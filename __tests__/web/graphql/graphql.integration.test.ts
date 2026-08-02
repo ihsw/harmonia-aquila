@@ -73,7 +73,6 @@ describe('web GraphQL endpoint', () => {
 
     expect(schema.errors).toBeUndefined()
     expect(getOperationNames(schema.data, 'mutationType')).toEqual(expect.arrayContaining([
-      'albumFixTags',
       'albumOrganizeFiles',
       'audiobookConvertFiles',
       'audiobookCopyAndRename',
@@ -102,8 +101,9 @@ describe('web GraphQL endpoint', () => {
     const validationConflictMessage = 'Multiple albums found: Album A, Album B'
     vi.mocked(validateAlbumSourceDir).mockRejectedValueOnce(new UserInputError(validationConflictMessage))
 
-    const dryRun = await postGraphql('mutation { albumFixTags(input: {}) { album } }')
-    const organizeDefault = await postGraphql('mutation { albumOrganizeFiles(input: { limit: "0" }) { filename } }')
+    const organizeDefault = await postGraphql(`mutation {
+      albumOrganizeFiles(input: { limit: "0", setAlbum: "Album" }) { filename tagChanges { newAlbum } }
+    }`)
     const organizeScratch = await postGraphql(`mutation {
       albumOrganizeFiles(input: { limit: "0", useScratchDir: true }) { filename }
     }`)
@@ -118,7 +118,6 @@ describe('web GraphQL endpoint', () => {
     const listInvalidSelector = await postGraphql('{ albumList(input: { useScratchDir: "yes" }) }', 400)
     const internalError = await postGraphql('{ audiobookValidate(input: { fileName: "missing.m4b" }) { filename } }')
 
-    expect(dryRun).toEqual({ data: { albumFixTags: [] } })
     expect(organizeDefault).toEqual({ data: { albumOrganizeFiles: [] } })
     expect(organizeScratch).toEqual({ data: { albumOrganizeFiles: [] } })
     expect(organizeInvalidStrategy.errors?.[0]).toMatchObject({
@@ -142,6 +141,16 @@ describe('web GraphQL endpoint', () => {
       extensions: { code: 'INTERNAL_SERVER_ERROR' },
       message: 'Internal server error',
     })
+  })
+
+  it('does not map the retired standalone metadata repair route', async () => {
+    const retiredOperation = ['fix', 'tags'].join('-')
+    const response = await fetch(`${baseUrl}/manage-albums/${retiredOperation}`, {
+      headers: { 'content-type': 'application/json' },
+      method: 'POST',
+    })
+
+    expect(response.status).toBe(404)
   })
 
   async function postGraphql(query: string, expectedStatus = 200): Promise<GraphqlResponse> {

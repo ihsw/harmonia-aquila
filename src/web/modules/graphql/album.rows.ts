@@ -92,7 +92,7 @@ export class AlbumValidationRow {
 }
 
 @ObjectType()
-export class AlbumFixTagsRow {
+export class AlbumMetadataChangesRow {
   @Field(() => String)
   public album!: string
 
@@ -167,6 +167,9 @@ export class AlbumOrganizeFilesRow {
 
   @Field(() => String)
   public filename!: string
+
+  @Field(() => AlbumMetadataChangesRow)
+  public tagChanges!: AlbumMetadataChangesRow
 
   @Field(() => String)
   public titleFilename!: string

@@ -16,6 +16,7 @@ http:
         "params": {
           "name": "manage_albums_validate",
           "arguments": {
+            "artistFilenameStrategy": "artist",
             "dirName": "{{summarizeDirName}}",
             "ignoreNonAudioFiles": true
           }

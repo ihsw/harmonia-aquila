@@ -1,7 +1,6 @@
 import { Inject, UseFilters } from '@nestjs/common'
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql'
 
-import { fixAlbumTags, type FixTagsJsonOutput } from '../../../lib/albums/fix-tags.js'
 import { listAlbumSourceDir, type ListAlbumSourceDirJsonOutput } from '../../../lib/albums/list.js'
 import { organizeAlbumFiles, type OrganizeFilesJsonOutput } from '../../../lib/albums/organize-files.js'
 import { summarizeAlbumSourceDir, type SummarizeSourceDirJsonOutput } from '../../../lib/albums/summarize-source-dir.js'
@@ -9,14 +8,12 @@ import { validateAlbumSourceDir, type ValidateAlbumSourceDirJsonOutput } from '.
 import { WebPathResolver } from '../../providers/path-resolver.js'
 
 import {
-  AlbumFixTagsInput,
   AlbumListInput,
   AlbumOrganizeFilesInput,
   AlbumSummaryInput,
   AlbumValidationInput,
 } from './album.inputs.js'
 import {
-  AlbumFixTagsRow,
   AlbumOrganizeFilesRow,
   AlbumSummaryRow,
   AlbumValidationRow,
@@ -68,29 +65,6 @@ export class AlbumResolver {
     })
   }
 
-  @Mutation(() => [AlbumFixTagsRow])
-  public async albumFixTags(
-    @Args('input', { type: () => AlbumFixTagsInput }) input: AlbumFixTagsInput,
-  ): Promise<FixTagsJsonOutput> {
-    return fixAlbumTags({
-      destDir: this.pathResolver.scratchDir,
-      sourceDir: this.pathResolver.sourceDir,
-      ...optionalEntry('albumArtistsStrategy', input.albumArtistsStrategy),
-      ...optionalEntry('albumStrategy', input.albumStrategy),
-      ...optionalEntry('destinationStrategy', input.destinationStrategy),
-      ...optionalEntry('discStrategy', input.discStrategy),
-      ...optionalEntry('execute', input.execute),
-      ...optionalEntry('limit', input.limit),
-      ...optionalEntry('producerStrategy', input.producerStrategy),
-      ...optionalEntry('resetTrack', input.resetTrack),
-      ...optionalEntry('setAlbum', input.setAlbum),
-      ...optionalEntry('setAlbumArtist', input.setAlbumArtist),
-      ...optionalEntry('setArtist', input.setArtist),
-      ...optionalEntry('setMetadata', input.setMetadata),
-      ...optionalEntry('swapArtistAlbumartist', input.swapArtistAlbumartist),
-    })
-  }
-
   @Mutation(() => [AlbumOrganizeFilesRow])
   public async albumOrganizeFiles(
     @Args('input', { type: () => AlbumOrganizeFilesInput }) input: AlbumOrganizeFilesInput,
@@ -100,11 +74,22 @@ export class AlbumResolver {
         ? this.pathResolver.scratchDir
         : this.pathResolver.sourceDir,
       sourceDir: this.pathResolver.sourceDir,
+      ...optionalEntry('albumArtistsStrategy', input.albumArtistsStrategy),
+      ...optionalEntry('albumStrategy', input.albumStrategy),
       ...optionalEntry('artistFilenameStrategy', input.artistFilenameStrategy),
+      ...optionalEntry('destinationStrategy', input.destinationStrategy),
+      ...optionalEntry('discStrategy', input.discStrategy),
       ...optionalEntry('execute', input.execute),
       ...optionalEntry('ignoreAudioFilesWithoutTracks', input.ignoreAudioFilesWithoutTracks),
       ...optionalEntry('ignoreNonAudioFiles', input.ignoreNonAudioFiles),
       ...optionalEntry('limit', input.limit),
+      ...optionalEntry('producerStrategy', input.producerStrategy),
+      ...optionalEntry('resetTrack', input.resetTrack),
+      ...optionalEntry('setAlbum', input.setAlbum),
+      ...optionalEntry('setAlbumArtist', input.setAlbumArtist),
+      ...optionalEntry('setArtist', input.setArtist),
+      ...optionalEntry('setMetadata', input.setMetadata),
+      ...optionalEntry('swapArtistAlbumartist', input.swapArtistAlbumartist),
       ...optionalEntry('titleFilenameStrategy', input.titleFilenameStrategy),
     })
   }

@@ -18,7 +18,7 @@ npm run build
 ./build/dist/index.js organize-files --source-dir "$SOURCE_DIR" --dest-dir etc/3-organized-files --format json --execute
 ```
 
-Do not run `fix-tags` during this suitable-candidate pass, and do not use overwrite behavior or manual merges for duplicate destination album folders.
+Do not supply metadata-repair options during this suitable-candidate pass, and do not use overwrite behavior or manual merges for duplicate destination album folders.
 
 `organize-files` accepts one normalized album directory per run. It fails with
 `Multiple albums found:` when the selected files resolve to multiple albums,
@@ -45,7 +45,7 @@ inconsistent totals are invalid.
 Single-disc albums retain `Artist/Album/TT - Title.ext`. A set with a disc
 number or total greater than 1 is organized as
 `Artist/Album/Disc DD/TT - Title.ext`. To repair a filename-ordered source set,
-run `fix-tags --disc-strategy infer` as a dry run first. Inference starts a new
+add `--disc-strategy infer` to the `organize-files` dry run. Inference starts a new
 disc whenever the next track number repeats or decreases; review every
 `newDiscNumber`/`newDiscTotal` before adding `--execute`.
 
@@ -75,7 +75,7 @@ This spec covers the current OC ReMix-style source folders in `etc/1-source-file
 - Executable workflows: 3
 - Blocked workflows: 11
 
-This spec uses staged `fix-tags` repairs before organization: `--set-album-artist "OverClocked ReMix"` for missing album-artist metadata, and `--set-album "Xenogears - Humans + Gears"` for Xenogears so the organized album folder matches the source folder name. It plans Blood on the Asphalt, Super Metroid, and corrected Xenogears as executable workflows, while leaving Chrono track-number repairs and partial multi-disc replacement workflows blocked.
+This historical spec used staged tag repairs before organization. The current command accepts `--set-album-artist "OverClocked ReMix"` and `--set-album "Xenogears - Humans + Gears"` directly on `organize-files`, so repaired metadata and final paths appear in one dry run.
 
 ## Chrono/Blood tagged-album processing spec
 
@@ -84,4 +84,4 @@ This spec uses staged `fix-tags` repairs before organization: `--set-album-artis
 - Executable workflows: 2
 - Blocked workflows: 0
 
-This spec combines Chrono Symphonic FLAC CD1/CD2 into audio-only staging, then uses `fix-tags --set-album-artist "OverClocked ReMix" --set-album "Chrono Symphonic" --reset-track` before organizing 25 tracks. It also stages Blood on the Asphalt with `fix-tags --set-album-artist "OverClocked ReMix" --album-strategy originalalbum` before organizing 24 tracks into `OverClocked ReMix/Super Street Fighter 2 Turbo`.
+This historical spec combined Chrono Symphonic FLAC CD1/CD2 into audio-only staging before tag repair and organization. The current workflow supplies the same album-artist, album strategy, and track-reset options directly to `organize-files` for a single reviewed plan.

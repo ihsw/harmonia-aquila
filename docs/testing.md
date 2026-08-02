@@ -131,14 +131,14 @@ __tests__/lib/albums/list.test.ts
 __tests__/commands/manage-albums/helpers/utils.test.ts
 __tests__/commands/manage-albums/list.test.ts
 __tests__/commands/manage-albums/summarize-source-dir.test.ts
-__tests__/commands/manage-albums/fix-tags.test.ts
 __tests__/lib/albums/disc-metadata.test.ts
 __tests__/lib/albums/disc-validation.test.ts
 __tests__/lib/albums/disc-inference.test.ts
-__tests__/lib/albums/fix-tags-disc.test.ts
 __tests__/commands/manage-albums/organize-files.test.ts
 __tests__/commands/manage-albums/organize-files-disc.test.ts
-__tests__/web/manage-albums-disc-metadata.test.ts
+__tests__/lib/albums/organize-files-metadata.test.ts
+__tests__/lib/albums/organize-files-metadata-disc.test.ts
+__tests__/web/manage-albums-organize-metadata.test.ts
 __tests__/web/graphql/album-disc-metadata.test.ts
 __tests__/commands/manage-audiobooks/validate.test.ts
 __tests__/commands/manage-audiobooks/copy-and-rename.test.ts

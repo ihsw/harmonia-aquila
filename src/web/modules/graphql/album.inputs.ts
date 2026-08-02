@@ -41,12 +41,15 @@ export class AlbumValidationInput {
 }
 
 @InputType()
-export class AlbumFixTagsInput {
+export class AlbumOrganizeFilesInput {
   @Field(() => String, { nullable: true })
   public albumArtistsStrategy?: string
 
   @Field(() => String, { nullable: true })
   public albumStrategy?: string
+
+  @Field(() => String, { nullable: true })
+  public artistFilenameStrategy?: string
 
   @Field(() => String, { nullable: true })
   public destinationStrategy?: string
@@ -56,6 +59,12 @@ export class AlbumFixTagsInput {
 
   @Field(() => Boolean, { nullable: true })
   public execute?: boolean
+
+  @Field(() => Boolean, { nullable: true })
+  public ignoreAudioFilesWithoutTracks?: boolean
+
+  @Field(() => Boolean, { nullable: true })
+  public ignoreNonAudioFiles?: boolean
 
   @Field(() => String, { nullable: true })
   public limit?: string
@@ -80,24 +89,6 @@ export class AlbumFixTagsInput {
 
   @Field(() => Boolean, { nullable: true })
   public swapArtistAlbumartist?: boolean
-}
-
-@InputType()
-export class AlbumOrganizeFilesInput {
-  @Field(() => String, { nullable: true })
-  public artistFilenameStrategy?: string
-
-  @Field(() => Boolean, { nullable: true })
-  public execute?: boolean
-
-  @Field(() => Boolean, { nullable: true })
-  public ignoreAudioFilesWithoutTracks?: boolean
-
-  @Field(() => Boolean, { nullable: true })
-  public ignoreNonAudioFiles?: boolean
-
-  @Field(() => String, { nullable: true })
-  public limit?: string
 
   @Field(() => String, { nullable: true })
   public titleFilenameStrategy?: string

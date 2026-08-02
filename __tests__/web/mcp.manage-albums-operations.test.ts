@@ -43,8 +43,11 @@ describe('web MCP manage-albums summarize and organize tools', () => {
     })
     await callTool(3, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
       albumDir: 'music/',
+      destinationStrategy: 'overwrite',
+      discStrategy: 'infer',
       execute: true,
       limit: 4,
+      setAlbumArtist: 'Various Artists',
       useScratchDir: true,
     })
 
@@ -55,10 +58,39 @@ describe('web MCP manage-albums summarize and organize tools', () => {
     })
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
       destDir: currentTestApp.destDir,
+      destinationStrategy: 'overwrite',
+      discStrategy: 'infer',
       execute: true,
       limit: '4',
+      setAlbumArtist: 'Various Artists',
       sourceDir: `${currentTestApp.scratchDir}/music`,
     })
+  })
+
+  it('discovers merged metadata inputs and no standalone repair tool', async () => {
+    const response = await postMcp(requireTestApp().baseUrl, {
+      id: 30,
+      jsonrpc: '2.0',
+      method: 'tools/list',
+      params: {},
+    })
+    const tools = (response.result as {
+      tools?: Array<{ inputSchema?: { properties?: Record<string, { type?: string }> }, name?: string }>
+    }).tools ?? []
+    const organizeTool = tools.find(tool => tool.name === MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME)
+
+    const retiredToolName = ['manage', 'albums', 'fix', 'tags'].join('_')
+    expect(tools.map(tool => tool.name)).not.toContain(retiredToolName)
+    expect(organizeTool?.inputSchema?.properties?.discStrategy).toMatchObject({ type: 'string' })
+    expect(organizeTool?.inputSchema?.properties?.setAlbumArtist).toMatchObject({ type: 'string' })
+
+    const retiredCall = await postMcp(requireTestApp().baseUrl, {
+      id: 31,
+      jsonrpc: '2.0',
+      method: 'tools/call',
+      params: { arguments: {}, name: retiredToolName },
+    })
+    expect(getToolText(retiredCall)).toContain('not found')
   })
 
   it('defaults organize input to source and always outputs to destination', async () => {

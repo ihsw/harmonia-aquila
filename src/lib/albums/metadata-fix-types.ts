@@ -1,6 +1,6 @@
 import type { AudioTagFix } from './audio-tags.js'
 
-export interface FixTagsJsonOutputRow {
+export interface MetadataFixJsonOutputRow {
   album: string
   artist: string
   title: string
@@ -19,23 +19,17 @@ export interface FixTagsJsonOutputRow {
   trackNumber?: number | string
 }
 
-export type FixTagsJsonOutput = FixTagsJsonOutputRow[]
-
-export interface FixTagsOptions {
+export interface MetadataFixOptions {
   albumArtistsStrategy?: string
   albumStrategy?: string
-  destDir: string
   destinationStrategy?: string
   discStrategy?: string
-  execute?: boolean
-  limit?: string
   producerStrategy?: string
   resetTrack?: boolean
   setAlbum?: string
   setAlbumArtist?: string
   setArtist?: string
   setMetadata?: string
-  sourceDir: string
   swapArtistAlbumartist?: boolean
 }
 
@@ -45,38 +39,47 @@ export type AlbumStrategy = 'grouping' | 'no change' | 'originalalbum'
 export type DiscStrategy = 'infer' | 'no change'
 export type ProducerStrategy = 'aggregate' | 'blank' | 'copy-from-album-artists' | 'no change'
 
-export interface ParsedTagFixSource {
+export interface ParsedAlbumSource {
   album: string
   albumArtists: string[]
   artist: string
   artists: string[]
-  destinationPath: string
   discNumber: number | null
   discTotal: number | null
   filename: string
   grouping: string
+  labels: string[]
   originalAlbum: string
   producers: string[]
   sourcePath: string
+  subtitle: string
   title: string
   trackNumber: number | null
 }
 
-export interface PlannedTagFix {
-  destinationExists: boolean
-  destinationPath: string
-  hasChanges: boolean
-  row: FixTagsJsonOutputRow
-  sourcePath: string
+export interface EffectiveAlbumMetadata {
+  album: string
+  albumArtist: string
+  artist: string
+  discNumber: number | null
+  discTotal: number | null
+  producers: string[]
+  title: string
+  trackNumber: number | null
+}
+
+export interface PlannedMetadataFix {
+  effective: EffectiveAlbumMetadata
+  row: MetadataFixJsonOutputRow
+  source: ParsedAlbumSource
   tagFix: AudioTagFix
 }
 
-export interface NormalizedFixTagsOptions {
+export interface NormalizedMetadataFixOptions {
   albumArtistsStrategy: AlbumArtistsStrategy
   albumStrategy: AlbumStrategy
   destinationStrategy: DestinationStrategy
   discStrategy: DiscStrategy
-  execute: boolean
   producerStrategy: ProducerStrategy
   resetTrack: boolean
   setAlbum: string | undefined

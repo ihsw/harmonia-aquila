@@ -37,6 +37,31 @@ describe('manage-albums organize-files errors', () => {
     expect(command?.description()).toContain('one album per run')
   })
 
+  it('maps metadata repair options into the organization operation', async () => {
+    mockOrganizeAlbumFiles.mockResolvedValue([])
+
+    await makeProgram().parseAsync([
+      'node', 's', 'organize-files',
+      '--source-dir', 'source',
+      '--dest-dir', 'destination',
+      '--set-album', 'Album',
+      '--set-album-artist', 'Various Artists',
+      '--disc-strategy', 'infer',
+      '--destination-strategy', 'overwrite',
+    ])
+
+    expect(mockOrganizeAlbumFiles).toHaveBeenCalledWith(expect.objectContaining({
+      albumArtistsStrategy: 'no change',
+      albumStrategy: 'no change',
+      destDir: 'destination',
+      destinationStrategy: 'overwrite',
+      discStrategy: 'infer',
+      setAlbum: 'Album',
+      setAlbumArtist: 'Various Artists',
+      sourceDir: 'source',
+    }))
+  })
+
   it('reports multiple albums through Commander without output or execute widening', async () => {
     mockOrganizeAlbumFiles.mockRejectedValue(new UserInputError(
       'Multiple albums found: Album A, Album B',

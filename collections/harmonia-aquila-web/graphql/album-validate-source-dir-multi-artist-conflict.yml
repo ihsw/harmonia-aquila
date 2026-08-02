@@ -13,6 +13,7 @@ http:
         "query": "query AlbumValidation($input: AlbumValidationInput!) { albumValidateSourceDir(input: $input) { filename status issues } }",
         "variables": {
           "input": {
+            "artistFilenameStrategy": "artist",
             "dirName": "{{graphqlAlbumDirName}}",
             "ignoreNonAudioFiles": true
           }

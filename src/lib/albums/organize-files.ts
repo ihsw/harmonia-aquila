@@ -1,193 +1,76 @@
-import { parseFile } from 'music-metadata'
-import { join, resolve } from 'node:path'
-import pLimit from 'p-limit'
+import { resolve } from 'node:path'
 
-import { UserInputError } from '../errors.js'
+import {
+  parseSetMetadataFile,
+  reconcileSetMetadata,
+  type SetMetadataRecord,
+} from '../../commands/manage-albums/helpers/set-metadata.js'
+import { getErrorMessage, UserInputError } from '../errors.js'
 
 import { getAudioFiles, parseLimit } from './audio-files.js'
+import { normalizeMetadataFixOptions } from './metadata-fix-options.js'
+import { planMetadataFixes } from './metadata-fix-planner.js'
+import { parseAlbumSources } from './metadata-fix-sources.js'
+import { planOrganizationCopies } from './organization-planner.js'
 import {
-  formatDiscNumber,
-  isMultiDiscSet,
-  throwForDiscSetIssues,
-} from './disc-metadata.js'
-import {
-  type ArtistFilenameStrategy,
-  assertSingleAlbumDirectory,
-  assertSingleArtistPerAlbumDirectory,
-  formatTrackNumber,
-  getAlbumDestination,
-  getArtistFilename,
-  parseArtistFilenameStrategy,
-  parseTitleFilenameStrategy,
-  sanitizePathSegment,
-  type TitleFilenameStrategy,
-} from './organization-plan.js'
-import {
-  assertOrganizationDestinationsAvailable,
-  assertUniqueOrganizationDestinations,
   executeOrganizationCopies,
+  prepareOrganizationDestinations,
 } from './organize-files-execution.js'
+import type {
+  OrganizeFilesJsonOutput,
+  OrganizeFilesOptions,
+} from './organize-files-types.js'
 
-export interface OrganizeFilesJsonOutputRow {
-  action: string
-  album: string
-  artistFilename: string
-  artistFilenameStrategy: ArtistFilenameStrategy
-  destination: string
-  discNumber: string
-  discTotal: string
-  filename: string
-  titleFilename: string
-  titleFilenameStrategy: TitleFilenameStrategy
-  trackNumber: string
-}
+export type {
+  OrganizeFilesJsonOutput,
+  OrganizeFilesJsonOutputRow,
+  OrganizeFilesOptions,
+} from './organize-files-types.js'
 
-export interface OrganizeFilesOptions {
-  artistFilenameStrategy?: string
-  destDir: string
-  execute?: boolean
-  ignoreAudioFilesWithoutTracks?: boolean
-  ignoreNonAudioFiles?: boolean
-  limit?: string
-  sourceDir: string
-  titleFilenameStrategy?: string
-}
-
-export type OrganizeFilesJsonOutput = OrganizeFilesJsonOutputRow[]
-
-interface PlannedCopy {
-  albumDestinationPath: string
-  albumDirectory: string
-  artistDirectory: string
-  destinationPath: string
-  row: OrganizeFilesJsonOutputRow
-  sourcePath: string
-}
-
-interface ParsedCopy {
-  album: string
-  albumDirectory: string
-  artistDirectory: string
-  artistFilename: string
-  discNumber: number | null
-  discTotal: number | null
-  filename: string
-  sourcePath: string
-  titleFilename: string
-  trackNumber: number
+async function readSetMetadata(path: string | undefined): Promise<SetMetadataRecord[] | undefined> {
+  if (path === undefined) {
+    return undefined
+  }
+  try {
+    return await parseSetMetadataFile(resolve(path))
+  }
+  catch (error) {
+    throw new UserInputError(getErrorMessage(error))
+  }
 }
 
 export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise<OrganizeFilesJsonOutput> {
   const limit = parseLimit(options.limit)
-  const artistFilenameStrategy = parseArtistFilenameStrategy(options.artistFilenameStrategy)
-  const titleFilenameStrategy = parseTitleFilenameStrategy(options.titleFilenameStrategy)
-  const destinationDirectory = resolve(options.destDir)
+  const normalized = normalizeMetadataFixOptions(options)
+  const records = await readSetMetadata(normalized.setMetadata)
   const { files, targetDirectory: sourceDirectory } = await getAudioFiles(
     options.sourceDir,
     { ignoreNonAudioFiles: options.ignoreNonAudioFiles === true },
   )
-  const filesToOrganize = limit === undefined ? files : files.slice(0, limit)
-  const parseMetadata = pLimit(16)
-  const parsedCopiesOrSkipped = await Promise.all(
-    filesToOrganize.map(file => parseMetadata(async (): Promise<ParsedCopy | undefined> => {
-      const sourcePath = resolve(sourceDirectory, file.name)
-      const metadata = await parseFile(sourcePath)
-      const album = metadata.common.album ?? ''
-      const albumartist = metadata.common.albumartist ?? ''
-      const artist = metadata.common.artist ?? ''
-      const label = metadata.common.label ?? []
-      const producer = metadata.common.producer ?? []
-      const artistFilename = getArtistFilename(artistFilenameStrategy, artist, albumartist, label, producer)
-      const title = metadata.common.title ?? ''
-      const subtitle = metadata.common.subtitle?.[0] ?? ''
-      const titleFilename = titleFilenameStrategy === 'subtitle' ? subtitle : title
-      const trackNumber = metadata.common.track.no
-      const discNumber = metadata.common.disk.no
-      const discTotal = metadata.common.disk.of
+  const selectedFiles = (limit === undefined ? files : files.slice(0, limit)).map(file => file.name)
+  let recordsByFilename: Map<string, SetMetadataRecord> | undefined
 
-      if (trackNumber === null && options.ignoreAudioFilesWithoutTracks === true) {
-        return undefined
-      }
-
-      const missingFields = [
-        album === '' ? 'album' : undefined,
-        artistFilename === '' ? artistFilenameStrategy : undefined,
-        trackNumber === null ? 'track number' : undefined,
-        titleFilename === '' ? titleFilenameStrategy : undefined,
-      ].filter((field): field is string => field !== undefined)
-
-      if (missingFields.length > 0) {
-        throw new UserInputError(`${file.name} is missing required metadata: ${missingFields.join(', ')}`)
-      }
-
-      if (trackNumber === null) {
-        throw new UserInputError(`${file.name} is missing required metadata: track number`)
-      }
-
-      return {
-        album,
-        albumDirectory: sanitizePathSegment(album),
-        artistDirectory: sanitizePathSegment(artistFilename),
-        artistFilename,
-        discNumber,
-        discTotal,
-        filename: file.name,
-        sourcePath,
-        titleFilename,
-        trackNumber,
-      }
-    })),
-  )
-  const parsedCopies = parsedCopiesOrSkipped.filter((copy): copy is ParsedCopy => copy !== undefined)
-  const discRecords = parsedCopies.map(copy => ({
-    discNumber: copy.discNumber,
-    discTotal: copy.discTotal,
-    filename: copy.filename,
-    trackNumber: copy.trackNumber,
-  }))
-
-  throwForDiscSetIssues(discRecords)
-  const multiDisc = isMultiDiscSet(discRecords)
-  const plannedCopies: PlannedCopy[] = parsedCopies.map((copy) => {
-    const destination = getAlbumDestination(
-      copy.artistFilename,
-      copy.album,
-      copy.trackNumber,
-      copy.titleFilename,
-      copy.filename,
-      { discNumber: copy.discNumber, multiDisc },
-    )
-
-    return {
-      albumDestinationPath: join(destinationDirectory, copy.artistDirectory, copy.albumDirectory),
-      albumDirectory: copy.albumDirectory,
-      artistDirectory: copy.artistDirectory,
-      destinationPath: join(destinationDirectory, destination),
-      row: {
-        action: options.execute === true ? 'copied' : 'would copy',
-        album: copy.album,
-        artistFilename: copy.artistFilename,
-        artistFilenameStrategy,
-        destination,
-        discNumber: formatDiscNumber(copy.discNumber),
-        discTotal: formatDiscNumber(copy.discTotal),
-        filename: copy.filename,
-        titleFilename: copy.titleFilename,
-        titleFilenameStrategy,
-        trackNumber: formatTrackNumber(copy.trackNumber),
-      },
-      sourcePath: copy.sourcePath,
+  if (records !== undefined) {
+    try {
+      recordsByFilename = reconcileSetMetadata(records, selectedFiles)
     }
-  })
-
-  assertUniqueOrganizationDestinations(plannedCopies, destinationDirectory)
-  assertSingleAlbumDirectory(plannedCopies)
-  assertSingleArtistPerAlbumDirectory(plannedCopies)
-  await assertOrganizationDestinationsAvailable(plannedCopies, destinationDirectory)
-
-  if (options.execute === true) {
-    await executeOrganizationCopies(plannedCopies)
+    catch (error) {
+      throw new UserInputError(getErrorMessage(error))
+    }
   }
+  const sources = await parseAlbumSources(sourceDirectory, selectedFiles)
+  const fixes = planMetadataFixes(sources, recordsByFilename, normalized)
+  const destinationDirectory = resolve(options.destDir)
+  const planned = planOrganizationCopies(fixes, options, destinationDirectory)
 
-  return plannedCopies.map(plannedCopy => plannedCopy.row)
+  await prepareOrganizationDestinations(
+    planned,
+    destinationDirectory,
+    normalized.destinationStrategy,
+    options.execute === true,
+  )
+  if (options.execute === true) {
+    await executeOrganizationCopies(planned)
+  }
+  return planned.map(plan => plan.row)
 }

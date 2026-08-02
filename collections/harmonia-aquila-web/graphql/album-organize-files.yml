@@ -10,11 +10,12 @@ http:
     type: json
     data: |-
       {
-        "query": "mutation AlbumOrganizeFiles($input: AlbumOrganizeFilesInput!) { albumOrganizeFiles(input: $input) { action filename } }",
+        "query": "mutation AlbumOrganizeFiles($input: AlbumOrganizeFilesInput!) { albumOrganizeFiles(input: $input) { action filename tagChanges { newAlbum } } }",
         "variables": {
           "input": {
             "ignoreNonAudioFiles": true,
             "limit": "1",
+            "setAlbum": "Reviewed Album",
             "useScratchDir": true
           }
         }
