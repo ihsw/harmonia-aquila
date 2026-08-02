@@ -1,89 +1,112 @@
 ---
 name: album-organization
-description: Audit, validate, repair, deduplicate, stage, and safely organize FLAC/MP3 albums with Harmonia Aquila through its CLI, REST API, GraphQL API, or MCP tool API. Use for album-sized batches, large music intake trees, mixed-quality duplicates, incomplete metadata, dry-run planning, and staged organization workflows.
+description: Audit, validate, repair metadata, deduplicate, and safely organize FLAC/MP3 albums with Harmonia Aquila through its CLI, REST API, GraphQL API, or MCP tool API. Use for album-sized batches, large music intake trees, mixed-quality duplicates, incomplete metadata, combined metadata-and-folder dry runs, and reviewed organization execution.
 ---
 
 # Album Organization
 
-Preserve the original source tree. Move from read-only inspection to dry-run
-planning, reversible staging, and only then explicit execution. Keep uncertain
-duplicates in quarantine rather than deleting them.
+Preserve the source tree. Use `organize-files` to plan metadata repairs and the
+resulting folder layout together, then execute that exact reviewed plan. Do not
+stage repaired files or call a separate tag-fixing operation.
 
-## Establish the operating boundary
+## Establish the boundary
 
 Work on one album-sized flat directory at a time. Album operations support
-`.flac` and `.mp3`; subdirectories and sidecars are errors unless the operation
-supports `ignoreNonAudioFiles` and it is deliberately enabled. Validation and
-organization reject more than one normalized album per call and reject one
-normalized album that maps to multiple normalized artist directories.
+`.flac` and `.mp3`; reject subdirectories and sidecars unless
+`ignoreNonAudioFiles` is deliberately enabled. Keep ambiguous duplicates in
+quarantine rather than deleting them.
 
 Before using a web API, determine the `--source-dir`, `--scratch-dir`, and
-`--dest-dir` supplied to `web serve`. API paths are relative to those
-server-controlled roots. Never infer a root or attempt traversal.
+`--dest-dir` supplied to `web serve`. API paths are relative to those configured
+roots. Never infer a root, pass a host path, or attempt traversal.
 
-Choose the available interface and keep one workflow on that interface unless
-its root semantics require a server restart:
+Choose one interface for the workflow:
 
 | Operation | CLI | REST | GraphQL | MCP |
 | --- | --- | --- | --- | --- |
 | list | `manage-albums list` | `GET /manage-albums/list` | `albumList` | `manage_albums_list` |
 | summarize | `manage-albums summarize-source-dir` | `GET /manage-albums/summarize-source-dir` | `albumSummarizeSourceDir` | `manage_albums_summarize_source_dir` |
 | validate | `manage-albums validate` | `GET /manage-albums/validate` | `albumValidateSourceDir` | `manage_albums_validate` |
-| fix tags | `manage-albums fix-tags` | `POST /manage-albums/fix-tags` | `albumFixTags` | `manage_albums_fix_tags` |
-| organize | `manage-albums organize-files` | `POST /manage-albums/organize-files` | `albumOrganizeFiles` | `manage_albums_organize_files` |
+| repair and organize | `manage-albums organize-files` | `POST /manage-albums/organize-files` | `albumOrganizeFiles` | `manage_albums_organize_files` |
 
-## Respect interface-specific roots
+## Respect root semantics
 
-Do not assume equal-looking inputs have equal behavior:
+| Interface | Input selection | Organized output |
+| --- | --- | --- |
+| CLI | explicit flat `--source-dir` | explicit `--dest-dir` |
+| REST / GraphQL | complete configured source root | configured source root by default; configured scratch root when `useScratchDir: true` |
+| MCP | slash-terminated `albumDir` under source, or scratch when `useScratchDir: true` | configured destination root |
 
-| Interface | Candidate selection | Tag-fix destination | Organization source and destination |
-| --- | --- | --- | --- |
-| CLI | explicit directory arguments | explicit `--dest-dir` | explicit source and destination |
-| REST / GraphQL | summarize and validate accept a source-relative `dirName`; fix-tags always consumes the complete configured source root | configured scratch root | always consumes the complete source root; `useScratchDir: true` selects scratch as the **output**, otherwise output is the source root |
-| MCP | list an album and pass its slash-terminated `albumDir`; validation may select source or scratch | configured scratch root | `useScratchDir: true` selects scratch as the **input**; output is always the configured destination root |
-
-REST and GraphQL cannot directly organize the output of `fix-tags` in the same
-server run. To continue through those APIs, restart `web serve` with the staged
-flat directory as `--source-dir`, a separate empty directory as
-`--scratch-dir`, and call organize with `useScratchDir: true`. Prefer CLI or MCP
-when restarting is undesirable.
+For REST or GraphQL, start `web serve` with the exact flat candidate as its
+source root. Select a separate empty scratch root as output when source and
+destination must not overlap. For MCP, discover `albumDir` with
+`manage_albums_list`; use `./` for files directly in a configured root.
 
 REST query booleans are `true`/`false` strings, and REST/GraphQL `limit` values
-are strings. MCP inputs use native booleans and non-negative integers. MCP
-`albumDir` and non-empty list `prefix` values must end in `/`; use `./` to
-select files directly in a configured root.
+are strings. MCP uses native booleans and non-negative integers. MCP
+`albumDir` and non-empty list prefixes must end in `/`.
 
-## Run the safe workflow
+## Use the combined workflow
 
-1. List or otherwise select one candidate album directory.
-2. Summarize every track. Inspect `album`, `grouping`, `originalalbum`,
-   `artist`, `albumartist`, `title`, `subtitle`, `year`, bitrate, sample rate,
-   label, and publisher. Use validation rows to inspect normalized track numbers
-   and predicted destinations.
-3. Reconcile duplicates before writes. Compare normalized track number and
-   title, title/subtitle swaps, extension, bitrate, sample rate, and predicted
-   destination. Usually retain complete FLAC over MP3 and higher-quality,
-   better-tagged copies; quarantine ambiguous losers.
-4. Validate with the same artist/title filename strategies intended for
-   organization. Treat invalid rows, duplicate destinations, multiple albums,
-   and multiple artists as blockers.
-5. If tags need repair, dry-run tag fixing into a separate staging root. Review
-   every proposed field and destination, then repeat with explicit execution.
-6. Validate the staged directory. Do not organize merely because tag fixing
-   succeeded.
-7. Dry-run organization. Confirm the complete plan is collision-free and has
-   the form `ArtistName/AlbumName/TrackNumber - Title.ext`.
-8. Rerun the same plan with explicit execution. Keep summaries, validation
-   rows, and dry-run rows as audit artifacts until human review is complete.
+1. List and select one flat candidate directory.
+2. Summarize every track. Inspect album, grouping, original album, artist,
+   album artist, title, subtitle, track/disc numbers, year, quality, label,
+   publisher, and producer metadata.
+3. Reconcile duplicates before writes. Compare normalized disc/track and title,
+   title/subtitle swaps, extension, bitrate, sample rate, and likely
+   destination. Prefer a complete, better-tagged lossless copy; quarantine
+   uncertain alternatives.
+4. Run baseline validation with the filename strategies intended for the final
+   layout. Use it to identify missing metadata, disc-set issues, duplicate
+   destinations, and normalization conflicts. A repairable baseline failure is
+   input to the combined plan, not permission to bypass validation.
+5. Dry-run `organize-files` once with every required repair and filename option.
+   It parses each source once, projects the repaired metadata, and plans the
+   final destination from that effective metadata without writing.
+6. Review every row. Confirm `tagChanges`, effective album/artist/track/disc
+   fields, filename strategies, action, and destination. Require one selected
+   row per intended track and unique, collision-free destinations.
+7. Repeat the identical request with only `execute`/`--execute` added. Execution
+   repairs a temporary copy, verifies it, and publishes it at the organized
+   destination; it never changes source audio.
+8. Re-list, summarize, or validate the organized output when the chosen
+   interface exposes that root. Retain the dry-run and execution rows as audit
+   evidence and require parity apart from the action changing from
+   `would copy` to `copied`.
 
-Never use `limit` for final validation or execution; it can hide conflicts.
-Never use the original messy directory as a staging or organization
-destination. Never use overwrite to evade duplicate or existing-album errors.
+Never use `limit` for final validation or execution because it can hide
+conflicts. Keep `destinationStrategy` at `error` unless the user has reviewed
+the exact destination file. `ignore` and `overwrite` apply only to exact files;
+they are not duplicate-resolution or album-directory cleanup tools.
+
+## Choose metadata options deliberately
+
+- Use `albumStrategy: grouping` or `originalalbum` only after verifying that
+  field is canonical; otherwise use `setAlbum` or leave album unchanged.
+- Use `albumArtistsStrategy: aggregate` to derive album artists from the
+  selected tracks, or `setAlbumArtist` for a known value. Do not combine these
+  with incompatible swap options.
+- Use `setArtist` for a known uniform track artist. Use
+  `swapArtistAlbumartist` only after inspecting every source row.
+- Use `discStrategy: infer` only when filename order and track-number resets
+  reliably define disc boundaries. Review every proposed disc number and total.
+- Use `resetTrack` only when alphabetical source order is the intended album
+  order.
+- Use `producerStrategy: aggregate` or `copy-from-album-artists` only when the
+  catalog convention requires it.
+- Use artist filename strategy `albumartist` for compilations with reliable
+  album-artist tags. Use `label` or `producer` only for intentionally organized
+  catalogs.
+- Use title filename strategy `subtitle` only when subtitle contains the
+  intended filename title.
+- Use `setMetadata` when each track needs an explicit artist, album, track,
+  title, or disc value. Read
+  [the set-metadata contract](../../../docs/organize-files-set-metadata.md)
+  before constructing the JSON or CSV file.
 
 ## CLI playbook
 
-Prefer JSON output for auditability. Use the installed executable name or the
-built repository entrypoint consistently.
+Prefer JSON output so the plan can be compared mechanically.
 
 ```sh
 harmonia-aquila manage-albums summarize-source-dir \
@@ -91,143 +114,88 @@ harmonia-aquila manage-albums summarize-source-dir \
 
 harmonia-aquila manage-albums validate \
   --dir-name "$SOURCE_DIR" \
-  --artist-filename-strategy artist \
+  --artist-filename-strategy albumartist \
   --title-filename-strategy title \
   --format json
-
-harmonia-aquila manage-albums fix-tags \
-  --source-dir "$SOURCE_DIR" --dest-dir "$TAGGED_STAGE_DIR" \
-  --album-strategy grouping --format json
-# Repeat only after review, adding --execute.
-
-harmonia-aquila manage-albums validate \
-  --dir-name "$TAGGED_STAGE_DIR" --format json
 
 harmonia-aquila manage-albums organize-files \
-  --source-dir "$TAGGED_STAGE_DIR" --dest-dir "$ORGANIZED_DIR" \
-  --artist-filename-strategy artist \
+  --source-dir "$SOURCE_DIR" --dest-dir "$ORGANIZED_DIR" \
+  --set-album "Canonical Album" \
+  --set-album-artist "Various Artists" \
+  --artist-filename-strategy albumartist \
   --title-filename-strategy title \
   --format json
-# Repeat only after review, adding --execute.
+# Review every row, then repeat the same command with --execute.
 ```
 
 Use `manage-albums list --source-dir ROOT --prefix "path/" --format json` to
-discover immediate entries when navigating a large tree.
+navigate a large tree.
 
 ## REST playbook
 
-Configure `web serve --source-dir` to the exact flat candidate before fix-tags
-or organization. Example read-only requests:
-
-```sh
-curl --get "$BASE_URL/manage-albums/summarize-source-dir" \
-  --data-urlencode 'dirName=.' \
-  --data-urlencode 'ignoreNonAudioFiles=false'
-
-curl --get "$BASE_URL/manage-albums/validate" \
-  --data-urlencode 'dirName=.' \
-  --data-urlencode 'artistFilenameStrategy=artist' \
-  --data-urlencode 'titleFilenameStrategy=title'
-```
-
-Dry-run tag repair with a JSON body and omit `execute`:
-
-```sh
-curl -X POST "$BASE_URL/manage-albums/fix-tags" \
-  -H 'Content-Type: application/json' \
-  -d '{"albumStrategy":"grouping"}'
-```
-
-After reviewing, repeat with `"execute":true`. Restart the server with that
-staging directory as the source and a separate organized-output directory as
-scratch; then dry-run organization with:
+Configure the exact candidate as the server source root. Summarize and validate
+with GET requests, then send all repair and layout options in one dry-run POST:
 
 ```sh
 curl -X POST "$BASE_URL/manage-albums/organize-files" \
   -H 'Content-Type: application/json' \
-  -d '{"artistFilenameStrategy":"artist","titleFilenameStrategy":"title","useScratchDir":true}'
+  -d '{
+    "setAlbum":"Canonical Album",
+    "setAlbumArtist":"Various Artists",
+    "artistFilenameStrategy":"albumartist",
+    "titleFilenameStrategy":"title",
+    "useScratchDir":true
+  }'
+# Review, then repeat the same body with "execute":true.
 ```
 
-Repeat with `"execute":true` only after reviewing the returned rows. REST
-returns user-input failures as HTTP 400.
+REST returns user-input failures as HTTP 400. Do not send configured root
+overrides in request bodies.
 
 ## GraphQL playbook
 
-Use `POST /graphql`. Request the fields needed to assess the plan; omitted
-fields are not returned.
+Request both organization fields and nested metadata changes:
 
 ```graphql
-query AuditAlbum {
-  albumSummarizeSourceDir(input: { dirName: "." }) {
-    filename album artist albumartist title grouping bitrate sampleRate
-  }
-  albumValidateSourceDir(input: { dirName: "." }) {
-    filename status issues destination
-  }
-}
-
-mutation DryRunFix {
-  albumFixTags(input: { albumStrategy: "grouping" }) {
-    album artist title newAlbum
-  }
-}
-
 mutation DryRunOrganize {
   albumOrganizeFiles(input: {
-    artistFilenameStrategy: "artist"
+    setAlbum: "Canonical Album"
+    setAlbumArtist: "Various Artists"
+    artistFilenameStrategy: "albumartist"
     titleFilenameStrategy: "title"
     useScratchDir: true
   }) {
-    action filename destination
+    action
+    filename
+    album
+    artistFilename
+    destination
+    tagChanges { newAlbum newAlbumArtists newDiscNumber newDiscTotal }
   }
 }
 ```
 
-Use the same restart sequence as REST between fix-tags and organization. Add
-`execute: true` only after review. Treat GraphQL errors with
+Repeat with `execute: true` only after review. Treat GraphQL errors with
 `extensions.code: BAD_USER_INPUT` as blockers.
 
 ## MCP playbook
 
-Prefer MCP for a single server run with per-album source selection:
+1. Call `manage_albums_list` and descend through slash-terminated prefixes.
+2. Call `manage_albums_summarize_source_dir` for the selected `dirName`.
+3. Call `manage_albums_validate` with that `dirName` and intended filename
+   strategies.
+4. Call `manage_albums_organize_files` with the selected `albumDir`, every
+   required repair option, and the intended filename strategies. Omit
+   `execute`, parse and review the JSON rows in `content[0].text`, then repeat
+   the identical input with `execute: true`.
 
-1. Call `manage_albums_list` with `{ "prefix": "" }`; descend with returned
-   slash-terminated directory prefixes.
-2. Call `manage_albums_summarize_source_dir` with the selected relative
-   `dirName`.
-3. Call `manage_albums_validate` with that `dirName` and intended strategies.
-4. Call `manage_albums_fix_tags` with the returned `albumDir` and repair
-   options. Omit `execute`, review parsed JSON from `content[0].text`, then
-   repeat with `execute: true`.
-5. Call `manage_albums_list` with `{ "useScratchDir": true }` to inspect the
-   staged files. Fix-tags writes them directly into the scratch root, so
-   validate with `{ "dirName": ".", "useScratchDir": true }`.
-6. Call `manage_albums_organize_files` with
-   `{ "albumDir": "./", "useScratchDir": true }` plus the intended filename
-   strategies. Omit `execute`, review, then repeat with `execute: true`.
+Use `useScratchDir: true` only when the selected input album is already under
+the configured scratch root; it no longer means “write repaired tags to
+scratch.” MCP always publishes organized output under the configured
+destination root. Treat tool-error content as failure, including path, schema,
+metadata conflict, duplicate, collision, and multiple-album/artist errors.
 
-MCP success content is a JSON string in `content[0].text`, not
-`structuredContent`; parse it before evaluating rows. Treat tool-error content
-as failure, including path, schema, duplicate, multiple-album, and
-multiple-artist errors.
-
-## Choose repair and filename strategies deliberately
-
-- Use album strategy `grouping` or `originalalbum` only when that field is the
-  verified canonical album name; otherwise use `setAlbum` or leave unchanged.
-- Use album-artists strategy `aggregate` to derive album artists from tracks,
-  or `setAlbumArtist` for a known value. Do not combine either with an
-  incompatible artist/albumartist swap.
-- Use producer strategy `aggregate` or `copy-from-album-artists` only when the
-  collection convention requires it.
-- Use artist filename strategy `albumartist` for compilations with reliable
-  album-artist tags; use `label` or `producer` only for intentionally
-  label-/producer-organized catalogs.
-- Use title filename strategy `subtitle` only when subtitle holds the intended
-  filename title.
-- Keep destination strategy `error`. `ignore` and `overwrite` are tag-staging
-  rerun controls, not duplicate-resolution tools.
-
-The outcome is one selected copy of every track, a reviewed and reproducible
-metadata repair plan, valid staged metadata, and a collision-free organized
-album whose final dry run matches the executed plan.
+The desired outcome is one reviewed operation that produces one selected copy
+of every track, applies the approved metadata repairs only to destination
+copies, and publishes a collision-free album whose execution matches its dry
+run.
