@@ -3,6 +3,7 @@ import type { Server } from 'node:http'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { organizeAlbumFiles } from '../../../src/lib/albums/organize-files.js'
+import { UserInputError } from '../../../src/lib/errors.js'
 import { createWebApp } from '../../../src/web/main.js'
 import { createTempDir, removeTempDir } from '../../test-helpers.js'
 
@@ -59,5 +60,20 @@ describe('GraphQL album organization output', () => {
       { album: null, fileType: 'albumArt', filename: 'cover.jpg', tagChanges: null },
     ] } })
     expect(organizeAlbumFiles).toHaveBeenCalledWith({ destDir: sourceDir, sourceDir })
+  })
+
+  it('returns actionable duplicate-track guidance as BAD_USER_INPUT', async () => {
+    const message = 'Duplicate track numbers were detected: Track 32. Fix with setMetadata or discStrategy "infer".'
+    vi.mocked(organizeAlbumFiles).mockRejectedValue(new UserInputError(message))
+    const response = await fetch(`${baseUrl}/graphql`, {
+      body: JSON.stringify({ query: 'mutation { albumOrganizeFiles(input: {}) { filename } }' }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    })
+
+    expect(await response.json()).toMatchObject({ errors: [{
+      extensions: { code: 'BAD_USER_INPUT' },
+      message,
+    }] })
   })
 })

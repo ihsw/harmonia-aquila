@@ -28,8 +28,10 @@ describe('manage-albums organization controller errors', () => {
     await removeTempDir(sourceDir)
   })
 
-  it('maps multiple albums to the existing HTTP 400 body', async () => {
-    const message = 'Multiple albums found: Album A, Album B'
+  it.each([
+    'Multiple albums found: Album A, Album B',
+    'Duplicate track numbers were detected: Track 32. Fix with setMetadata or discStrategy "infer".',
+  ])('maps organization guidance to the existing HTTP 400 body: %s', async (message) => {
     vi.mocked(organizeAlbumFiles).mockRejectedValue(new UserInputError(message))
 
     await expect(controller.organizeFiles({})).rejects.toMatchObject({

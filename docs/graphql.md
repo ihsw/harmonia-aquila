@@ -78,11 +78,15 @@ than under `Disc DD`. Destination collision handling applies to both variants.
 `--source-dir`; set `useScratchDir: true` to select `--scratch-dir` instead.
 It never accepts a client-supplied root path or changes source audio.
 
-Disc inference is opt-in and uses filename order. A repeated or decreased
-track number starts the next disc. Review the dry-run values before passing
-`execute: true`. Validation and organization expose formatted disc fields;
-multi-disc organization places tracks below `Disc DD` while preserving the
-legacy single-disc path.
+Disc metadata may be absent when selected track numbers are unique. Repeated
+track numbers without effective disc numbers return `BAD_USER_INPUT` with the
+duplicate track groups, the `missing disc number` reason, and `setMetadata` or
+explicit-inference guidance. `setMetadata` is a host-readable path to a
+whole-album JSON/CSV file, not an inline JSON blob. Disc inference is opt-in through
+`discStrategy: "infer"` and uses filename order; omitted/default input never
+infers. A repeated or decreased track number starts the next disc. Review the
+dry-run values before passing `execute: true`. Multi-disc organization places
+tracks below `Disc DD` while preserving the flat unique-track path.
 
 `albumOrganizeFiles` accepts one normalized album directory per request. More
 than one album returns `BAD_USER_INPUT` with a message beginning

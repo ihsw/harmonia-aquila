@@ -102,6 +102,12 @@ metadata. Explicit and inferred disc sets MUST retain strict validation and
   optional for unique-track flat albums; repeated tracks require complete
   explicit metadata or successful opt-in inference; inference is never the
   default; and destination collision checks remain in force afterward.
+- **FR-13 — Actionable organization error** When repeated track numbers
+  activate missing-disc validation, `organize-files` MUST group the duplicate
+  track numbers and filenames, retain the `missing disc number` reason, explain
+  the whole-album `setMetadata` JSON/CSV-file repair and explicit
+  `discStrategy: "infer"` alternatives, confirm no files were written, and
+  preserve that message through CLI, REST, GraphQL, and MCP errors.
 
 ## 5. Non-Functional Requirements
 

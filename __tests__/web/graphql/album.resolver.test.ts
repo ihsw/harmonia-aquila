@@ -116,6 +116,7 @@ describe('AlbumResolver', () => {
   it.each([
     'Multiple albums found: Album A, Album B',
     'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
+    'Duplicate track numbers were detected: Track 32. Fix with setMetadata or discStrategy "infer".',
   ])('preserves organize-files conflicts for GraphQL error filtering: %s', async (message) => {
     vi.mocked(organizeAlbumFiles).mockRejectedValue(new UserInputError(message))
 

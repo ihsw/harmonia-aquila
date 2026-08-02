@@ -47,15 +47,22 @@ as invalid validation rows instead of contributing album identities.
 
 MP3 files store disc number/total in ID3v2 `TPOS` (`N` or `N/M`); FLAC uses
 `DISCNUMBER` and `DISCTOTAL`. Summary and validation rows expose normalized
-`discNumber` and `discTotal` values. Repeated track numbers require complete,
-contiguous disc numbers, and duplicate `(discNumber, trackNumber)` pairs or
-inconsistent totals are invalid.
+`discNumber` and `discTotal` values. Disc metadata may be wholly absent when
+selected track numbers are unique. Repeated track numbers require complete,
+contiguous effective disc numbers; without them, validation and organization
+fail with `missing disc number`. Duplicate `(discNumber, trackNumber)` pairs,
+partial metadata, orphan totals, and inconsistent totals are invalid.
+When repeated tracks activate this restriction, `organize-files` groups the
+duplicate track numbers and filenames in its error. Use `--set-metadata` with a
+whole-album JSON/CSV file when numbering is incorrect, or use explicit
+`--disc-strategy infer` only when the repeats are genuine disc boundaries.
 
 Single-disc albums retain `Artist/Album/TT - Title.ext`. A set with a disc
 number or total greater than 1 is organized as
 `Artist/Album/Disc DD/TT - Title.ext`. To repair a filename-ordered source set,
-add `--disc-strategy infer` to the `organize-files` dry run. Inference starts a new
-disc whenever the next track number repeats or decreases; review every
+add `--disc-strategy infer` to the `organize-files` dry run. Inference is never
+automatic: without the flag, repeated tracks remain invalid. Inference starts
+a new disc whenever the next track number repeats or decreases; review every
 `newDiscNumber`/`newDiscTotal` before adding `--execute`.
 
 ## Reconciled suitable-candidate processing spec

@@ -33,6 +33,13 @@ describe('validateDiscSet', () => {
       .toEqual(['missing disc number', 'missing disc number'])
   })
 
+  it('requires disc numbers for partial metadata and orphan totals', () => {
+    expect(messages([record('a.mp3', 1, 1), record('b.mp3', 2)]))
+      .toEqual(['missing disc number'])
+    expect(messages([record('a.mp3', 1, null, 2)]))
+      .toEqual(['missing disc number'])
+  })
+
   it('reports duplicate tuple and invalid totals', () => {
     expect(messages([
       record('a.mp3', 1, 1, 1),

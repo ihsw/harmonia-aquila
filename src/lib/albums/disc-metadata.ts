@@ -62,14 +62,13 @@ function validateCompleteness(records: DiscTrackMetadata[], issues: DiscSetIssue
 
   const hasRepeatedTrack = [...counts.values()].some(count => count > 1)
   const hasDiscNumber = records.some(record => record.discNumber !== null)
+  const hasDiscTotal = records.some(record => record.discTotal !== null)
 
-  if (hasRepeatedTrack || hasDiscNumber) {
+  if (hasRepeatedTrack || hasDiscNumber || hasDiscTotal) {
     for (const record of records.filter(item => item.discNumber === null)) {
       addIssue(issues, [record.filename], 'missing disc number')
     }
   }
-
-  const hasDiscTotal = records.some(record => record.discTotal !== null)
 
   if (hasDiscTotal) {
     for (const record of records.filter(item => item.discTotal === null)) {
@@ -142,16 +141,6 @@ export function validateDiscSet(records: DiscTrackMetadata[]): DiscSetIssue[] {
   return issues.sort((left, right) =>
     left.message.localeCompare(right.message)
     || left.filenames.join('\0').localeCompare(right.filenames.join('\0')))
-}
-
-export function throwForDiscSetIssues(records: DiscTrackMetadata[]): void {
-  const issues = validateDiscSet(records)
-
-  if (issues.length > 0) {
-    throw new UserInputError(issues
-      .map(issue => `${issue.message} (${issue.filenames.join(', ')})`)
-      .join('; '))
-  }
 }
 
 export function inferDiscSet(records: DiscTrackMetadata[]): Map<string, InferredDiscMetadata> {

@@ -120,6 +120,16 @@ organization checks both conflicts before destination inspection or writes.
 Missing metadata and exact duplicate destinations appear as invalid validation
 rows, while organization rejects them.
 
+Disc metadata may be absent for selected albums with unique track numbers.
+Repeated track numbers without effective disc numbers return tool-error content
+that groups the duplicate tracks and recommends either the `setMetadata`
+JSON/CSV path or explicit inference while retaining `missing disc number`.
+Call `manage_albums_organize_files` with
+`discStrategy: "infer"` only when filename order and track resets reliably
+describe the discs; inference is never the default. Review all inferred disc
+changes and `Disc DD` destinations before a separate `execute: true` call.
+Partial disc metadata and disc totals without disc numbers remain invalid.
+
 ## Audiobook tool contracts
 
 | Tool | Required input | Optional input |

@@ -18,12 +18,13 @@ function makeProgram(): Command {
 }
 
 describe('manage-albums organize-files errors', () => {
+  let errorSpy: Mock
   let infoSpy: Mock
 
   beforeEach(() => {
     infoSpy = vi.spyOn(console, 'info').mockImplementation(() => undefined)
     vi.spyOn(console, 'table').mockImplementation(() => undefined)
-    vi.spyOn(process.stderr, 'write').mockReturnValue(true)
+    errorSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true)
     mockOrganizeAlbumFiles.mockReset()
   })
 
@@ -79,6 +80,23 @@ describe('manage-albums organize-files errors', () => {
     expect(mockOrganizeAlbumFiles).toHaveBeenCalledWith(expect.not.objectContaining({
       execute: true,
     }))
+    expect(infoSpy).not.toHaveBeenCalled()
+  })
+
+  it('reports actionable duplicate-track guidance through Commander', async () => {
+    const message = 'Duplicate track numbers were detected: Track 32. Fix with setMetadata or discStrategy "infer".'
+    mockOrganizeAlbumFiles.mockRejectedValue(new UserInputError(message))
+    vi.spyOn(process, 'exit').mockImplementation((): never => {
+      throw new Error('exit')
+    })
+
+    await expect(makeProgram().parseAsync([
+      'node', 's', 'organize-files',
+      '--source-dir', 'source',
+      '--dest-dir', 'destination',
+    ])).rejects.toThrow('exit')
+
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining(message))
     expect(infoSpy).not.toHaveBeenCalled()
   })
 })

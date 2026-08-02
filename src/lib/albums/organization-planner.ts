@@ -2,7 +2,8 @@ import { join } from 'node:path'
 
 import { UserInputError } from '../errors.js'
 
-import { formatDiscNumber, isMultiDiscSet, throwForDiscSetIssues } from './disc-metadata.js'
+import { throwForDiscSetIssues } from './disc-metadata-error.js'
+import { formatDiscNumber, isMultiDiscSet } from './disc-metadata.js'
 import type { PlannedMetadataFix } from './metadata-fix-types.js'
 import {
   assertSingleAlbumDirectory,

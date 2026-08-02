@@ -1,7 +1,7 @@
 import type { SetMetadataRecord } from '../../commands/manage-albums/helpers/set-metadata.js'
 import { UserInputError } from '../errors.js'
 
-import { inferDiscSet, throwForDiscSetIssues } from './disc-metadata.js'
+import { inferDiscSet } from './disc-metadata.js'
 import type {
   EffectiveAlbumMetadata,
   NormalizedMetadataFixOptions,
@@ -108,18 +108,6 @@ export function planMetadataFixes(
   const producersByGrouping = collectByGrouping(sources, source => source.producers)
   const tracksByPath = resetTrackNumbers(sources, options)
   const discsByFilename = getDiscChanges(sources, records, options)
-  const effectiveDiscs = sources.map((source) => {
-    const record = records?.get(source.filename)
-    const disc = discsByFilename.get(source.filename)
-    return {
-      discNumber: disc?.discNumber ?? source.discNumber,
-      discTotal: disc?.discTotal ?? source.discTotal,
-      filename: source.filename,
-      trackNumber: record?.trackNumber ?? tracksByPath.get(source.sourcePath) ?? source.trackNumber,
-    }
-  })
-
-  throwForDiscSetIssues(effectiveDiscs)
   return sources.map(source => planSource(
     source,
     records?.get(source.filename),

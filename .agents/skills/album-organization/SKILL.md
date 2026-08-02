@@ -93,8 +93,14 @@ they are not duplicate-resolution or album-directory cleanup tools.
   with incompatible swap options.
 - Use `setArtist` for a known uniform track artist. Use
   `swapArtistAlbumartist` only after inspecting every source row.
+- Disc metadata may be absent when selected track numbers are unique. Repeated
+  track numbers without effective disc numbers are a blocker; do not treat
+  distinct titles as a substitute for disc identity. The organization error
+  groups duplicate tracks: use its `setMetadata` JSON/CSV-path guidance for
+  incorrect numbering or its explicit inference guidance for real discs.
 - Use `discStrategy: infer` only when filename order and track-number resets
-  reliably define disc boundaries. Review every proposed disc number and total.
+  reliably define disc boundaries. It is never automatic. Review every
+  proposed disc number, total, metadata change, and `Disc DD` destination.
 - Use `resetTrack` only when alphabetical source order is the intended album
   order.
 - Use `producerStrategy: aggregate` or `copy-from-album-artists` only when the

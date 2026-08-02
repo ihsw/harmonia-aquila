@@ -136,6 +136,7 @@ __tests__/lib/albums/disc-validation.test.ts
 __tests__/lib/albums/disc-inference.test.ts
 __tests__/commands/manage-albums/organize-files.test.ts
 __tests__/commands/manage-albums/organize-files-disc.test.ts
+__tests__/lib/albums/organize-files-disc-policy.test.ts
 __tests__/lib/albums/organize-files-metadata.test.ts
 __tests__/lib/albums/organize-files-metadata-disc.test.ts
 __tests__/lib/albums/audio-files-album-art.test.ts

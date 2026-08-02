@@ -40,9 +40,9 @@ src/lib/albums/disc-metadata.ts
 __tests__/lib/albums/disc-validation.test.ts
 __tests__/commands/manage-albums/organize-files-disc.test.ts
 __tests__/lib/albums/validate-disc.test.ts
-__tests__/web/manage-albums-disc-metadata.test.ts       if shared REST parity needs coverage
+__tests__/web/manage-albums-organize-metadata.test.ts
 __tests__/web/graphql/album-disc-metadata.test.ts       if shared GraphQL parity needs coverage
-__tests__/web/mcp.manage-albums-disc-metadata.test.ts   if shared MCP parity needs coverage
+__tests__/web/mcp.manage-albums-operations.test.ts
 docs/album-organization.md
 docs/graphql.md                                         only if old strict prose is present
 docs/mcp-server.md                                      only if old strict prose is present
@@ -125,6 +125,14 @@ separate later guard and still reports
 `Multiple files resolve to the same destination`; it never substitutes for
 disc identity validation (FR-2, FR-3, FR-7).
 
+When repeated tracks specifically activate `missing disc number`, organization
+formats one shared actionable error. It groups filenames by repeated track
+number, recommends whole-album `setMetadata` (CLI: `--set-metadata` with a
+JSON/CSV path) for incorrect numbering, recommends explicit inference only for
+real disc boundaries, and confirms that no files were written. Other disc-set
+failures retain the compact deterministic issue list. Transport adapters pass
+the shared `UserInputError` message through unchanged (FR-13).
+
 Album-art rows remain after audio rows and target `Artist/Album/<basename>`.
 No metadata writes are attempted for images, and dry run performs no writes
 (FR-8, FR-11).
@@ -140,10 +148,10 @@ Unique-track all-absent albums remain valid (FR-1–FR-3).
 
 | Surface | Input delta | Output/schema delta | Required proof |
 | --- | --- | --- | --- |
-| CLI | existing `--disc-strategy infer` | none | repeated tracks fail by default and infer explicitly |
-| REST | existing `discStrategy` | none | shared rows/errors; roots unchanged |
-| GraphQL | existing `discStrategy` | none | nullable/current fields unchanged; dry-run default |
-| MCP | existing `discStrategy` | none | tool name/schema/order/annotations unchanged |
+| CLI | existing `--disc-strategy infer` | actionable error text | repeated tracks fail by default and infer explicitly |
+| REST | existing `discStrategy` | shared HTTP 400 message | shared rows/errors; roots unchanged |
+| GraphQL | existing `discStrategy` | shared `BAD_USER_INPUT` message | nullable/current fields unchanged; dry-run default |
+| MCP | existing `discStrategy` | shared tool-error text | tool name/schema/order/annotations unchanged |
 
 Transport tests MAY mock the new shared row/error result when that is the
 existing test pattern. At least one protocol-level test MUST parse a successful
@@ -219,8 +227,8 @@ After every TypeScript source/test edit:
 Focused checks:
 
 1. `./node_modules/.bin/vitest run __tests__/lib/albums/disc-validation.test.ts __tests__/lib/albums/validate-disc.test.ts`
-2. `./node_modules/.bin/vitest run __tests__/commands/manage-albums/organize-files-disc.test.ts __tests__/lib/albums/organize-files-album-art.test.ts`
-3. `./node_modules/.bin/vitest run __tests__/web/manage-albums-disc-metadata.test.ts __tests__/web/graphql/album-disc-metadata.test.ts __tests__/web/mcp.manage-albums-disc-metadata.test.ts`
+2. `./node_modules/.bin/vitest run __tests__/commands/manage-albums/organize-files-disc.test.ts __tests__/lib/albums/organize-files-disc-policy.test.ts __tests__/lib/albums/organize-files-album-art.test.ts`
+3. `./node_modules/.bin/vitest run __tests__/web/manage-albums-organize-metadata.test.ts __tests__/web/graphql/album-disc-metadata.test.ts __tests__/web/mcp.manage-albums-operations.test.ts`
 
 Final checks, only after all TypeScript edits:
 
