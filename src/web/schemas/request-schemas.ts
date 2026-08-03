@@ -117,7 +117,9 @@ export const validateAlbumQuerySchema = z.object({
 })
 
 export const organizeFilesBodySchema = z.object({
+  albumArtStrategy: optionalString('albumArtStrategy'),
   albumArtistsStrategy: optionalString('albumArtistsStrategy'),
+  albumDirs: z.array(z.string({ error: 'albumDirs items must be strings' }), { error: 'albumDirs must be a string array' }).optional(),
   albumStrategy: optionalString('albumStrategy'),
   artistFilenameStrategy: optionalString('artistFilenameStrategy'),
   destinationStrategy: optionalString('destinationStrategy'),

@@ -78,6 +78,14 @@ than under `Disc DD`. Destination collision handling applies to both variants.
 `--source-dir`; set `useScratchDir: true` to select `--scratch-dir` instead.
 It never accepts a client-supplied root path or changes source audio.
 
+For concatenation, pass `albumDirs: ["disc-1", "disc-2"]` with
+`discStrategy: "concatenate"`. The mutation resolves each entry independently
+within the selected source or scratch root, requires at least two unique
+directories, clears effective disc metadata, and renumbers tracks across the
+combined ordered set. `albumArtStrategy: "first" | "last" | "neither"` is only
+valid in this mode and is required when multiple source directories contain art
+that would land on the same album-root destination.
+
 Disc metadata may be absent when selected track numbers are unique. Repeated
 track numbers without effective disc numbers return `BAD_USER_INPUT` with the
 duplicate track groups, the `missing disc number` reason, and `setMetadata` or

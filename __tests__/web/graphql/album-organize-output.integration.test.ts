@@ -45,20 +45,38 @@ describe('GraphQL album organization output', () => {
         titleFilenameStrategy: 'title', trackNumber: '01',
       },
       {
-        action: 'would copy', destination: 'Artist/Album/cover.jpg', fileType: 'albumArt', filename: 'cover.jpg',
+        action: 'would exclude',
+        destination: 'Artist/Album/cover.jpg',
+        fileType: 'albumArt',
+        filename: 'cover.jpg',
+        sourceDirectory: '/music/disc-2',
       },
     ])
     const response = await fetch(`${baseUrl}/graphql`, {
       body: JSON.stringify({
-        query: 'mutation { albumOrganizeFiles(input: {}) { fileType filename album tagChanges { newAlbum } } }',
+        query: 'mutation { albumOrganizeFiles(input: {}) { action fileType filename album sourceDirectory tagChanges { newAlbum } } }',
       }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     })
 
     expect(await response.json()).toEqual({ data: { albumOrganizeFiles: [
-      { album: 'Album', fileType: 'audio', filename: 'track.flac', tagChanges: { newAlbum: 'Album' } },
-      { album: null, fileType: 'albumArt', filename: 'cover.jpg', tagChanges: null },
+      {
+        action: 'would copy',
+        album: 'Album',
+        fileType: 'audio',
+        filename: 'track.flac',
+        sourceDirectory: null,
+        tagChanges: { newAlbum: 'Album' },
+      },
+      {
+        action: 'would exclude',
+        album: null,
+        fileType: 'albumArt',
+        filename: 'cover.jpg',
+        sourceDirectory: '/music/disc-2',
+        tagChanges: null,
+      },
     ] } })
     expect(organizeAlbumFiles).toHaveBeenCalledWith({ destDir: sourceDir, sourceDir })
   })

@@ -116,6 +116,44 @@ describe('AlbumResolver', () => {
     })
   })
 
+  it('maps albumDirs and albumArtStrategy for concatenate', async () => {
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+
+    await resolver.albumOrganizeFiles({
+      albumArtStrategy: 'first',
+      albumDirs: ['disc-1', 'disc-2'],
+      discStrategy: 'concatenate',
+    })
+
+    expect(organizeAlbumFiles).toHaveBeenCalledWith({
+      albumArtStrategy: 'first',
+      destDir: roots.sourceDir,
+      discStrategy: 'concatenate',
+      sourceDirs: [path.join(roots.sourceDir, 'disc-1'), path.join(roots.sourceDir, 'disc-2')],
+    })
+  })
+
+  it('routes destination to scratch but reads albumDirs through source root when useScratchDir', async () => {
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+
+    await resolver.albumOrganizeFiles({
+      albumArtStrategy: 'first',
+      albumDirs: ['disc-1', 'disc-2'],
+      discStrategy: 'concatenate',
+      useScratchDir: true,
+    })
+
+    expect(organizeAlbumFiles).toHaveBeenCalledWith({
+      albumArtStrategy: 'first',
+      destDir: roots.scratchDir,
+      discStrategy: 'concatenate',
+      sourceDirs: [
+        path.join(roots.sourceDir, 'disc-1'),
+        path.join(roots.sourceDir, 'disc-2'),
+      ],
+    })
+  })
+
   it.each([
     'Multiple albums found: Album A, Album B',
     'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',

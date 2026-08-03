@@ -23,9 +23,11 @@ describe('organize-files', () => {
   let sourceDir: string
   let destDir: string
   let infoSpy: Mock
+  let secondSourceDir: string
 
   beforeEach(async () => {
     sourceDir = await createTempDir('organize-src-')
+    secondSourceDir = await createTempDir('organize-src-')
     destDir = await createTempDir('organize-dst-')
     infoSpy = vi.spyOn(console, 'info').mockImplementation(() => undefined)
     vi.spyOn(console, 'table').mockImplementation(() => undefined)
@@ -35,6 +37,7 @@ describe('organize-files', () => {
 
   afterEach(async () => {
     await removeTempDir(sourceDir)
+    await removeTempDir(secondSourceDir)
     await removeTempDir(destDir)
     vi.restoreAllMocks()
   })
@@ -162,6 +165,41 @@ describe('organize-files', () => {
     expect(rows.map(row => row.destination)).toEqual([
       'Artist A/Same Album/01 - Track One.flac',
       'Artist A/Same Album/02 - Track Two.flac',
+    ])
+  })
+
+  it('accepts ordered sourceDirs and albumArtStrategy for concatenate', async () => {
+    await Promise.all([
+      createTempFile(sourceDir, '01.flac'),
+      createTempFile(sourceDir, 'cover.jpg'),
+      createTempFile(secondSourceDir, '01.flac'),
+      createTempFile(secondSourceDir, 'cover.jpg'),
+    ])
+    mockParseFile
+      .mockResolvedValueOnce(makeAudioMetadata({
+        album: 'Album', artist: 'Artist', disk: { no: 1, of: 2 }, title: 'First', track: { no: 1, of: null },
+      }))
+      .mockResolvedValueOnce(makeAudioMetadata({
+        album: 'Album', artist: 'Artist', disk: { no: 2, of: 2 }, title: 'Second', track: { no: 1, of: null },
+      }))
+
+    await makeProgram().parseAsync([
+      'node', 's', 'organize-files',
+      '--source-dirs', sourceDir, secondSourceDir,
+      '--disc-strategy', 'concatenate',
+      '--album-art-strategy', 'neither',
+      '--dest-dir', destDir,
+      '--format', 'json',
+    ])
+
+    const rawArg: unknown = infoSpy.mock.calls[0]?.[0]
+    const rows = JSON.parse(String(rawArg)) as OrganizeFilesJsonOutput
+
+    expect(rows).toMatchObject([
+      { destination: 'Artist/Album/01 - First.flac', fileType: 'audio', sourceDirectory: sourceDir },
+      { destination: 'Artist/Album/02 - Second.flac', fileType: 'audio', sourceDirectory: secondSourceDir },
+      { action: 'would exclude', fileType: 'albumArt', sourceDirectory: sourceDir },
+      { action: 'would exclude', fileType: 'albumArt', sourceDirectory: secondSourceDir },
     ])
   })
 })

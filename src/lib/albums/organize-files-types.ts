@@ -11,9 +11,11 @@ import type {
 
 export type OrganizationAction
   = 'copied'
+    | 'excluded'
     | 'ignored'
     | 'overwritten'
     | 'would copy'
+    | 'would exclude'
     | 'would ignore'
     | 'would overwrite'
 
@@ -22,6 +24,7 @@ export interface OrganizeFilesSharedJsonOutputRow {
   destination: string
   fileType: 'albumArt' | 'audio'
   filename: string
+  sourceDirectory?: string
 }
 
 export interface OrganizeFilesAudioJsonOutputRow extends OrganizeFilesSharedJsonOutputRow {
@@ -41,14 +44,18 @@ export interface OrganizeFilesAlbumArtJsonOutputRow extends OrganizeFilesSharedJ
   fileType: 'albumArt'
 }
 
-export interface OrganizeFilesOptions extends MetadataFixOptions {
+export type OrganizeFilesSourceOptions
+  = | { sourceDir: string, sourceDirs?: never }
+    | { sourceDir?: never, sourceDirs: readonly string[] }
+
+export type OrganizeFilesOptions = MetadataFixOptions & OrganizeFilesSourceOptions & {
+  albumArtStrategy?: string
   artistFilenameStrategy?: string
   destDir: string
   execute?: boolean
   ignoreAudioFilesWithoutTracks?: boolean
   ignoreNonAudioFiles?: boolean
   limit?: string
-  sourceDir: string
   titleFilenameStrategy?: string
 }
 

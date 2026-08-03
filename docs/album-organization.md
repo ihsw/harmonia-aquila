@@ -66,6 +66,21 @@ automatic: without the flag, repeated tracks remain invalid. Inference starts
 a new disc whenever the next track number repeats or decreases; review every
 `newDiscNumber`/`newDiscTotal` before adding `--execute`.
 
+Use `--disc-strategy concatenate` only with ordered `--source-dirs` when
+multiple flat source folders already represent one album. Concatenation requires
+at least two unique directories, renumbers tracks across the full ordered set,
+clears destination disc tags, and always plans a flat `Artist/Album/TT - Title`
+layout with no `Disc DD` directories. It rejects `--limit`, `--reset-track`,
+`--ignore-audio-files-without-tracks`, and `--set-metadata`.
+
+When concatenating, adjacent recognized album art is selected per resolved album
+root separately from the destination collision strategy. If two source folders
+would place art at the same destination, supply `--album-art-strategy first`,
+`last`, or `neither`; otherwise the dry run fails and lists every colliding art
+source. Dry-run and execute output include `sourceDirectory` for concatenated
+rows so repeated basenames remain unambiguous, and unselected art appears as
+`would exclude` or `excluded`. Always review the full dry run before `--execute`.
+
 ## Reconciled suitable-candidate processing spec
 
 - Spec: `specs/2026-07-09/process-reconciled-suitable-source-albums/`

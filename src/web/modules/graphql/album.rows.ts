@@ -171,6 +171,9 @@ export class AlbumOrganizeFilesRow {
   @Field(() => String)
   public filename!: string
 
+  @Field(() => String, { nullable: true })
+  public sourceDirectory?: string
+
   @Field(() => AlbumMetadataChangesRow, { nullable: true })
   public tagChanges?: AlbumMetadataChangesRow
 

@@ -66,7 +66,7 @@ describe('web MCP manage-albums summarize and organize tools', () => {
       execute: true,
       limit: '4',
       setAlbumArtist: 'Various Artists',
-      sourceDir: `${currentTestApp.scratchDir}/music`,
+      sourceDir: `${currentTestApp.sourceDir}/music`,
     })
     expect(JSON.parse(getToolText(organizeResponse))).toEqual([artRow])
   })
@@ -117,6 +117,25 @@ describe('web MCP manage-albums summarize and organize tools', () => {
     })
   })
 
+  it('maps albumDirs and albumArtStrategy through MCP organize input', async () => {
+    const currentTestApp = requireTestApp()
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+
+    await callTool(13, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
+      albumArtStrategy: 'last',
+      albumDirs: ['disc-1/', 'disc-2/'],
+      discStrategy: 'concatenate',
+      useScratchDir: true,
+    })
+
+    expect(organizeAlbumFiles).toHaveBeenCalledWith({
+      albumArtStrategy: 'last',
+      destDir: currentTestApp.destDir,
+      discStrategy: 'concatenate',
+      sourceDirs: [`${currentTestApp.sourceDir}/disc-1`, `${currentTestApp.sourceDir}/disc-2`],
+    })
+  })
+
   it('rejects traversal and malformed input before domain operations', async () => {
     const summarizeTraversal = await callTool(6, MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME, { dirName: '..' })
     const organizeMissing = await callTool(8, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {})
@@ -128,12 +147,16 @@ describe('web MCP manage-albums summarize and organize tools', () => {
       albumDir: '../outside/',
       useScratchDir: true,
     })
+    const duplicateAlbumDirs = await callTool(14, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
+      albumDirs: ['music/', 'music/'],
+    })
 
     expect(getToolText(summarizeTraversal)).toContain('--source-dir')
     expect(getToolText(organizeMissing)).toContain('albumDir')
     expect(getToolText(organizeMalformed)).toContain('albumDir must end with /')
     expect(getToolText(organizeTraversal)).toContain('--source-dir')
-    expect(getToolText(organizeScratchTraversal)).toContain('--scratch-dir')
+    expect(getToolText(organizeScratchTraversal)).toContain('--source-dir')
+    expect(getToolText(duplicateAlbumDirs)).toContain('albumDirs must contain unique entries')
     expect(summarizeAlbumSourceDir).not.toHaveBeenCalled()
     expect(organizeAlbumFiles).not.toHaveBeenCalled()
   })

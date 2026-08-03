@@ -8,6 +8,11 @@ export const MANAGE_ALBUMS_VALIDATE_TOOL_NAME = 'manage_albums_validate'
 export const MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME = 'manage_albums_organize_files'
 
 const albumDirSchema = z.string().min(1, 'albumDir is required').endsWith('/', 'albumDir must end with /')
+const albumDirsSchema = z.array(albumDirSchema)
+  .min(2, 'albumDirs must contain at least two entries')
+  .refine((value) => {
+    return new Set(value).size === value.length
+  }, 'albumDirs must contain unique entries')
 
 export const manageAlbumsListInputSchema = {
   prefix: z.string().optional(),
@@ -30,8 +35,10 @@ export const manageAlbumsValidateInputSchema = {
 }
 
 export const manageAlbumsOrganizeFilesInputSchema = {
+  albumArtStrategy: z.string().optional(),
   albumArtistsStrategy: z.string().optional(),
-  albumDir: albumDirSchema,
+  albumDir: albumDirSchema.optional(),
+  albumDirs: albumDirsSchema.optional(),
   albumStrategy: z.string().optional(),
   artistFilenameStrategy: z.string().optional(),
   destinationStrategy: z.string().optional(),

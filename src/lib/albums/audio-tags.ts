@@ -13,12 +13,14 @@ export interface AudioTagFix {
   album?: string
   albumArtists?: string[]
   artists?: string[]
-  discNumber?: number
-  discTotal?: number
+  discNumber?: NumericTagFix
+  discTotal?: NumericTagFix
   producers?: string[]
   title?: string
   trackNumber?: number
 }
+
+export type NumericTagFix = { kind: 'clear' } | { kind: 'set', value: number }
 
 function writeProducers(audioFile: File, filePath: string, producers: string[]): void {
   const extension = extname(filePath).toLowerCase()
@@ -101,11 +103,11 @@ export function writeAudioTagFix(filePath: string, tagFix: AudioTagFix): void {
     }
 
     if (tagFix.discNumber !== undefined) {
-      audioFile.tag.disc = tagFix.discNumber
+      audioFile.tag.disc = tagFix.discNumber.kind === 'set' ? tagFix.discNumber.value : 0
     }
 
     if (tagFix.discTotal !== undefined) {
-      audioFile.tag.discCount = tagFix.discTotal
+      audioFile.tag.discCount = tagFix.discTotal.kind === 'set' ? tagFix.discTotal.value : 0
     }
 
     if (tagFix.producers !== undefined) {

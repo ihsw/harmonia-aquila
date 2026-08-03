@@ -16,6 +16,18 @@ import {
   validateAlbumQuerySchema,
 } from '../schemas/request-schemas.js'
 
+async function resolveOrganizeSourceOptions(
+  pathResolver: WebPathResolver,
+  albumDirs: string[] | undefined,
+): Promise<{ sourceDir: string } | { sourceDirs: string[] }> {
+  if (albumDirs === undefined) {
+    return { sourceDir: pathResolver.sourceDir }
+  }
+  return {
+    sourceDirs: await Promise.all(albumDirs.map((albumDir, index) => pathResolver.resolveSource(albumDir, `albumDirs[${String(index)}]`))),
+  }
+}
+
 @Controller('manage-albums')
 export class ManageAlbumsController {
   public constructor(@Inject(WebPathResolver) private readonly pathResolver: WebPathResolver) {}
@@ -83,7 +95,8 @@ export class ManageAlbumsController {
         destDir: options.useScratchDir === true
           ? this.pathResolver.scratchDir
           : this.pathResolver.sourceDir,
-        sourceDir: this.pathResolver.sourceDir,
+        ...(await resolveOrganizeSourceOptions(this.pathResolver, options.albumDirs)),
+        ...optionalEntry('albumArtStrategy', options.albumArtStrategy),
         ...optionalEntry('albumArtistsStrategy', options.albumArtistsStrategy),
         ...optionalEntry('albumStrategy', options.albumStrategy),
         ...optionalEntry('artistFilenameStrategy', options.artistFilenameStrategy),

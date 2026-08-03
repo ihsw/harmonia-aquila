@@ -21,146 +21,168 @@
 
 ### 1.1 Capture the baseline
 
-- [ ] Record `git status --short` and preserve all pre-existing changes.
-- [ ] Run focused existing organize-files tests, then `npm test`, recording
+- [x] Record `git status --short` and preserve all pre-existing changes.
+- [x] Run focused existing organize-files tests, then `npm test`, recording
       pass/fail counts without running whole-codebase lint.
-- [ ] Confirm dependency manifests are unchanged before implementation.
+- [x] Confirm dependency manifests are unchanged before implementation.
 
 ### 1.2 Lock public behavior
 
-- [ ] Add failing type/parser tests for `concatenate`, `sourceDirs`, and
+- [x] Add failing type/parser tests for `concatenate`, `sourceDirs`, and
       `albumArtStrategy` values and conflicts (FR-1–FR-3, FR-9, FR-15, FR-20).
-- [ ] Add singular regression assertions before changing the implementation
+- [x] Add singular regression assertions before changing the implementation
       (FR-23).
-- [ ] After each test-file edit, run `npm run lint -- <modified-file>`.
+- [x] After each test-file edit, run `npm run lint -- <modified-file>`.
 
 ## Phase 2 — Core multi-source concatenation
 
 ### 2.1 Add option types and validation
 
-- [ ] Add the discriminated singular/multi-source contract and new strategy
+- [x] Add the discriminated singular/multi-source contract and new strategy
       types in the focused album type modules (design §3).
-- [ ] Parse the strategies and reject cardinality, duplication, and incompatible
+- [x] Parse the strategies and reject cardinality, duplication, and incompatible
       option combinations with actionable errors.
-- [ ] After every source-file edit, run `npm run lint -- <modified-file>`.
+- [x] After every source-file edit, run `npm run lint -- <modified-file>`.
 
 ### 2.2 Read ordered flat sources
 
-- [ ] Add `concatenate-album-sources.ts` to read each explicit directory
+- [x] Add `concatenate-album-sources.ts` to read each explicit directory
       without recursion and retain source index/directory identity (FR-4–FR-5).
-- [ ] Require positive unique local track numbers, sort locally, and assign a
+- [x] Require positive unique local track numbers, sort locally, and assign a
       continuous global sequence (FR-6).
-- [ ] Cover duplicate basenames, reversed directory order, invalid later
+- [x] Cover duplicate basenames, reversed directory order, invalid later
       sources, and missing/duplicate tracks.
-- [ ] After every source-file edit, run `npm run lint -- <modified-file>`.
+- [x] After every source-file edit, run `npm run lint -- <modified-file>`.
 
 ### 2.3 Plan flat destinations and clear disc tags
 
-- [ ] Add explicit numeric tag `set`/`clear` intent and migrate existing disc
+- [x] Add explicit numeric tag `set`/`clear` intent and migrate existing disc
       inference without changing its behavior (design §5).
-- [ ] Make concatenate clear both disc fields and plan all tracks directly in
+- [x] Make concatenate clear both disc fields and plan all tracks directly in
       one album folder after effective identity validation (FR-7–FR-8).
-- [ ] Add dry-run and execution tests for global tracks, empty disc fields,
+- [x] Add dry-run and execution tests for global tracks, empty disc fields,
       no `Disc NN/`, destination-copy tags, and source immutability.
-- [ ] After every source-file edit, run `npm run lint -- <modified-file>`.
+- [x] After every source-file edit, run `npm run lint -- <modified-file>`.
 
 ## Phase 3 — Album-art collision strategy
 
 ### 3.1 Separate source-art selection from destination policy
 
-- [ ] Group direct recognized art by sanitized resolved destination while
+- [x] Group direct recognized art by sanitized resolved destination while
       retaining source order (FR-16).
-- [ ] Fail atomically with all collision details when the strategy is missing
+- [x] Fail atomically with all collision details when the strategy is missing
       (FR-17).
-- [ ] Implement `first`, `last`, and `neither`; preserve every non-colliding
+- [x] Implement `first`, `last`, and `neither`; preserve every non-colliding
       art file (FR-18).
-- [ ] Apply existing destination `error|ignore|overwrite` only to selected art
+- [x] Apply existing destination `error|ignore|overwrite` only to selected art
       (FR-21).
-- [ ] After every source-file edit, run `npm run lint -- <modified-file>`.
+- [x] After every source-file edit, run `npm run lint -- <modified-file>`.
 
 ### 3.2 Report every art decision
 
-- [ ] Add `would exclude`/`excluded` actions and optional
+- [x] Add `would exclude`/`excluded` actions and optional
       `sourceDirectory`, keeping exclusion rows out of copy execution
       (FR-13, FR-19).
-- [ ] Make result ordering and dry-run/execute normalization deterministic
+- [x] Make result ordering and dry-run/execute normalization deterministic
       (FR-22, NFR-8).
-- [ ] Test no collision, missing strategy, all three strategies, multiple
+- [x] Test no collision, missing strategy, all three strategies, multiple
       collision groups, retained unique art, and destination collisions.
-- [ ] After every source-file edit, run `npm run lint -- <modified-file>`.
+- [x] After every source-file edit, run `npm run lint -- <modified-file>`.
 
 ## Phase 4 — Public adapters
 
 ### 4.1 Wire the CLI
 
-- [ ] Keep `--source-dir`, add mutually exclusive variadic `--source-dirs`,
+- [x] Keep `--source-dir`, add mutually exclusive variadic `--source-dirs`,
       and add `--album-art-strategy` with accurate help text (FR-10, FR-15).
-- [ ] Add CLI mapping, validation-error, dry-run output, and singular regression
+- [x] Add CLI mapping, validation-error, dry-run output, and singular regression
       tests.
-- [ ] After every source-file edit, run `npm run lint -- <modified-file>`.
+- [x] After every source-file edit, run `npm run lint -- <modified-file>`.
 
 ### 4.2 Wire REST and GraphQL
 
-- [ ] Add `albumDirs` and `albumArtStrategy` request fields, independently
+- [x] Add `albumDirs` and `albumArtStrategy` request fields, independently
       resolve each path, and preserve configured-root fallback (FR-12).
-- [ ] Add nullable `sourceDirectory` and new actions to GraphQL output/schema.
-- [ ] Cover mapping, input types, containment errors, output serialization, and
+- [x] Add nullable `sourceDirectory` and new actions to GraphQL output/schema.
+- [x] Cover mapping, input types, containment errors, output serialization, and
       existing singular requests in controller/resolver/integration tests.
-- [ ] After every source-file edit, run `npm run lint -- <modified-file>`.
+- [x] After every source-file edit, run `npm run lint -- <modified-file>`.
 
 ### 4.3 Wire MCP
 
-- [ ] Make `albumDir` optional only when valid `albumDirs` is present; enforce
+- [x] Make `albumDir` optional only when valid `albumDirs` is present; enforce
       array cardinality, uniqueness, trailing slashes, and mutual exclusion
       (FR-11).
-- [ ] Resolve ordered entries independently through the selected MCP source or
+- [x] Resolve ordered entries independently through the selected MCP source or
       scratch root and pass `albumArtStrategy` to the core.
-- [ ] Add tool-schema, handler-mapping, path-containment, output, and singular
+- [x] Add tool-schema, handler-mapping, path-containment, output, and singular
       compatibility tests.
-- [ ] After every source-file edit, run `npm run lint -- <modified-file>`.
+- [x] After every source-file edit, run `npm run lint -- <modified-file>`.
 
 ## Phase 5 — Atomicity and regression coverage
 
 ### 5.1 Prove whole-plan preflight
 
-- [ ] Add execute-mode tests in which a later source, metadata guard, art
+- [x] Add execute-mode tests in which a later source, metadata guard, art
       collision, or destination check fails, and assert no output was written
       (FR-14).
-- [ ] Prove excluded rows never copy and selected rows preserve ordinary
+- [x] Prove excluded rows never copy and selected rows preserve ordinary
       destination actions.
-- [ ] After every source-file edit, run `npm run lint -- <modified-file>`.
+- [x] After every source-file edit, run `npm run lint -- <modified-file>`.
 
 ### 5.2 Prove legacy parity
 
-- [ ] Run and extend tests for singular input, `infer`, `no change`, album-art
+- [x] Run and extend tests for singular input, `infer`, `no change`, album-art
       copying, all destination strategies, and existing adapters (FR-23).
-- [ ] Confirm singular JSON omits `sourceDirectory` and retains its established
+- [x] Confirm singular JSON omits `sourceDirectory` and retains its established
       row ordering and messages.
-- [ ] After every test-file edit, run `npm run lint -- <modified-file>`.
+- [x] After every test-file edit, run `npm run lint -- <modified-file>`.
 
 ## Phase 6 — Documentation
 
 ### 6.1 Document usage and safety rules
 
-- [ ] Update album organization docs with CLI examples, ordered-source
+- [x] Update album organization docs with CLI examples, ordered-source
       semantics, option conflicts, track/disc behavior, and an artwork table.
-- [ ] Update REST, GraphQL, and MCP examples with `albumDirs` and
+- [x] Update REST, GraphQL, and MCP examples with `albumDirs` and
       `albumArtStrategy`, including the mandatory-on-collision error.
-- [ ] State that destination collision strategy is separate and that dry-run
+- [x] State that destination collision strategy is separate and that dry-run
       review remains required before execution.
 
 ## Phase 7 — Final verification
 
 ### 7.1 Run last-call checks
 
-- [ ] Run whole-codebase `npm run lint` only now; require exit 0.
-- [ ] Run `npm run build`; require exit 0.
-- [ ] Run `npm test`; require exit 0 and reconcile with the Phase 1 baseline.
+- [x] Run whole-codebase `npm run lint` only now; require exit 0.
+- [x] Run `npm run build`; require exit 0.
+- [x] Run `npm test`; require exit 0 and reconcile with the Phase 1 baseline.
 
 ### 7.2 Verify scope and acceptance
 
-- [ ] Confirm `git --no-pager diff -- package.json package-lock.json` is empty.
-- [ ] Confirm `git status --short` contains only expected files plus preserved
+- [x] Confirm `git --no-pager diff -- package.json package-lock.json` is empty.
+- [x] Confirm `git status --short` contains only expected files plus preserved
       pre-existing changes.
-- [ ] Reconcile all acceptance criteria in `requirements.md` §6 and record
+- [x] Reconcile all acceptance criteria in `requirements.md` §6 and record
       concise execution notes beneath completed phases.
+
+---
+
+## Execution notes
+
+**Phase 1 baseline**: git clean, 58 test files / 270 tests passing (organize-files suite: 10 files / 36 tests).
+
+**Phase 2–3 implementation**: Added `NumericTagFix` (`kind: 'clear'|'set'`) to `audio-tags.ts` for explicit disc clearing. Updated `metadata-fix-planner.ts` to emit `{ kind: 'set' }` for infer path. `organize-files.ts` patches each `PlannedMetadataFix` in concatenate mode with `discNumber/discTotal: { kind: 'clear' }` and global track. New `concatenate-album-sources.ts` validates source uniqueness, positive unique local track numbers, and assigns global 1..N sequence. New `album-art-planner.ts` accepts `ArtSourceEntry[]`, groups art by sanitized destination, returns `AlbumArtPlanItem[]` (planned|excluded). Added `OrganizationAction` values `excluded`/`would exclude` and optional `sourceDirectory` on output rows.
+
+**Phase 4 adapters**: CLI adds `--source-dirs` (mutually exclusive with `--source-dir`) and `--album-art-strategy`. REST/GraphQL add `albumDirs: string[]` and `albumArtStrategy`, resolving each via existing containment checks. MCP makes `albumDir` optional when `albumDirs` is supplied, enforces trailing slashes and uniqueness on each entry. GraphQL `AlbumOrganizeFilesRow` gains nullable `sourceDirectory` field; schema regenerated by build.
+
+**Phase 5 tests**: New `organize-files-concatenate.test.ts` (3 tests: planning, collision error, option conflicts) and `organize-files-concatenate-execution.test.ts` (5 tests: disc clear write intent, atomic art collision, atomic destination conflict, last/neither strategies, singular regression).
+
+**Final verification**: `npm run lint` exit 0, `npm run build` exit 0, `npm test` 60 test files / 283 tests all passing. `git diff -- package.json package-lock.json` empty.
+
+**Code-review fixes (post-final-verification)**:
+1. (HIGH) Fix 1 — REST/GraphQL `albumDirs` always resolved through configured source root; `useScratchDir` only affects `destDir`. Fixed `resolveOrganizeSourceOptions` in controller, resolver, and MCP tool to always use `resolveSource`. Updated controller test expectation; added new useScratchDir+albumDirs tests in controller, resolver, and MCP suites.
+2. (MEDIUM) Fix 2 — Singular album-art planner no longer sanitizes filenames; `sanitizePathSegment` and collision grouping are concatenate-only. Added singular regression test with `<`/`>` chars that would collide under sanitization.
+3. (MEDIUM) Fix 3 — Collision first/last selection now sorts by `sourceIndex` primary, filename secondary. Added test verifying source-0 file is selected over alphabetically-earlier source-1 file when both sanitize to same destination.
+4. (MEDIUM) Fix 4 — `assertUniqueSourceDirs` is now async and canonicalizes via `realpath` before dedup; symlink aliases to the same directory are rejected. Added symlink regression test.
+5. (MEDIUM) Fix 5 — `OrganizeFilesOptions` now composes `OrganizeFilesSourceOptions` (type intersection, not interface), making both-or-neither statically invalid. CLI callsite refactored to `CliOrganizeOptions` + narrowing `normalizeSourceOptions`; `OrganizeFilesSourceOptions` re-exported from `organize-files.ts`.
+Re-verification: `npm run lint` exit 0, `npm run build` exit 0, `npm test` 60 test files / 288 tests all passing.

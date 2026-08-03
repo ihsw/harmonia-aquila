@@ -64,6 +64,9 @@ function getDiscChanges(
   records: Map<string, SetMetadataRecord> | undefined,
   options: NormalizedMetadataFixOptions,
 ): Map<string, { discNumber: number, discTotal: number }> {
+  if (options.discStrategy === 'concatenate') {
+    return new Map()
+  }
   const explicit = [...(records?.values() ?? [])]
     .filter(record => record.discNumber !== undefined || record.discTotal !== undefined)
   if (options.discStrategy === 'infer' && explicit.length > 0) {
@@ -91,8 +94,16 @@ function projectMetadata(source: ParsedAlbumSource, tagFix: PlannedMetadataFix['
     artist: tagFix.artists === undefined
       ? source.artist
       : formatMetadataValues(tagFix.artists),
-    discNumber: tagFix.discNumber ?? source.discNumber,
-    discTotal: tagFix.discTotal ?? source.discTotal,
+    discNumber: tagFix.discNumber === undefined
+      ? source.discNumber
+      : tagFix.discNumber.kind === 'clear'
+        ? null
+        : tagFix.discNumber.value,
+    discTotal: tagFix.discTotal === undefined
+      ? source.discTotal
+      : tagFix.discTotal.kind === 'clear'
+        ? null
+        : tagFix.discTotal.value,
     producers: tagFix.producers ?? source.producers,
     title: tagFix.title ?? source.title,
     trackNumber: tagFix.trackNumber ?? source.trackNumber,
@@ -141,7 +152,12 @@ function planSource(
     ...(album === undefined ? {} : { album }),
     ...(albumArtists === undefined ? {} : { albumArtists }),
     ...(artists === undefined ? {} : { artists }),
-    ...(disc === undefined ? {} : { discNumber: disc.discNumber, discTotal: disc.discTotal }),
+    ...(disc === undefined
+      ? {}
+      : {
+          discNumber: { kind: 'set', value: disc.discNumber } as const,
+          discTotal: { kind: 'set', value: disc.discTotal } as const,
+        }),
     ...(producers === undefined ? {} : { producers }),
     ...(title === undefined ? {} : { title }),
     ...(trackNumber === undefined ? {} : { trackNumber }),

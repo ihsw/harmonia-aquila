@@ -67,7 +67,13 @@ export class AlbumSetMetadataRecordInput {
 @InputType()
 export class AlbumOrganizeFilesInput {
   @Field(() => String, { nullable: true })
+  public albumArtStrategy?: string
+
+  @Field(() => String, { nullable: true })
   public albumArtistsStrategy?: string
+
+  @Field(() => [String], { nullable: true })
+  public albumDirs?: string[]
 
   @Field(() => String, { nullable: true })
   public albumStrategy?: string

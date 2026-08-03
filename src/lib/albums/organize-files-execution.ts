@@ -98,6 +98,14 @@ function metadataValues(values: string[] | undefined, value: string | undefined)
   return values ?? (value === undefined || value === '' ? [] : [value])
 }
 
+function matchesNumericTagFix(value: number | null, kindedValue: AudioTagFix['discNumber']): boolean {
+  return kindedValue === undefined || (
+    kindedValue.kind === 'clear'
+      ? value === null || value === 0
+      : value === kindedValue.value
+  )
+}
+
 async function verifyTagFix(path: string, fix: AudioTagFix): Promise<void> {
   if (Object.keys(fix).length === 0) {
     return
@@ -109,8 +117,8 @@ async function verifyTagFix(path: string, fix: AudioTagFix): Promise<void> {
     || JSON.stringify(metadataValues(common.albumartists, common.albumartist)) === JSON.stringify(fix.albumArtists),
     fix.artists === undefined
     || JSON.stringify(metadataValues(common.artists, common.artist)) === JSON.stringify(fix.artists),
-    fix.discNumber === undefined || common.disk.no === fix.discNumber,
-    fix.discTotal === undefined || common.disk.of === fix.discTotal,
+    matchesNumericTagFix(common.disk.no, fix.discNumber),
+    matchesNumericTagFix(common.disk.of, fix.discTotal),
     fix.producers === undefined || JSON.stringify(common.producer ?? []) === JSON.stringify(fix.producers),
     fix.title === undefined || common.title === fix.title,
     fix.trackNumber === undefined || common.track.no === fix.trackNumber,

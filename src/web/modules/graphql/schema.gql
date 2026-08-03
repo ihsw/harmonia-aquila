@@ -27,7 +27,9 @@ type AlbumMetadataChangesRow {
 }
 
 input AlbumOrganizeFilesInput {
+  albumArtStrategy: String
   albumArtistsStrategy: String
+  albumDirs: [String!]
   albumStrategy: String
   artistFilenameStrategy: String
   destinationStrategy: String
@@ -57,6 +59,7 @@ type AlbumOrganizeFilesRow {
   discTotal: String
   fileType: String!
   filename: String!
+  sourceDirectory: String
   tagChanges: AlbumMetadataChangesRow
   titleFilename: String
   titleFilenameStrategy: String

@@ -7,18 +7,38 @@ import { optionalEntry } from '../../../schemas/request-schemas.js'
 import { jsonToolContent, optionalNumberEntry } from '../helpers.js'
 import { defineWebMcpTool, type WebMcpToolContext, type WebMcpToolRegistration } from '../types.js'
 
+async function resolveOrganizeSourceOptions(
+  context: WebMcpToolContext,
+  input: {
+    albumDir: string | undefined
+    albumDirs: string[] | undefined
+  },
+): Promise<{ sourceDir: string } | { sourceDirs: string[] }> {
+  if (input.albumDir !== undefined && input.albumDirs !== undefined) {
+    throw new Error('albumDir conflicts with albumDirs')
+  }
+  if (input.albumDirs !== undefined) {
+    return {
+      sourceDirs: await Promise.all(input.albumDirs.map((albumDir, index) => context.pathResolver.resolveSource(albumDir, `albumDirs[${String(index)}]`))),
+    }
+  }
+  if (input.albumDir === undefined) {
+    throw new Error('albumDir is required when albumDirs is absent')
+  }
+  return {
+    sourceDir: await context.pathResolver.resolveSource(input.albumDir, 'albumDir'),
+  }
+}
+
 export function createManageAlbumsOrganizeFilesTool(
   context: WebMcpToolContext,
 ): WebMcpToolRegistration {
   return defineWebMcpTool({
     handler: async (input) => {
-      const sourceDir = input.useScratchDir === true
-        ? await context.pathResolver.resolveScratch(input.albumDir, 'albumDir')
-        : await context.pathResolver.resolveSource(input.albumDir, 'albumDir')
-
       return jsonToolContent(await organizeAlbumFiles({
         destDir: context.pathResolver.destDir,
-        sourceDir,
+        ...(await resolveOrganizeSourceOptions(context, input)),
+        ...optionalEntry('albumArtStrategy', input.albumArtStrategy),
         ...optionalEntry('albumArtistsStrategy', input.albumArtistsStrategy),
         ...optionalEntry('albumStrategy', input.albumStrategy),
         ...optionalEntry('artistFilenameStrategy', input.artistFilenameStrategy),

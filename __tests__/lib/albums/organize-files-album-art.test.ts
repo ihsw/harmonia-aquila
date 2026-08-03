@@ -76,4 +76,23 @@ describe('organize-files album-art plans', () => {
 
     expect(rows.at(-1)).toMatchObject({ fileType: 'albumArt', filename: 'cover.webp' })
   })
+
+  it('singular mode preserves exact filenames without sanitization or collision grouping', async () => {
+    await Promise.all([
+      createTempFile(sourceDir, 'track.flac'),
+      createTempFile(sourceDir, 'cover<A>.jpg'),
+      createTempFile(sourceDir, 'cover-A-.jpg'),
+    ])
+    vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata({
+      album: 'Album', artist: 'Artist', title: 'Song', track: { no: 1, of: null },
+    }))
+
+    const rows = await organizeAlbumFiles({ destDir, sourceDir })
+
+    const artRows = rows.filter(r => r.fileType === 'albumArt')
+    expect(artRows.map(r => r.filename).sort()).toEqual(['cover-A-.jpg', 'cover<A>.jpg'])
+    expect(artRows.map(r => r.destination)).toContain('Artist/Album/cover<A>.jpg')
+    expect(artRows.map(r => r.destination)).toContain('Artist/Album/cover-A-.jpg')
+    expect(artRows.every(r => r.action === 'would copy')).toBe(true)
+  })
 })

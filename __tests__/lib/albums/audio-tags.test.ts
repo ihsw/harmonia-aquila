@@ -83,8 +83,8 @@ describe('writeAudioTagFix', () => {
       album: 'Album',
       albumArtists: ['Album Artist'],
       artists: ['Artist'],
-      discNumber: 2,
-      discTotal: 3,
+      discNumber: { kind: 'set', value: 2 },
+      discTotal: { kind: 'set', value: 3 },
       title: 'Title',
       trackNumber: 3,
     })
@@ -106,11 +106,26 @@ describe('writeAudioTagFix', () => {
     const audioFile = makeAudioFile()
     mockCreateFromPath.mockReturnValue(audioFile)
 
-    writeAudioTagFix(filePath, { discNumber: 2, discTotal: 3 })
+    writeAudioTagFix(filePath, {
+      discNumber: { kind: 'set', value: 2 },
+      discTotal: { kind: 'set', value: 3 },
+    })
 
     expect(audioFile.tag).toMatchObject({ disc: 2, discCount: 3 })
     expect(audioFile.save).toHaveBeenCalledOnce()
     expect(audioFile.dispose).toHaveBeenCalledOnce()
+  })
+
+  it('clears disc metadata with zero-equivalent values', () => {
+    const audioFile = makeAudioFile()
+    mockCreateFromPath.mockReturnValue(audioFile)
+
+    writeAudioTagFix('/music/track.flac', {
+      discNumber: { kind: 'clear' },
+      discTotal: { kind: 'clear' },
+    })
+
+    expect(audioFile.tag).toMatchObject({ disc: 0, discCount: 0 })
   })
 
   it('replaces MP3 producer frames while preserving other involved people', () => {

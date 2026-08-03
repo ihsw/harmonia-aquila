@@ -2,6 +2,7 @@ import { UserInputError } from '../errors.js'
 
 import type {
   AlbumArtistsStrategy,
+  AlbumArtStrategy,
   AlbumStrategy,
   DestinationStrategy,
   DiscStrategy,
@@ -40,10 +41,20 @@ function parseAlbumStrategy(value: string | undefined): AlbumStrategy {
 function parseDiscStrategy(value: string | undefined): DiscStrategy {
   const strategy = value ?? 'no change'
 
-  if (strategy !== 'no change' && strategy !== 'infer') {
-    throw new UserInputError('--disc-strategy must be one of: no change, infer')
+  if (strategy !== 'concatenate' && strategy !== 'no change' && strategy !== 'infer') {
+    throw new UserInputError('--disc-strategy must be one of: no change, infer, concatenate')
   }
   return strategy
+}
+
+export function parseAlbumArtStrategy(value: string | undefined): AlbumArtStrategy | undefined {
+  if (value === undefined) {
+    return undefined
+  }
+  if (value !== 'first' && value !== 'last' && value !== 'neither') {
+    throw new UserInputError('--album-art-strategy must be one of: first, last, neither')
+  }
+  return value
 }
 
 function parseProducerStrategy(value: string | undefined): ProducerStrategy {

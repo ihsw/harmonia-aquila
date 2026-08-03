@@ -97,7 +97,7 @@ selected root. A non-empty
 | `manage_albums_list` | none | `prefix: string`, `useScratchDir: boolean` |
 | `manage_albums_summarize_source_dir` | `dirName: string` | `ignoreNonAudioFiles: boolean`, `limit: non-negative integer` |
 | `manage_albums_validate` | `dirName: string` | `artistFilenameStrategy: string`, `titleFilenameStrategy: string`, `ignoreNonAudioFiles: boolean`, `limit: non-negative integer`, `useScratchDir: boolean` |
-| `manage_albums_organize_files` | `albumDir: string` ending in `/` | `setMetadata`: non-empty metadata-record array; strategy/set fields: strings; `execute`, `ignoreAudioFilesWithoutTracks`, `ignoreNonAudioFiles`, `resetTrack`, `swapArtistAlbumartist`, `useScratchDir`: booleans; `limit`: non-negative integer |
+| `manage_albums_organize_files` | `albumDir: string` ending in `/`, or `albumDirs: string[]` of at least two slash-terminated entries | `albumArtStrategy: string`; `setMetadata`: non-empty metadata-record array; strategy/set fields: strings; `execute`, `ignoreAudioFilesWithoutTracks`, `ignoreNonAudioFiles`, `resetTrack`, `swapArtistAlbumartist`, `useScratchDir`: booleans; `limit`: non-negative integer |
 
 Strategy values are validated by the shared album operations. Defaults are
 `artist`, `title`, `error`, and `no change`, as applicable. MCP uses native
@@ -109,6 +109,17 @@ Album inspection and validation operate on one flat directory containing
 files case-insensitively. It emits `audio` and `albumArt` `fileType` rows and
 places art at the effective album root. Other sidecars, subdirectories, and
 symlinks cause an error unless `ignoreNonAudioFiles: true` is supplied.
+
+Concatenation is enabled with `discStrategy: "concatenate"` plus ordered
+`albumDirs`. Each entry is resolved independently within the selected source or
+scratch root. The operation rejects duplicate entries, fewer than two
+directories, `setMetadata`, `limit`, `resetTrack`, and
+`ignoreAudioFilesWithoutTracks`. It renumbers tracks across the ordered set,
+clears destination disc tags, and keeps the combined output flat with no
+`Disc DD` directory. If multiple source folders contain album art that would
+land on the same destination path, `albumArtStrategy` becomes mandatory and
+chooses the `first`, `last`, or `neither` candidate while unselected art is
+reported as `would exclude` or `excluded`.
 
 Validation and organization accept only one normalized album directory per
 call. Multiple albums produce tool-error content beginning
@@ -182,7 +193,8 @@ After initialization, a client can list tools with a regular JSON-RPC request:
 A safe album workflow is to call `manage_albums_list`, summarize and validate
 the selected album, then dry-run `manage_albums_organize_files` with any needed
 metadata repair options. Review every `fileType`, `tagChanges`, and destination
-field, including adjacent art at the album root, before
+field, including adjacent art at the album root and any concatenated
+`sourceDirectory` markers, before
 repeating the identical input with `execute: true`. Organization repairs a
 temporary copy before publishing to the configured destination root and never
 changes source audio or images. Collision preflight and the selected destination

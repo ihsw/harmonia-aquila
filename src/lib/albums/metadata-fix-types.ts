@@ -39,7 +39,8 @@ export interface MetadataFixOptions {
 export type DestinationStrategy = 'error' | 'ignore' | 'overwrite'
 export type AlbumArtistsStrategy = 'aggregate' | 'blank' | 'no change'
 export type AlbumStrategy = 'grouping' | 'no change' | 'originalalbum'
-export type DiscStrategy = 'infer' | 'no change'
+export type AlbumArtStrategy = 'first' | 'last' | 'neither'
+export type DiscStrategy = 'concatenate' | 'infer' | 'no change'
 export type ProducerStrategy = 'aggregate' | 'blank' | 'copy-from-album-artists' | 'no change'
 
 export interface ParsedAlbumSource {
@@ -54,6 +55,7 @@ export interface ParsedAlbumSource {
   labels: string[]
   originalAlbum: string
   producers: string[]
+  sourceDirectory?: string
   sourcePath: string
   subtitle: string
   title: string

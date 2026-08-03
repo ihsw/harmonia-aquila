@@ -90,6 +90,45 @@ describe('album web controller', () => {
     expect(result).toEqual(artRows)
   })
 
+  it('maps albumDirs and albumArtStrategy through the source root', async () => {
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+
+    await controller.organizeFiles({
+      albumArtStrategy: 'last',
+      albumDirs: ['disc-1', 'disc-2'],
+      discStrategy: 'concatenate',
+      useScratchDir: true,
+    })
+
+    expect(organizeAlbumFiles).toHaveBeenCalledWith({
+      albumArtStrategy: 'last',
+      destDir: roots.scratchDir,
+      discStrategy: 'concatenate',
+      sourceDirs: [path.join(roots.sourceDir, 'disc-1'), path.join(roots.sourceDir, 'disc-2')],
+    })
+  })
+
+  it('useScratchDir routes destination to scratch but reads albumDirs through source root', async () => {
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+
+    await controller.organizeFiles({
+      albumArtStrategy: 'last',
+      albumDirs: ['disc-1', 'disc-2'],
+      discStrategy: 'concatenate',
+      useScratchDir: true,
+    })
+
+    expect(organizeAlbumFiles).toHaveBeenCalledWith({
+      albumArtStrategy: 'last',
+      destDir: roots.scratchDir,
+      discStrategy: 'concatenate',
+      sourceDirs: [
+        path.join(roots.sourceDir, 'disc-1'),
+        path.join(roots.sourceDir, 'disc-2'),
+      ],
+    })
+  })
+
   it('maps metadata repair fields through organize-files', async () => {
     vi.mocked(organizeAlbumFiles).mockResolvedValue([])
     const setMetadata = [{

@@ -24,6 +24,18 @@ function optionalEntry<T>(key: string, value: T | undefined): Record<string, T> 
   return value === undefined ? {} : { [key]: value }
 }
 
+async function resolveOrganizeSourceOptions(
+  pathResolver: WebPathResolver,
+  albumDirs: string[] | undefined,
+): Promise<{ sourceDir: string } | { sourceDirs: string[] }> {
+  if (albumDirs === undefined) {
+    return { sourceDir: pathResolver.sourceDir }
+  }
+  return {
+    sourceDirs: await Promise.all(albumDirs.map((albumDir, index) => pathResolver.resolveSource(albumDir, `albumDirs[${String(index)}]`))),
+  }
+}
+
 @Resolver()
 @UseFilters(GraphqlErrorFilter)
 export class AlbumResolver {
@@ -73,7 +85,8 @@ export class AlbumResolver {
       destDir: input.useScratchDir === true
         ? this.pathResolver.scratchDir
         : this.pathResolver.sourceDir,
-      sourceDir: this.pathResolver.sourceDir,
+      ...(await resolveOrganizeSourceOptions(this.pathResolver, input.albumDirs)),
+      ...optionalEntry('albumArtStrategy', input.albumArtStrategy),
       ...optionalEntry('albumArtistsStrategy', input.albumArtistsStrategy),
       ...optionalEntry('albumStrategy', input.albumStrategy),
       ...optionalEntry('artistFilenameStrategy', input.artistFilenameStrategy),

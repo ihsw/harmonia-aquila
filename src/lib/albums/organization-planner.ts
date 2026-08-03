@@ -88,6 +88,7 @@ export function planOrganizationCopies(
         discTotal: formatDiscNumber(effective.discTotal),
         fileType: 'audio',
         filename: source.filename,
+        ...(source.sourceDirectory === undefined ? {} : { sourceDirectory: source.sourceDirectory }),
         tagChanges: fix.row,
         titleFilename,
         titleFilenameStrategy: titleStrategy,
