@@ -68,10 +68,30 @@ a new disc whenever the next track number repeats or decreases; review every
 
 Use `--disc-strategy concatenate` only with ordered `--source-dirs` when
 multiple flat source folders already represent one album. Concatenation requires
-at least two unique directories, renumbers tracks across the full ordered set,
-clears destination disc tags, and always plans a flat `Artist/Album/TT - Title`
-layout with no `Disc DD` directories. It rejects `--limit`, `--reset-track`,
-`--ignore-audio-files-without-tracks`, and `--set-metadata`.
+at least two unique directories. Directory position defines disc number and the
+directory count defines disc total: the first of two inputs is disc `1/2`, and
+the second is `2/2`. Local track numbers are preserved. Correct disc tags remain
+unchanged; missing, partial, or conflicting values are set on destination copies
+from the reviewed directory order. MP3 output stores `N/M` in ID3v2 `TPOS`, and
+FLAC output stores the equivalent `DISCNUMBER` and `DISCTOTAL` values.
+
+Concatenation still plans one flat `Artist/Album/TT - Title` layout with no
+`Disc DD` directories even though the copied audio retains multi-disc metadata:
+
+```sh
+harmonia-aquila manage-albums organize-files \
+  --source-dirs "/music/Disc 1" "/music/Disc 2" \
+  --dest-dir "/music/organized" \
+  --disc-strategy concatenate \
+  --album-art-strategy first \
+  --format json
+```
+
+For example, local tracks `1,2` and `1` become flat tracks `1,2,1` tagged
+`1/2,1/2,2/2`. Exact flat destination collisions remain errors. Concatenation
+rejects `--limit`, `--reset-track`, `--ignore-audio-files-without-tracks`, and
+`--set-metadata`. This behavior supersedes the initial global-track/cleared-disc
+concatenate semantics.
 
 When concatenating, adjacent recognized album art is selected per resolved album
 root separately from the destination collision strategy. If two source folders

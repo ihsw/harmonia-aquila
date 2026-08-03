@@ -114,12 +114,21 @@ Concatenation is enabled with `discStrategy: "concatenate"` plus ordered
 `albumDirs`. Each entry is resolved independently within the selected source or
 scratch root. The operation rejects duplicate entries, fewer than two
 directories, `setMetadata`, `limit`, `resetTrack`, and
-`ignoreAudioFilesWithoutTracks`. It renumbers tracks across the ordered set,
-clears destination disc tags, and keeps the combined output flat with no
-`Disc DD` directory. If multiple source folders contain album art that would
-land on the same destination path, `albumArtStrategy` becomes mandatory and
-chooses the `first`, `last`, or `neither` candidate while unselected art is
-reported as `would exclude` or `excluded`.
+`ignoreAudioFilesWithoutTracks`. Array order defines canonical disc position
+and the array length defines disc total. For example, with
+`albumDirs: ["disc-1/", "disc-2/"]`, local tracks `1,2` and `1` remain
+`1,2,1` and receive disc metadata `1/2,1/2,2/2`. Correct values are preserved;
+missing, partial, or conflicting values are repaired on destination copies.
+MP3 output encodes `N/M` in ID3v2 `TPOS`, and FLAC output uses `DISCNUMBER` and
+`DISCTOTAL`.
+
+The combined output remains flat with no `Disc DD` directory despite retaining
+multi-disc metadata. Exact duplicate flat audio destinations fail before any
+write. If multiple source folders contain album art that would land on the same
+destination path, `albumArtStrategy` becomes mandatory and chooses the `first`,
+`last`, or `neither` candidate while unselected art is reported as
+`would exclude` or `excluded`. These semantics supersede the initial global-
+track/cleared-disc concatenate behavior.
 
 Validation and organization accept only one normalized album directory per
 call. Multiple albums produce tool-error content beginning

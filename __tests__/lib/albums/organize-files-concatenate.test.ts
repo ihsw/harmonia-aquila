@@ -24,7 +24,7 @@ describe('organize-files concatenate disc strategy', () => {
     vi.restoreAllMocks()
   })
 
-  it('concatenates ordered sources, clears disc tags, and reports excluded art rows', async () => {
+  it('preserves local tracks, assigns ordered disc metadata, and reports excluded art rows', async () => {
     await Promise.all([
       createTempFile(firstDir, '02-second.flac'),
       createTempFile(firstDir, '01-first.flac'),
@@ -72,16 +72,103 @@ describe('organize-files concatenate disc strategy', () => {
     expect(rows.map(row => [row.action, row.destination, row.fileType])).toEqual([
       ['would copy', 'Artist/Album/01 - First.flac', 'audio'],
       ['would copy', 'Artist/Album/02 - Second.flac', 'audio'],
-      ['would copy', 'Artist/Album/03 - Third.flac', 'audio'],
+      ['would copy', 'Artist/Album/01 - Third.flac', 'audio'],
       ['would copy', 'Artist/Album/cover.jpg', 'albumArt'],
       ['would exclude', 'Artist/Album/cover.jpg', 'albumArt'],
     ])
     expect(rows.filter(row => row.fileType === 'audio')).toMatchObject([
-      { discNumber: '', discTotal: '', sourceDirectory: firstDir, trackNumber: '01' },
-      { discNumber: '', discTotal: '', sourceDirectory: firstDir, trackNumber: '02' },
-      { discNumber: '', discTotal: '', sourceDirectory: secondDir, trackNumber: '03' },
+      { discNumber: '01', discTotal: '02', sourceDirectory: firstDir, trackNumber: '01' },
+      { discNumber: '01', discTotal: '02', sourceDirectory: firstDir, trackNumber: '02' },
+      { discNumber: '02', discTotal: '02', sourceDirectory: secondDir, trackNumber: '01' },
     ])
+    for (const row of rows.filter(item => item.fileType === 'audio')) {
+      expect(row.tagChanges).not.toHaveProperty('newTrackNumber')
+      expect(row.tagChanges).not.toHaveProperty('newDiscNumber')
+      expect(row.tagChanges).not.toHaveProperty('newDiscTotal')
+    }
     expect(rows.at(-1)).toMatchObject({ action: 'would exclude', sourceDirectory: secondDir })
+  })
+
+  it('sets missing and partial disc metadata and repairs conflicting values', async () => {
+    await Promise.all([
+      createTempFile(firstDir, '01-correct.flac'),
+      createTempFile(firstDir, '02-missing.flac'),
+      createTempFile(firstDir, '03-partial.flac'),
+      createTempFile(secondDir, '01-conflicting.flac'),
+    ])
+    vi.mocked(parseFile).mockImplementation((filePath) => {
+      const filename = path.basename(filePath)
+      const metadata = {
+        '01-conflicting.flac': { disk: { no: 1, of: 9 }, title: 'Conflicting', track: 1 },
+        '01-correct.flac': { disk: { no: 1, of: 2 }, title: 'Correct', track: 1 },
+        '02-missing.flac': { disk: { no: null, of: null }, title: 'Missing', track: 2 },
+        '03-partial.flac': { disk: { no: 1, of: null }, title: 'Partial', track: 3 },
+      }[filename]
+
+      if (metadata === undefined) throw new Error(`Unexpected fixture: ${filename}`)
+      return makeAudioMetadata({
+        album: 'Album', artist: 'Artist', disk: metadata.disk,
+        title: metadata.title, track: { no: metadata.track, of: null },
+      })
+    })
+
+    const rows = (await organizeAlbumFiles({
+      destDir, discStrategy: 'concatenate', sourceDirs: [firstDir, secondDir],
+    })).filter(row => row.fileType === 'audio')
+
+    expect(rows.map(row => [row.trackNumber, row.discNumber, row.discTotal])).toEqual([
+      ['01', '01', '02'],
+      ['02', '01', '02'],
+      ['03', '01', '02'],
+      ['01', '02', '02'],
+    ])
+    expect(rows[0]?.tagChanges).not.toHaveProperty('newDiscNumber')
+    expect(rows[0]?.tagChanges).not.toHaveProperty('newDiscTotal')
+    expect(rows[1]?.tagChanges).toMatchObject({ newDiscNumber: 1, newDiscTotal: 2 })
+    expect(rows[2]?.tagChanges).not.toHaveProperty('newDiscNumber')
+    expect(rows[2]?.tagChanges).toMatchObject({ newDiscTotal: 2 })
+    expect(rows[3]?.tagChanges).toMatchObject({ newDiscNumber: 2, newDiscTotal: 2 })
+  })
+
+  it('derives disc totals from all ordered source directories', async () => {
+    const thirdDir = await createTempDir('organize-concat-third-')
+
+    try {
+      await Promise.all([
+        createTempFile(firstDir, '01-first.flac'),
+        createTempFile(secondDir, '01-second.flac'),
+        createTempFile(thirdDir, '01-third.flac'),
+      ])
+      vi.mocked(parseFile)
+        .mockResolvedValueOnce(makeAudioMetadata({ album: 'Album', artist: 'Artist', title: 'First', track: { no: 1, of: null } }))
+        .mockResolvedValueOnce(makeAudioMetadata({ album: 'Album', artist: 'Artist', title: 'Second', track: { no: 1, of: null } }))
+        .mockResolvedValueOnce(makeAudioMetadata({ album: 'Album', artist: 'Artist', title: 'Third', track: { no: 1, of: null } }))
+
+      const rows = (await organizeAlbumFiles({
+        destDir, discStrategy: 'concatenate', sourceDirs: [firstDir, secondDir, thirdDir],
+      })).filter(row => row.fileType === 'audio')
+
+      expect(rows.map(row => [row.trackNumber, row.discNumber, row.discTotal])).toEqual([
+        ['01', '01', '03'], ['01', '02', '03'], ['01', '03', '03'],
+      ])
+    }
+    finally {
+      await removeTempDir(thirdDir)
+    }
+  })
+
+  it('rejects an exact flat destination collision', async () => {
+    await Promise.all([
+      createTempFile(firstDir, 'track.flac'),
+      createTempFile(secondDir, 'track.flac'),
+    ])
+    vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata({
+      album: 'Album', artist: 'Artist', title: 'Same', track: { no: 1, of: null },
+    }))
+
+    await expect(organizeAlbumFiles({
+      destDir, discStrategy: 'concatenate', sourceDirs: [firstDir, secondDir],
+    })).rejects.toThrow('Multiple files resolve to the same destination')
   })
 
   it('requires albumArtStrategy when colliding art comes from multiple sources', async () => {

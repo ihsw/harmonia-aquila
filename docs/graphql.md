@@ -81,10 +81,20 @@ It never accepts a client-supplied root path or changes source audio.
 For concatenation, pass `albumDirs: ["disc-1", "disc-2"]` with
 `discStrategy: "concatenate"`. The mutation resolves each entry independently
 within the selected source or scratch root, requires at least two unique
-directories, clears effective disc metadata, and renumbers tracks across the
-combined ordered set. `albumArtStrategy: "first" | "last" | "neither"` is only
-valid in this mode and is required when multiple source directories contain art
-that would land on the same album-root destination.
+directories, preserves local track numbers, and assigns canonical disc metadata
+from array order. With two directories, their tracks receive disc `1/2` and
+`2/2`; correct values are preserved and missing, partial, or conflicting values
+are repaired on destination copies. MP3 copies encode those values in ID3v2
+`TPOS`, while FLAC copies use `DISCNUMBER` and `DISCTOTAL`. The physical output
+remains one flat album directory with no `Disc DD` component. For example,
+local tracks `1,2` and `1` return `trackNumber` values `01,02,01` with
+`discNumber`/`discTotal` values `01/02,01/02,02/02`.
+
+`albumArtStrategy: "first" | "last" | "neither"` is only valid in this mode
+and is required when multiple source directories contain art that would land on
+the same album-root destination. Exact duplicate flat audio destinations fail
+before any write. These semantics supersede the initial global-track/cleared-
+disc concatenate behavior.
 
 Disc metadata may be absent when selected track numbers are unique. Repeated
 track numbers without effective disc numbers return `BAD_USER_INPUT` with the

@@ -34,18 +34,14 @@ describe('organize-files concatenate execution', () => {
     vi.restoreAllMocks()
   })
 
-  it('passes clear disc intent and global tracks to tag writer, leaves sources intact', async () => {
+  it('preserves correct disc metadata and local tracks without redundant tag writes', async () => {
     await Promise.all([
       createTempFile(firstDir, 'track1.flac', 'src-1'),
       createTempFile(secondDir, 'track1.flac', 'src-2'),
     ])
     vi.mocked(parseFile)
-      // source reads (2 files)
       .mockResolvedValueOnce(meta('One', 1, { no: 1, of: 2 }))
       .mockResolvedValueOnce(meta('Two', 1, { no: 2, of: 2 }))
-      // verifyTagFix reads after writeAudioTagFix (2 files)
-      .mockResolvedValueOnce(meta('One', 1)) // disc cleared → disk defaults null
-      .mockResolvedValueOnce(meta('Two', 2)) // global track 2, disc null
 
     const rows = await organizeAlbumFiles({
       destDir, discStrategy: 'concatenate', execute: true, sourceDirs: [firstDir, secondDir],
@@ -54,17 +50,63 @@ describe('organize-files concatenate execution', () => {
     const audioRows = rows.filter(r => r.fileType === 'audio')
     expect(audioRows.map(r => r.destination)).toEqual([
       'Artist/Album/01 - One.flac',
-      'Artist/Album/02 - Two.flac',
+      'Artist/Album/01 - Two.flac',
     ])
     expect(audioRows.every(r => !r.destination.includes('Disc'))).toBe(true)
-    expect(audioRows.map(r => [r.discNumber, r.discTotal])).toEqual([['', ''], ['', '']])
-
-    const calls = vi.mocked(writeAudioTagFix).mock.calls
-    expect(calls[0]?.[1]).toMatchObject({ discNumber: { kind: 'clear' }, discTotal: { kind: 'clear' }, trackNumber: 1 })
-    expect(calls[1]?.[1]).toMatchObject({ discNumber: { kind: 'clear' }, discTotal: { kind: 'clear' }, trackNumber: 2 })
+    expect(audioRows.map(r => [r.trackNumber, r.discNumber, r.discTotal])).toEqual([
+      ['01', '01', '02'], ['01', '02', '02'],
+    ])
+    expect(writeAudioTagFix).not.toHaveBeenCalled()
 
     expect(await readFile(join(firstDir, 'track1.flac'), 'utf8')).toBe('src-1')
     expect(await readFile(join(secondDir, 'track1.flac'), 'utf8')).toBe('src-2')
+  })
+
+  it.each(['flac', 'mp3'])('writes and verifies canonical disc tags for %s destination copies', async (extension) => {
+    await Promise.all([
+      createTempFile(firstDir, `track1.${extension}`, 'src-1'),
+      createTempFile(secondDir, `track1.${extension}`, 'src-2'),
+    ])
+    vi.mocked(parseFile)
+      .mockResolvedValueOnce(meta('One', 1))
+      .mockResolvedValueOnce(meta('Two', 1, { no: 1, of: 9 }))
+      .mockResolvedValueOnce(meta('One', 1, { no: 1, of: 2 }))
+      .mockResolvedValueOnce(meta('Two', 1, { no: 2, of: 2 }))
+
+    const rows = await organizeAlbumFiles({
+      destDir, discStrategy: 'concatenate', execute: true, sourceDirs: [firstDir, secondDir],
+    })
+
+    const audioRows = rows.filter(r => r.fileType === 'audio')
+    expect(audioRows.map(r => [r.trackNumber, r.discNumber, r.discTotal])).toEqual([
+      ['01', '01', '02'], ['01', '02', '02'],
+    ])
+    const calls = vi.mocked(writeAudioTagFix).mock.calls
+    expect(calls[0]?.[0]).toMatch(new RegExp(`\\.${extension}$`))
+    expect(calls[0]?.[1]).toEqual({
+      discNumber: { kind: 'set', value: 1 }, discTotal: { kind: 'set', value: 2 },
+    })
+    expect(calls[1]?.[0]).toMatch(new RegExp(`\\.${extension}$`))
+    expect(calls[1]?.[1]).toEqual({
+      discNumber: { kind: 'set', value: 2 }, discTotal: { kind: 'set', value: 2 },
+    })
+    expect(await readFile(join(firstDir, `track1.${extension}`), 'utf8')).toBe('src-1')
+    expect(await readFile(join(secondDir, `track1.${extension}`), 'utf8')).toBe('src-2')
+  })
+
+  it('atomically rejects duplicate flat audio destinations before any write', async () => {
+    await Promise.all([
+      createTempFile(firstDir, 'track1.flac'),
+      createTempFile(secondDir, 'track1.flac'),
+    ])
+    vi.mocked(parseFile).mockResolvedValue(meta('Same', 1))
+
+    await expect(organizeAlbumFiles({
+      destDir, discStrategy: 'concatenate', execute: true, sourceDirs: [firstDir, secondDir],
+    })).rejects.toThrow('Multiple files resolve to the same destination')
+
+    expect(await readdir(destDir)).toEqual([])
+    expect(writeAudioTagFix).not.toHaveBeenCalled()
   })
 
   it('atomically rejects art collision before any write when strategy is missing', async () => {

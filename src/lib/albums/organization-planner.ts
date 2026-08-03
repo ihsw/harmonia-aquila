@@ -20,10 +20,13 @@ import type {
   PlannedOrganizationCopy,
 } from './organize-files-types.js'
 
+export type DiscLayout = 'disc-directories' | 'flat'
+
 export function planOrganizationCopies(
   fixes: PlannedMetadataFix[],
   options: OrganizeFilesOptions,
   destinationDirectory: string,
+  discLayout: DiscLayout = 'disc-directories',
 ): PlannedOrganizationCopy[] {
   const artistStrategy = parseArtistFilenameStrategy(options.artistFilenameStrategy)
   const titleStrategy = parseTitleFilenameStrategy(options.titleFilenameStrategy)
@@ -68,7 +71,7 @@ export function planOrganizationCopies(
       effective.trackNumber,
       titleFilename,
       source.filename,
-      { discNumber: effective.discNumber, multiDisc },
+      { discNumber: effective.discNumber, multiDisc: discLayout === 'disc-directories' && multiDisc },
     )
     const albumDirectory = sanitizePathSegment(effective.album)
     const artistDirectory = sanitizePathSegment(artistFilename)

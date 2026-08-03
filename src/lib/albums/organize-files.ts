@@ -10,7 +10,7 @@ import { getErrorMessage, UserInputError } from '../errors.js'
 
 import { type AlbumArtPlanItem, planAlbumArtCopies } from './album-art-planner.js'
 import { getAudioFiles, parseLimit } from './audio-files.js'
-import { readConcatenateAlbumSources } from './concatenate-album-sources.js'
+import { type ConcatenateDiscContext, readConcatenateAlbumSources } from './concatenate-album-sources.js'
 import { normalizeMetadataFixOptions, parseAlbumArtStrategy } from './metadata-fix-options.js'
 import { planMetadataFixes } from './metadata-fix-planner.js'
 import { parseAlbumSources } from './metadata-fix-sources.js'
@@ -57,34 +57,39 @@ function rowsFromArtPlan(items: AlbumArtPlanItem[]): OrganizeFilesJsonOutput {
   return items.map(item => item.type === 'planned' ? item.plan.row : item.row)
 }
 
-function applyConcatenateMetadataFixes(
+function applyConcatenateDiscMetadata(
   fixes: PlannedMetadataFix[],
-  globalTracksBySourcePath: ReadonlyMap<string, number>,
+  discsBySourcePath: ReadonlyMap<string, ConcatenateDiscContext>,
 ): PlannedMetadataFix[] {
   return fixes.map((fix) => {
-    const globalTrackNumber = globalTracksBySourcePath.get(fix.source.sourcePath)
+    const disc = discsBySourcePath.get(fix.source.sourcePath)
 
-    if (globalTrackNumber === undefined) {
-      throw new Error(`Missing concatenate track number for "${fix.source.sourcePath}"`)
+    if (disc === undefined) {
+      throw new Error(`Missing concatenate disc context for "${fix.source.sourcePath}"`)
     }
+    const discNumberChanged = fix.effective.discNumber !== disc.discNumber
+    const discTotalChanged = fix.effective.discTotal !== disc.discTotal
+
     return {
       ...fix,
       effective: {
         ...fix.effective,
-        discNumber: null,
-        discTotal: null,
-        trackNumber: globalTrackNumber,
+        discNumber: disc.discNumber,
+        discTotal: disc.discTotal,
       },
       row: {
         ...fix.row,
-        newTrackNumber: globalTrackNumber,
-        trackNumber: fix.source.trackNumber ?? '',
+        ...(discNumberChanged
+          ? { discNumber: fix.source.discNumber, newDiscNumber: disc.discNumber }
+          : {}),
+        ...(discTotalChanged
+          ? { discTotal: fix.source.discTotal, newDiscTotal: disc.discTotal }
+          : {}),
       },
       tagFix: {
         ...fix.tagFix,
-        discNumber: { kind: 'clear' },
-        discTotal: { kind: 'clear' },
-        trackNumber: globalTrackNumber,
+        ...(discNumberChanged ? { discNumber: { kind: 'set', value: disc.discNumber } as const } : {}),
+        ...(discTotalChanged ? { discTotal: { kind: 'set', value: disc.discTotal } as const } : {}),
       },
     }
   })
@@ -134,9 +139,12 @@ async function organizeConcatenatedAlbum(
   const normalized = normalizeMetadataFixOptions(options)
   const albumArtStrategy = parseAlbumArtStrategy(options.albumArtStrategy)
   const concatenated = await readConcatenateAlbumSources(options, normalized)
-  const fixes = applyConcatenateMetadataFixes(planMetadataFixes(concatenated.sources, undefined, normalized), concatenated.globalTracksBySourcePath)
+  const fixes = applyConcatenateDiscMetadata(
+    planMetadataFixes(concatenated.sources, undefined, normalized),
+    concatenated.discsBySourcePath,
+  )
   const destinationDirectory = resolve(options.destDir)
-  const audioPlans = planOrganizationCopies(fixes, options, destinationDirectory)
+  const audioPlans = planOrganizationCopies(fixes, options, destinationDirectory, 'flat')
   const artItems = planAlbumArtCopies(
     concatenated.sourceEntries,
     destinationDirectory,

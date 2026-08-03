@@ -15,8 +15,13 @@ export interface ConcatenateSourceEntry {
   sourceIndex: number
 }
 
+export interface ConcatenateDiscContext {
+  discNumber: number
+  discTotal: number
+}
+
 export interface ConcatenateAlbumSources {
-  globalTracksBySourcePath: Map<string, number>
+  discsBySourcePath: Map<string, ConcatenateDiscContext>
   sourceEntries: ConcatenateSourceEntry[]
   sources: ParsedAlbumSource[]
 }
@@ -119,16 +124,15 @@ export async function readConcatenateAlbumSources(
       sources: normalizeSourceTracks(entry.sourceDirectory, parsedSources),
     }
   }))
-  const globalTracksBySourcePath = new Map<string, number>()
+  const discsBySourcePath = new Map<string, ConcatenateDiscContext>()
   const sources: ParsedAlbumSource[] = []
-  let globalTrackNumber = 1
+  const discTotal = parsedByEntry.length
 
-  for (const { sources: entrySources } of parsedByEntry) {
+  for (const [sourceIndex, { sources: entrySources }] of parsedByEntry.entries()) {
     for (const source of entrySources) {
-      globalTracksBySourcePath.set(source.sourcePath, globalTrackNumber)
+      discsBySourcePath.set(source.sourcePath, { discNumber: sourceIndex + 1, discTotal })
       sources.push(source)
-      globalTrackNumber += 1
     }
   }
-  return { globalTracksBySourcePath, sourceEntries, sources }
+  return { discsBySourcePath, sourceEntries, sources }
 }

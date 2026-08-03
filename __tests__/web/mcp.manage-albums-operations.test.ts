@@ -119,9 +119,17 @@ describe('web MCP manage-albums summarize and organize tools', () => {
 
   it('maps albumDirs and albumArtStrategy through MCP organize input', async () => {
     const currentTestApp = requireTestApp()
-    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+    const row = {
+      action: 'would copy', album: 'Album', artistFilename: 'Artist', artistFilenameStrategy: 'artist',
+      destination: 'Artist/Album/01 - Second.flac', discNumber: '02', discTotal: '02', fileType: 'audio',
+      filename: '01.flac', sourceDirectory: '/music/disc-2', tagChanges: {
+        album: 'Album', artist: 'Artist', newDiscNumber: 2, newDiscTotal: 2, title: 'Second',
+      },
+      titleFilename: 'Second', titleFilenameStrategy: 'title', trackNumber: '01',
+    } as const
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([row])
 
-    await callTool(13, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
+    const response = await callTool(13, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
       albumArtStrategy: 'last',
       albumDirs: ['disc-1/', 'disc-2/'],
       discStrategy: 'concatenate',
@@ -134,6 +142,7 @@ describe('web MCP manage-albums summarize and organize tools', () => {
       discStrategy: 'concatenate',
       sourceDirs: [`${currentTestApp.sourceDir}/disc-1`, `${currentTestApp.sourceDir}/disc-2`],
     })
+    expect(JSON.parse(getToolText(response))).toEqual([row])
   })
 
   it('rejects traversal and malformed input before domain operations', async () => {

@@ -91,9 +91,17 @@ describe('album web controller', () => {
   })
 
   it('maps albumDirs and albumArtStrategy through the source root', async () => {
-    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+    const row = {
+      action: 'would copy', album: 'Album', artistFilename: 'Artist', artistFilenameStrategy: 'artist',
+      destination: 'Artist/Album/01 - Second.flac', discNumber: '02', discTotal: '02', fileType: 'audio',
+      filename: '01.flac', sourceDirectory: '/music/disc-2', tagChanges: {
+        album: 'Album', artist: 'Artist', newDiscNumber: 2, newDiscTotal: 2, title: 'Second',
+      },
+      titleFilename: 'Second', titleFilenameStrategy: 'title', trackNumber: '01',
+    } as const
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([row])
 
-    await controller.organizeFiles({
+    const result = await controller.organizeFiles({
       albumArtStrategy: 'last',
       albumDirs: ['disc-1', 'disc-2'],
       discStrategy: 'concatenate',
@@ -106,6 +114,7 @@ describe('album web controller', () => {
       discStrategy: 'concatenate',
       sourceDirs: [path.join(roots.sourceDir, 'disc-1'), path.join(roots.sourceDir, 'disc-2')],
     })
+    expect(result).toEqual([row])
   })
 
   it('useScratchDir routes destination to scratch but reads albumDirs through source root', async () => {

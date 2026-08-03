@@ -196,10 +196,23 @@ describe('organize-files', () => {
     const rows = JSON.parse(String(rawArg)) as OrganizeFilesJsonOutput
 
     expect(rows).toMatchObject([
-      { destination: 'Artist/Album/01 - First.flac', fileType: 'audio', sourceDirectory: sourceDir },
-      { destination: 'Artist/Album/02 - Second.flac', fileType: 'audio', sourceDirectory: secondSourceDir },
+      {
+        destination: 'Artist/Album/01 - First.flac', discNumber: '01', discTotal: '02',
+        fileType: 'audio', sourceDirectory: sourceDir, trackNumber: '01',
+      },
+      {
+        destination: 'Artist/Album/01 - Second.flac', discNumber: '02', discTotal: '02',
+        fileType: 'audio', sourceDirectory: secondSourceDir, trackNumber: '01',
+      },
       { action: 'would exclude', fileType: 'albumArt', sourceDirectory: sourceDir },
       { action: 'would exclude', fileType: 'albumArt', sourceDirectory: secondSourceDir },
     ])
+  })
+
+  it('describes ordered concatenate inputs as disc boundaries', () => {
+    const command = makeProgram().commands.find(item => item.name() === 'organize-files')
+
+    expect(command?.helpInformation()).toContain('ordered flat album directories treated as discs')
+    expect(command?.helpInformation()).toContain('concatenate ordered directories as discs')
   })
 })
