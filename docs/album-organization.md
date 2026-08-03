@@ -54,7 +54,8 @@ fail with `missing disc number`. Duplicate `(discNumber, trackNumber)` pairs,
 partial metadata, orphan totals, and inconsistent totals are invalid.
 When repeated tracks activate this restriction, `organize-files` groups the
 duplicate track numbers and filenames in its error. Use `--set-metadata` with a
-whole-album JSON/CSV file when numbering is incorrect, or use explicit
+whole-album JSON/CSV file in the CLI, or inline `setMetadata` records in REST,
+GraphQL, and MCP, when numbering is incorrect. Otherwise use explicit
 `--disc-strategy infer` only when the repeats are genuine disc boundaries.
 
 Single-disc albums retain `Artist/Album/TT - Title.ext`. A set with a disc

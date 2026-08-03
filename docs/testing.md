@@ -72,6 +72,10 @@ rmdir "$WEB_SCRATCH_DIR"
 The collection includes both the REST web routes and the scoped `/mcp` endpoint
 for the current manage-albums and manage-audiobooks tool surface.
 
+The `inline-set-metadata` group is designed for an isolated flat source with a
+single file named `track.mp3`. It verifies equivalent REST, GraphQL, and MCP
+inline-record dry runs; it never sets `execute`.
+
 ### Multiple-album conflict smoke test
 
 The dedicated six-request group requires a temporary flat source containing
@@ -135,14 +139,17 @@ __tests__/lib/albums/disc-metadata.test.ts
 __tests__/lib/albums/disc-validation.test.ts
 __tests__/lib/albums/disc-inference.test.ts
 __tests__/commands/manage-albums/organize-files.test.ts
+__tests__/commands/manage-albums/organize-files-set-metadata.test.ts
 __tests__/commands/manage-albums/organize-files-disc.test.ts
 __tests__/lib/albums/organize-files-disc-policy.test.ts
 __tests__/lib/albums/organize-files-metadata.test.ts
+__tests__/lib/albums/organize-files-set-metadata-input.test.ts
 __tests__/lib/albums/organize-files-metadata-disc.test.ts
 __tests__/lib/albums/audio-files-album-art.test.ts
 __tests__/lib/albums/organize-files-album-art.test.ts
 __tests__/lib/albums/organize-files-album-art-execution.test.ts
 __tests__/web/manage-albums-organize-metadata.test.ts
+__tests__/web/mcp.manage-albums-set-metadata.test.ts
 __tests__/web/graphql/album-disc-metadata.test.ts
 __tests__/web/graphql/album-organize-output.integration.test.ts
 __tests__/commands/manage-audiobooks/validate.test.ts

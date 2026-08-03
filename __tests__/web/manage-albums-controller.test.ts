@@ -92,9 +92,12 @@ describe('album web controller', () => {
 
   it('maps metadata repair fields through organize-files', async () => {
     vi.mocked(organizeAlbumFiles).mockResolvedValue([])
-    await controller.organizeFiles({ albumStrategy: 'grouping', discStrategy: 'infer' })
+    const setMetadata = [{
+      album: 'Album', artist: 'Artist', filename: 'track.flac', title: 'Title', trackNumber: 1,
+    }]
+    await controller.organizeFiles({ execute: true, setMetadata })
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
-      albumStrategy: 'grouping', destDir: roots.sourceDir, discStrategy: 'infer', sourceDir: roots.sourceDir,
+      destDir: roots.sourceDir, execute: true, setMetadataRecords: setMetadata, sourceDir: roots.sourceDir,
     })
   })
 
@@ -111,6 +114,11 @@ describe('album web controller', () => {
     await expect(controller.organizeFiles({ destDir: 'override' })).rejects.toBeInstanceOf(BadRequestException)
     await expect(controller.organizeFiles({ sourceDir: 'override' })).rejects.toBeInstanceOf(BadRequestException)
     await expect(controller.organizeFiles({ execute: 'maybe' })).rejects.toBeInstanceOf(BadRequestException)
+    await expect(controller.organizeFiles({ setMetadata: 'metadata.json' })).rejects.toBeInstanceOf(BadRequestException)
+    await expect(controller.organizeFiles({ setMetadata: [] })).rejects.toBeInstanceOf(BadRequestException)
+    await expect(controller.organizeFiles({ setMetadata: [{
+      album: 'Album', artist: 'Artist', filename: '../track.flac', title: 'Title', trackNumber: 1,
+    }] })).rejects.toBeInstanceOf(BadRequestException)
     await expect(controller.organizeFiles({ useScratchDir: 'maybe' })).rejects.toBeInstanceOf(BadRequestException)
 
     expect(summarizeAlbumSourceDir).not.toHaveBeenCalled()

@@ -2,6 +2,8 @@ import { z, type ZodType } from 'zod'
 
 import { UserInputError } from '../../lib/errors.js'
 
+import { albumSetMetadataRecordsSchema } from './album-set-metadata.js'
+
 export type QueryRecord = Record<string, string | string[] | undefined>
 
 const booleanError = 'boolean values must be true or false'
@@ -129,7 +131,7 @@ export const organizeFilesBodySchema = z.object({
   setAlbum: optionalString('setAlbum'),
   setAlbumArtist: optionalString('setAlbumArtist'),
   setArtist: optionalString('setArtist'),
-  setMetadata: optionalString('setMetadata'),
+  setMetadata: albumSetMetadataRecordsSchema.optional(),
   swapArtistAlbumartist: optionalBodyBoolean(),
   titleFilenameStrategy: optionalString('titleFilenameStrategy'),
   useScratchDir: optionalBodyBoolean(),

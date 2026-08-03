@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file -- GraphQL input declarations form one API contract. */
-import { Field, InputType } from '@nestjs/graphql'
+import { Field, InputType, Int } from '@nestjs/graphql'
 
 @InputType()
 export class AlbumListInput {
@@ -38,6 +38,30 @@ export class AlbumValidationInput {
 
   @Field(() => String, { nullable: true })
   public titleFilenameStrategy?: string
+}
+
+@InputType()
+export class AlbumSetMetadataRecordInput {
+  @Field(() => String)
+  public album!: string
+
+  @Field(() => String)
+  public artist!: string
+
+  @Field(() => Int, { nullable: true })
+  public discNumber?: number
+
+  @Field(() => Int, { nullable: true })
+  public discTotal?: number
+
+  @Field(() => String)
+  public filename!: string
+
+  @Field(() => String)
+  public title!: string
+
+  @Field(() => Int)
+  public trackNumber!: number
 }
 
 @InputType()
@@ -84,8 +108,8 @@ export class AlbumOrganizeFilesInput {
   @Field(() => String, { nullable: true })
   public setArtist?: string
 
-  @Field(() => String, { nullable: true })
-  public setMetadata?: string
+  @Field(() => [AlbumSetMetadataRecordInput], { nullable: true })
+  public setMetadata?: AlbumSetMetadataRecordInput[]
 
   @Field(() => Boolean, { nullable: true })
   public swapArtistAlbumartist?: boolean

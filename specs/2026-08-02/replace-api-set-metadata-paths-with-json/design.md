@@ -210,7 +210,7 @@ After every TypeScript source/test edit:
 
 Focused checks:
 
-1. `./node_modules/.bin/vitest run __tests__/commands/manage-albums/helpers/set-metadata.test.ts __tests__/commands/manage-albums/organize-files.test.ts __tests__/lib/albums/organize-files-set-metadata-input.test.ts`
+1. `./node_modules/.bin/vitest run __tests__/commands/manage-albums/helpers/set-metadata.test.ts __tests__/commands/manage-albums/organize-files.test.ts __tests__/commands/manage-albums/organize-files-set-metadata.test.ts __tests__/lib/albums/organize-files-set-metadata-input.test.ts`
 2. `./node_modules/.bin/vitest run __tests__/web/manage-albums-organize-metadata.test.ts __tests__/web/controllers.test.ts`
 3. `./node_modules/.bin/vitest run __tests__/web/graphql/album.resolver.test.ts __tests__/web/graphql/album-organize-output.integration.test.ts`
 4. `./node_modules/.bin/vitest run __tests__/web/mcp.manage-albums-operations.test.ts __tests__/web/mcp.manage-albums-set-metadata.test.ts`

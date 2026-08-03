@@ -1,0 +1,55 @@
+info:
+  name: mcp-inline-set-metadata-dry-run
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/mcp"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 301,
+        "method": "tools/call",
+        "params": {
+          "name": "manage_albums_organize_files",
+          "arguments": {
+            "albumDir": "./",
+            "setMetadata": [{
+              "filename": "track.mp3",
+              "artist": "Reviewed Artist",
+              "album": "Reviewed Album",
+              "trackNumber": 1,
+              "title": "Reviewed Title"
+            }]
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Accept", "application/json, text/event-stream");
+        req.setHeader("MCP-Protocol-Version", bru.getEnvVar("mcpProtocolVersion"));
+    - type: tests
+      code: |-
+        test("MCP accepts inline records without writing", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+          const rows = JSON.parse(json.result.content[0].text);
+          expect(res.getStatus()).to.eql(200);
+          expect(rows[0]).to.include({
+            action: "would copy",
+            destination: "Reviewed Artist/Reviewed Album/01 - Reviewed Title.mp3"
+          });
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -67,6 +67,12 @@ runtime:
           expect(
             organizeTool.inputSchema.properties.discStrategy
           ).to.have.property("type", "string");
+          expect(
+            organizeTool.inputSchema.properties.setMetadata
+          ).to.have.property("type", "array");
+          expect(
+            organizeTool.inputSchema.properties.setMetadata
+          ).to.have.property("minItems", 1);
         });
   assertions:
     - expression: res.status

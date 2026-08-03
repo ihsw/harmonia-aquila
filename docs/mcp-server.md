@@ -81,10 +81,8 @@ operation runs.
 | `manage_audiobooks_merge` | the complete source root | destination |
 | `manage_audiobooks_set_metadata` | source | destination |
 
-`manage_albums_organize_files.setMetadata` is a host filesystem path to a JSON or CSV
-metadata file. Unlike audio inputs, that auxiliary file path is not confined to
-one of the configured roots, so expose this local endpoint only to trusted
-clients.
+`manage_albums_organize_files.setMetadata` is a non-empty inline array with one
+record for every selected audio file. MCP never resolves it as a host path.
 
 ## Album tool contracts
 
@@ -99,7 +97,7 @@ selected root. A non-empty
 | `manage_albums_list` | none | `prefix: string`, `useScratchDir: boolean` |
 | `manage_albums_summarize_source_dir` | `dirName: string` | `ignoreNonAudioFiles: boolean`, `limit: non-negative integer` |
 | `manage_albums_validate` | `dirName: string` | `artistFilenameStrategy: string`, `titleFilenameStrategy: string`, `ignoreNonAudioFiles: boolean`, `limit: non-negative integer`, `useScratchDir: boolean` |
-| `manage_albums_organize_files` | `albumDir: string` ending in `/` | `albumArtistsStrategy`, `albumStrategy`, `artistFilenameStrategy`, `destinationStrategy`, `discStrategy`, `producerStrategy`, `setAlbum`, `setAlbumArtist`, `setArtist`, `setMetadata`, `titleFilenameStrategy`: strings; `execute`, `ignoreAudioFilesWithoutTracks`, `ignoreNonAudioFiles`, `resetTrack`, `swapArtistAlbumartist`, `useScratchDir`: booleans; `limit`: non-negative integer |
+| `manage_albums_organize_files` | `albumDir: string` ending in `/` | `setMetadata`: non-empty metadata-record array; strategy/set fields: strings; `execute`, `ignoreAudioFilesWithoutTracks`, `ignoreNonAudioFiles`, `resetTrack`, `swapArtistAlbumartist`, `useScratchDir`: booleans; `limit`: non-negative integer |
 
 Strategy values are validated by the shared album operations. Defaults are
 `artist`, `title`, `error`, and `no change`, as applicable. MCP uses native

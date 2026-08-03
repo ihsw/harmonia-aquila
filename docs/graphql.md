@@ -81,8 +81,9 @@ It never accepts a client-supplied root path or changes source audio.
 Disc metadata may be absent when selected track numbers are unique. Repeated
 track numbers without effective disc numbers return `BAD_USER_INPUT` with the
 duplicate track groups, the `missing disc number` reason, and `setMetadata` or
-explicit-inference guidance. `setMetadata` is a host-readable path to a
-whole-album JSON/CSV file, not an inline JSON blob. Disc inference is opt-in through
+explicit-inference guidance. `setMetadata` is a typed list of whole-album
+records with `filename`, `artist`, `album`, `trackNumber`, `title`, and optional
+disc fields; it is never a server-host filepath. Disc inference is opt-in through
 `discStrategy: "infer"` and uses filename order; omitted/default input never
 infers. A repeated or decreased track number starts the next disc. Review the
 dry-run values before passing `execute: true`. Multi-disc organization places

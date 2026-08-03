@@ -98,7 +98,7 @@ export class ManageAlbumsController {
         ...optionalEntry('setAlbum', options.setAlbum),
         ...optionalEntry('setAlbumArtist', options.setAlbumArtist),
         ...optionalEntry('setArtist', options.setArtist),
-        ...optionalEntry('setMetadata', options.setMetadata),
+        ...optionalEntry('setMetadataRecords', options.setMetadata),
         ...optionalEntry('swapArtistAlbumartist', options.swapArtistAlbumartist),
         ...optionalEntry('titleFilenameStrategy', options.titleFilenameStrategy),
       })

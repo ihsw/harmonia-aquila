@@ -1,0 +1,47 @@
+info:
+  name: graphql-inline-set-metadata-dry-run
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/graphql"
+  body:
+    type: json
+    data: |-
+      {
+        "query": "mutation ($input: AlbumOrganizeFilesInput!) { albumOrganizeFiles(input: $input) { action destination } }",
+        "variables": {
+          "input": {
+            "setMetadata": [{
+              "filename": "track.mp3",
+              "artist": "Reviewed Artist",
+              "album": "Reviewed Album",
+              "trackNumber": 1,
+              "title": "Reviewed Title"
+            }]
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("GraphQL accepts typed inline records without writing", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+          expect(res.getStatus()).to.eql(200);
+          expect(json).to.not.have.property("errors");
+          expect(json.data.albumOrganizeFiles[0]).to.include({
+            action: "would copy",
+            destination: "Reviewed Artist/Reviewed Album/01 - Reviewed Title.mp3"
+          });
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

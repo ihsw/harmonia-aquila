@@ -41,7 +41,7 @@ input AlbumOrganizeFilesInput {
   setAlbum: String
   setAlbumArtist: String
   setArtist: String
-  setMetadata: String
+  setMetadata: [AlbumSetMetadataRecordInput!]
   swapArtistAlbumartist: Boolean
   titleFilenameStrategy: String
   useScratchDir: Boolean
@@ -61,6 +61,16 @@ type AlbumOrganizeFilesRow {
   titleFilename: String
   titleFilenameStrategy: String
   trackNumber: String
+}
+
+input AlbumSetMetadataRecordInput {
+  album: String!
+  artist: String!
+  discNumber: Int
+  discTotal: Int
+  filename: String!
+  title: String!
+  trackNumber: Int!
 }
 
 input AlbumSummaryInput {

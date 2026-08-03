@@ -1,0 +1,41 @@
+info:
+  name: rest-inline-set-metadata-dry-run
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/manage-albums/organize-files"
+  body:
+    type: json
+    data: |-
+      {
+        "setMetadata": [{
+          "filename": "track.mp3",
+          "artist": "Reviewed Artist",
+          "album": "Reviewed Album",
+          "trackNumber": 1,
+          "title": "Reviewed Title"
+        }]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("REST accepts inline records without writing", function () {
+          const body = res.getBody();
+          const rows = typeof body === "string" ? JSON.parse(body) : body;
+          expect(res.getStatus()).to.eql(201);
+          expect(rows[0]).to.include({
+            action: "would copy",
+            destination: "Reviewed Artist/Reviewed Album/01 - Reviewed Title.mp3"
+          });
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

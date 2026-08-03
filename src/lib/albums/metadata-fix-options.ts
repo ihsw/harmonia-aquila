@@ -80,7 +80,10 @@ function validateOptionConflicts(options: NormalizedMetadataFixOptions): void {
 }
 
 function validateSetMetadataConflicts(options: NormalizedMetadataFixOptions): void {
-  if (options.setMetadata === undefined) {
+  if (options.setMetadata !== undefined && options.setMetadataRecords !== undefined) {
+    throw new UserInputError('--set-metadata conflicts with inline setMetadata records')
+  }
+  if (options.setMetadata === undefined && options.setMetadataRecords === undefined) {
     return
   }
   const conflicts = [
@@ -108,6 +111,7 @@ export function normalizeMetadataFixOptions(options: MetadataFixOptions): Normal
     setAlbumArtist: options.setAlbumArtist,
     setArtist: options.setArtist,
     setMetadata: options.setMetadata,
+    setMetadataRecords: options.setMetadataRecords,
     swapArtistAlbumartist: options.swapArtistAlbumartist === true,
   }
 

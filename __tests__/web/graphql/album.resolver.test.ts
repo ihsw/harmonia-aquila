@@ -82,17 +82,20 @@ describe('AlbumResolver', () => {
 
   it('maps mutations with configured roots and dry-run defaults', async () => {
     vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+    const setMetadata = [{
+      album: 'Album', artist: 'Artist', filename: 'track.flac', title: 'Title', trackNumber: 1,
+    }]
 
     await resolver.albumOrganizeFiles({
-      albumStrategy: 'grouping',
-      discStrategy: 'infer',
+      execute: true,
       ignoreNonAudioFiles: true,
+      setMetadata,
     })
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
-      albumStrategy: 'grouping',
       destDir: roots.sourceDir,
-      discStrategy: 'infer',
+      execute: true,
       ignoreNonAudioFiles: true,
+      setMetadataRecords: setMetadata,
       sourceDir: roots.sourceDir,
     })
   })

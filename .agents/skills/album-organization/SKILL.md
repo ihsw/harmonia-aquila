@@ -96,8 +96,9 @@ they are not duplicate-resolution or album-directory cleanup tools.
 - Disc metadata may be absent when selected track numbers are unique. Repeated
   track numbers without effective disc numbers are a blocker; do not treat
   distinct titles as a substitute for disc identity. The organization error
-  groups duplicate tracks: use its `setMetadata` JSON/CSV-path guidance for
-  incorrect numbering or its explicit inference guidance for real discs.
+  groups duplicate tracks: use a CLI `setMetadata` JSON/CSV path or complete
+  inline REST/GraphQL/MCP records for incorrect numbering; use explicit
+  inference only for real discs.
 - Use `discStrategy: infer` only when filename order and track-number resets
   reliably define disc boundaries. It is never automatic. Review every
   proposed disc number, total, metadata change, and `Disc DD` destination.
@@ -111,7 +112,8 @@ they are not duplicate-resolution or album-directory cleanup tools.
 - Use title filename strategy `subtitle` only when subtitle contains the
   intended filename title.
 - Use `setMetadata` when each track needs an explicit artist, album, track,
-  title, or disc value. Read
+  title, or disc value. The CLI accepts a JSON/CSV path; REST, GraphQL, and MCP
+  accept the complete record array inline. Read
   [the set-metadata contract](../../../docs/organize-files-set-metadata.md)
   before constructing the JSON or CSV file.
 
@@ -163,6 +165,9 @@ curl -X POST "$BASE_URL/manage-albums/organize-files" \
 REST returns user-input failures as HTTP 400. Do not send configured root
 overrides in request bodies.
 
+For whole-album repairs, send `setMetadata` as a non-empty JSON record array;
+never send a server-host manifest path.
+
 ## GraphQL playbook
 
 Request both organization fields and nested metadata changes:
@@ -190,6 +195,9 @@ mutation DryRunOrganize {
 Repeat with `execute: true` only after review. Treat GraphQL errors with
 `extensions.code: BAD_USER_INPUT` as blockers.
 
+GraphQL `setMetadata` is the typed equivalent of the REST record array, not a
+filepath string.
+
 ## MCP playbook
 
 1. Call `manage_albums_list` and descend through slash-terminated prefixes.
@@ -200,6 +208,10 @@ Repeat with `execute: true` only after review. Treat GraphQL errors with
    required repair option, and the intended filename strategies. Omit
    `execute`, parse and review the JSON rows in `content[0].text`, then repeat
    the identical input with `execute: true`.
+
+When explicit per-file repair is required, include one inline `setMetadata`
+record for every selected audio file. MCP does not read metadata manifest
+paths.
 
 Use `useScratchDir: true` only when the selected input album is already under
 the configured scratch root; it no longer means “write repaired tags to

@@ -33,7 +33,7 @@ export function createManageAlbumsOrganizeFilesTool(
         ...optionalEntry('setAlbum', input.setAlbum),
         ...optionalEntry('setAlbumArtist', input.setAlbumArtist),
         ...optionalEntry('setArtist', input.setArtist),
-        ...optionalEntry('setMetadata', input.setMetadata),
+        ...optionalEntry('setMetadataRecords', input.setMetadata),
         ...optionalEntry('swapArtistAlbumartist', input.swapArtistAlbumartist),
         ...optionalEntry('titleFilenameStrategy', input.titleFilenameStrategy),
       }))

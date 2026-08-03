@@ -1,6 +1,7 @@
 import { resolve } from 'node:path'
 
 import {
+  normalizeSetMetadataRecords,
   parseSetMetadataFile,
   reconcileSetMetadata,
   type SetMetadataRecord,
@@ -28,11 +29,17 @@ export type {
   OrganizeFilesOptions,
 } from './organize-files-types.js'
 
-async function readSetMetadata(path: string | undefined): Promise<SetMetadataRecord[] | undefined> {
-  if (path === undefined) {
-    return undefined
-  }
+async function readSetMetadata(
+  path: string | undefined,
+  inlineRecords: SetMetadataRecord[] | undefined,
+): Promise<SetMetadataRecord[] | undefined> {
   try {
+    if (inlineRecords !== undefined) {
+      return normalizeSetMetadataRecords(inlineRecords)
+    }
+    if (path === undefined) {
+      return undefined
+    }
     return await parseSetMetadataFile(resolve(path))
   }
   catch (error) {
@@ -43,7 +50,7 @@ async function readSetMetadata(path: string | undefined): Promise<SetMetadataRec
 export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise<OrganizeFilesJsonOutput> {
   const limit = parseLimit(options.limit)
   const normalized = normalizeMetadataFixOptions(options)
-  const records = await readSetMetadata(normalized.setMetadata)
+  const records = await readSetMetadata(normalized.setMetadata, normalized.setMetadataRecords)
   const { albumArtFiles, files, targetDirectory: sourceDirectory } = await getAudioFiles(
     options.sourceDir,
     { acceptAlbumArt: true, ignoreNonAudioFiles: options.ignoreNonAudioFiles === true },

@@ -1,5 +1,7 @@
 import { z } from 'zod/v4'
 
+import { albumSetMetadataRecordsSchema } from '../album-set-metadata.js'
+
 export const MANAGE_ALBUMS_LIST_TOOL_NAME = 'manage_albums_list'
 export const MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME = 'manage_albums_summarize_source_dir'
 export const MANAGE_ALBUMS_VALIDATE_TOOL_NAME = 'manage_albums_validate'
@@ -43,7 +45,7 @@ export const manageAlbumsOrganizeFilesInputSchema = {
   setAlbum: z.string().optional(),
   setAlbumArtist: z.string().optional(),
   setArtist: z.string().optional(),
-  setMetadata: z.string().optional(),
+  setMetadata: albumSetMetadataRecordsSchema.optional(),
   swapArtistAlbumartist: z.boolean().optional(),
   titleFilenameStrategy: z.string().optional(),
   useScratchDir: z.boolean().optional(),

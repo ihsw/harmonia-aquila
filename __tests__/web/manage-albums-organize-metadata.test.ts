@@ -5,6 +5,8 @@ import { ManageAlbumsController } from '../../src/web/controllers/manage-albums.
 import { WebPathResolver, type WebRoots } from '../../src/web/providers/path-resolver.js'
 import { createTempDir, removeTempDir } from '../test-helpers.js'
 
+import { makeWholeAlbumMetadataRecords } from './album-set-metadata-fixture.js'
+
 vi.mock('../../src/lib/albums/organize-files.js', () => ({ organizeAlbumFiles: vi.fn() }))
 
 describe('REST album organization metadata repair', () => {
@@ -28,6 +30,7 @@ describe('REST album organization metadata repair', () => {
   })
 
   it('passes repair options and returns nested tag changes', async () => {
+    const setMetadata = makeWholeAlbumMetadataRecords()
     vi.mocked(organizeAlbumFiles).mockResolvedValue([{
       action: 'would copy',
       album: 'Album',
@@ -45,11 +48,12 @@ describe('REST album organization metadata repair', () => {
       trackNumber: '01',
     }])
 
-    const rows = await controller.organizeFiles({ discStrategy: 'infer' })
+    const rows = await controller.organizeFiles({ execute: true, setMetadata })
 
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
       destDir: roots.sourceDir,
-      discStrategy: 'infer',
+      execute: true,
+      setMetadataRecords: setMetadata,
       sourceDir: roots.sourceDir,
     })
     const result = rows as Array<{ tagChanges: { newDiscNumber?: number, newDiscTotal?: number } }>

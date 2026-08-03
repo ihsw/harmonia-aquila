@@ -1,3 +1,5 @@
+import type { SetMetadataRecord } from '../../commands/manage-albums/helpers/set-metadata.js'
+
 import type { AudioTagFix } from './audio-tags.js'
 
 export interface MetadataFixJsonOutputRow {
@@ -30,6 +32,7 @@ export interface MetadataFixOptions {
   setAlbumArtist?: string
   setArtist?: string
   setMetadata?: string
+  setMetadataRecords?: SetMetadataRecord[]
   swapArtistAlbumartist?: boolean
 }
 
@@ -86,5 +89,6 @@ export interface NormalizedMetadataFixOptions {
   setAlbumArtist: string | undefined
   setArtist: string | undefined
   setMetadata: string | undefined
+  setMetadataRecords: SetMetadataRecord[] | undefined
   swapArtistAlbumartist: boolean
 }

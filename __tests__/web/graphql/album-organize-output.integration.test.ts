@@ -6,6 +6,7 @@ import { organizeAlbumFiles } from '../../../src/lib/albums/organize-files.js'
 import { UserInputError } from '../../../src/lib/errors.js'
 import { createWebApp } from '../../../src/web/main.js'
 import { createTempDir, removeTempDir } from '../../test-helpers.js'
+import { makeWholeAlbumMetadataRecords } from '../album-set-metadata-fixture.js'
 
 vi.mock('../../../src/lib/albums/organize-files.js', () => ({ organizeAlbumFiles: vi.fn() }))
 
@@ -74,6 +75,34 @@ describe('GraphQL album organization output', () => {
     expect(await response.json()).toMatchObject({ errors: [{
       extensions: { code: 'BAD_USER_INPUT' },
       message,
+    }] })
+  })
+
+  it('accepts typed inline metadata records and rejects filepath strings', async () => {
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+    const setMetadata = makeWholeAlbumMetadataRecords()
+    const valid = await fetch(`${baseUrl}/graphql`, {
+      body: JSON.stringify({
+        query: 'mutation ($input: AlbumOrganizeFilesInput!) { albumOrganizeFiles(input: $input) { filename } }',
+        variables: { input: { execute: true, setMetadata } },
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    })
+    const invalid = await fetch(`${baseUrl}/graphql`, {
+      body: JSON.stringify({
+        query: 'mutation { albumOrganizeFiles(input: { setMetadata: "metadata.json" }) { filename } }',
+      }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    })
+
+    expect(await valid.json()).toEqual({ data: { albumOrganizeFiles: [] } })
+    expect(organizeAlbumFiles).toHaveBeenCalledWith({
+      destDir: sourceDir, execute: true, setMetadataRecords: setMetadata, sourceDir,
+    })
+    expect(await invalid.json()).toMatchObject({ errors: [{
+      extensions: { code: 'GRAPHQL_VALIDATION_FAILED' },
     }] })
   })
 })
