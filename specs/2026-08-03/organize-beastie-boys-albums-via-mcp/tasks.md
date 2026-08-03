@@ -208,3 +208,55 @@
 
 > Execution note: no source code was modified. Per-file lint, final lint, build,
 > and tests are therefore not applicable to this MCP operational run.
+
+## Phase 6 — Re-evaluate consolidated 1999 anthology
+
+### 6.1 Rediscover and audit the changed source layout
+
+- [x] List the anthology parent and both prior disc directories through MCP.
+- [x] Confirm `CD1/` now contains all 43 FLAC files and both sets of audit
+      sidecars, while `CD2/` is empty and parent `cover.jpg` remains adjacent
+      only to the parent directory.
+- [x] Run an unlimited 43-row summary from consolidated `CD1/` with sidecars
+      deliberately ignored.
+- [x] Run baseline validation with `albumartist`/`title` and record the expected
+      blocker caused by the two embedded `[CD1]` and `[CD2]` album values.
+
+> Reevaluation note: MCP still lists the two disc directories, but all 43 FLACs
+> are now consolidated inside `CD1/`; `CD2/` returns `[]`. Summary found 21
+> tracks tagged as disc 1 and 22 as disc 2. Baseline validation stopped with
+> `Multiple albums found: Anthology- The Sounds Of Science [CD1], Anthology-
+> The Sounds Of Science [CD2]`.
+
+### 6.2 Plan and execute one canonical anthology
+
+- [x] Dry-run `manage_albums_organize_files` against consolidated `CD1/` with
+      `setAlbum: "Anthology: The Sounds Of Science"`, destination strategy
+      `error`, sidecars ignored, and `albumartist`/`title` filename strategies.
+- [x] Review all 43 rows and require 21 Disc 01 plus 22 Disc 02 tracks, unique
+      disc/track pairs, 43 unique destinations, and no metadata change except
+      the canonical album name.
+- [x] Repeat the accepted request with only `execute: true` added.
+- [x] Require 43 `copied` rows with exact dry-run parity after normalizing only
+      `action`.
+
+> Reevaluation note: the dry run returned 43 `would copy` rows under one
+> `Beastie Boys/Anthology- The Sounds Of Science/` album with `Disc 01` and
+> `Disc 02` subdirectories. Execution returned 43 matching `copied` rows. The
+> first destination is `Disc 01/01 - Beastie Boys.flac`; the last is
+> `Disc 02/22 - Big Shot.flac`. No collision or retry occurred.
+
+### 6.3 Verify source preservation and boundary art
+
+- [x] Re-run the unlimited source summary and require exact equality with the
+      pre-execution 43-row summary.
+- [x] Re-list both disc directories and confirm 43 source FLACs remain in
+      `CD1/`, `CD2/` remains empty, and parent `cover.jpg` remains present.
+- [x] Record parent `cover.jpg` as preserved but not copied because it is not
+      adjacent to the consolidated flat audio input.
+- [x] Record lint, build, and tests as not applicable because no source code was
+      modified.
+
+> Reevaluation note: post-execution source summary is exactly unchanged at 43
+> rows. MCP source lists still show 43 FLACs in `CD1/`, no entries in `CD2/`,
+> and the parent cover. Only destination copies and this task record changed.
