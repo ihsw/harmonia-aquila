@@ -23,7 +23,6 @@ describe('album web controller', () => {
   beforeEach(async () => {
     roots = await normalizeWebRoots({
       destDir: await createTempDir('web-controller-dest-'),
-      scratchDir: await createTempDir('web-controller-scratch-'),
       sourceDir: await createTempDir('web-controller-source-'),
     })
     controller = new ManageAlbumsController(new WebPathResolver(roots))
@@ -32,7 +31,6 @@ describe('album web controller', () => {
 
   afterEach(async () => {
     await removeTempDir(roots.destDir)
-    await removeTempDir(roots.scratchDir)
     await removeTempDir(roots.sourceDir)
   })
 
@@ -40,15 +38,14 @@ describe('album web controller', () => {
     vi.mocked(listAlbumSourceDir).mockResolvedValue(['sub/track.flac'])
 
     await controller.list({})
-    await controller.list({ prefix: 'sub/', useScratchDir: 'true' })
+    await controller.list({ prefix: 'sub/' })
 
     expect(listAlbumSourceDir).toHaveBeenNthCalledWith(1, { sourceDir: roots.sourceDir })
-    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(2, { prefix: 'sub/', sourceDir: roots.scratchDir })
+    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(2, { prefix: 'sub/', sourceDir: roots.sourceDir })
   })
 
   it('rejects invalid list query values and maps domain errors', async () => {
     await expect(controller.list({ prefix: ['a', 'b'] })).rejects.toBeInstanceOf(BadRequestException)
-    await expect(controller.list({ useScratchDir: 'maybe' })).rejects.toBeInstanceOf(BadRequestException)
     vi.mocked(listAlbumSourceDir).mockRejectedValue(new UserInputError('prefix must end with /'))
     await expect(controller.list({ prefix: 'bad' })).rejects.toBeInstanceOf(BadRequestException)
   })
@@ -79,13 +76,9 @@ describe('album web controller', () => {
     vi.mocked(organizeAlbumFiles).mockResolvedValue([...artRows])
 
     const result = await controller.organizeFiles({})
-    await controller.organizeFiles({ useScratchDir: true })
 
-    expect(organizeAlbumFiles).toHaveBeenNthCalledWith(1, {
-      destDir: roots.sourceDir, sourceDir: roots.sourceDir,
-    })
-    expect(organizeAlbumFiles).toHaveBeenNthCalledWith(2, {
-      destDir: roots.scratchDir, sourceDir: roots.sourceDir,
+    expect(organizeAlbumFiles).toHaveBeenCalledWith({
+      destDir: roots.destDir, sourceDir: roots.sourceDir,
     })
     expect(result).toEqual(artRows)
   })
@@ -105,37 +98,15 @@ describe('album web controller', () => {
       albumArtStrategy: 'last',
       albumDirs: ['disc-1', 'disc-2'],
       discStrategy: 'concatenate',
-      useScratchDir: true,
     })
 
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
       albumArtStrategy: 'last',
-      destDir: roots.scratchDir,
+      destDir: roots.destDir,
       discStrategy: 'concatenate',
       sourceDirs: [path.join(roots.sourceDir, 'disc-1'), path.join(roots.sourceDir, 'disc-2')],
     })
     expect(result).toEqual([row])
-  })
-
-  it('useScratchDir routes destination to scratch but reads albumDirs through source root', async () => {
-    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
-
-    await controller.organizeFiles({
-      albumArtStrategy: 'last',
-      albumDirs: ['disc-1', 'disc-2'],
-      discStrategy: 'concatenate',
-      useScratchDir: true,
-    })
-
-    expect(organizeAlbumFiles).toHaveBeenCalledWith({
-      albumArtStrategy: 'last',
-      destDir: roots.scratchDir,
-      discStrategy: 'concatenate',
-      sourceDirs: [
-        path.join(roots.sourceDir, 'disc-1'),
-        path.join(roots.sourceDir, 'disc-2'),
-      ],
-    })
   })
 
   it('maps metadata repair fields through organize-files', async () => {
@@ -145,7 +116,7 @@ describe('album web controller', () => {
     }]
     await controller.organizeFiles({ execute: true, setMetadata })
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
-      destDir: roots.sourceDir, execute: true, setMetadataRecords: setMetadata, sourceDir: roots.sourceDir,
+      destDir: roots.destDir, execute: true, setMetadataRecords: setMetadata, sourceDir: roots.sourceDir,
     })
   })
 
@@ -161,14 +132,13 @@ describe('album web controller', () => {
     await expect(controller.validate({ dirName: '../escape' })).rejects.toBeInstanceOf(BadRequestException)
     await expect(controller.organizeFiles({ destDir: 'override' })).rejects.toBeInstanceOf(BadRequestException)
     await expect(controller.organizeFiles({ sourceDir: 'override' })).rejects.toBeInstanceOf(BadRequestException)
+    await expect(controller.organizeFiles({ albumDirs: ['../escape', 'safe'] })).rejects.toBeInstanceOf(BadRequestException)
     await expect(controller.organizeFiles({ execute: 'maybe' })).rejects.toBeInstanceOf(BadRequestException)
     await expect(controller.organizeFiles({ setMetadata: 'metadata.json' })).rejects.toBeInstanceOf(BadRequestException)
     await expect(controller.organizeFiles({ setMetadata: [] })).rejects.toBeInstanceOf(BadRequestException)
     await expect(controller.organizeFiles({ setMetadata: [{
       album: 'Album', artist: 'Artist', filename: '../track.flac', title: 'Title', trackNumber: 1,
     }] })).rejects.toBeInstanceOf(BadRequestException)
-    await expect(controller.organizeFiles({ useScratchDir: 'maybe' })).rejects.toBeInstanceOf(BadRequestException)
-
     expect(summarizeAlbumSourceDir).not.toHaveBeenCalled()
     expect(validateAlbumSourceDir).not.toHaveBeenCalled()
     expect(organizeAlbumFiles).not.toHaveBeenCalled()

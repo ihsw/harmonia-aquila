@@ -14,14 +14,13 @@ The server never changes source audio or artwork while organizing. Its write-cap
 
 ## Run and connect the MCP server
 
-Install dependencies, build, and start the web server with the source, scratch, and destination roots that the MCP client may access:
+Install dependencies, build, and start the web server with the source and destination roots that the MCP client may access:
 
 ```sh
 npm install
 npm run build
 npm run web:serve -- \
   --source-dir /music/source \
-  --scratch-dir /music/scratch \
   --dest-dir /music/organized \
   --host 127.0.0.1 \
   --port 3000
@@ -81,7 +80,7 @@ The MCP tools also support crawling source folders, converting files, merging au
 
 | Tool | Purpose | Writes when executed |
 | --- | --- | --- |
-| `manage_albums_list` | List immediate album entries in source or scratch. | No |
+| `manage_albums_list` | List immediate album entries in source. | No |
 | `manage_albums_summarize_source_dir` | Inspect one flat album directory. | No |
 | `manage_albums_validate` | Validate tags, tracks, and destinations. | No |
 | `manage_albums_organize_files` | Plan or publish album copies and metadata repairs. | Yes |

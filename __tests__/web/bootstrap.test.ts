@@ -11,12 +11,10 @@ import { createTempDir, removeTempDir } from '../test-helpers.js'
 describe('web bootstrap', () => {
   let app: INestApplication | undefined
   let destDir: string
-  let scratchDir: string
   let sourceDir: string
 
   beforeEach(async () => {
     destDir = await createTempDir('web-dest-')
-    scratchDir = await createTempDir('web-scratch-')
     sourceDir = await createTempDir('web-source-')
   })
 
@@ -24,29 +22,28 @@ describe('web bootstrap', () => {
     await app?.close()
     app = undefined
     await removeTempDir(destDir)
-    await removeTempDir(scratchDir)
     await removeTempDir(sourceDir)
   })
 
   it('creates and initializes the Nest application', async () => {
-    app = await createWebApp({ destDir, scratchDir, sourceDir })
+    app = await createWebApp({ destDir, sourceDir })
     await app.init()
 
     expect(app.getHttpServer()).toBeDefined()
   })
 
-  it('normalizes and validates the scratch root', async () => {
-    const normalized = await normalizeWebRoots({ destDir, scratchDir, sourceDir })
-    const scratchFile = path.join(destDir, 'scratch-file')
+  it('normalizes and validates the destination root', async () => {
+    const normalized = await normalizeWebRoots({ destDir, sourceDir })
+    const destFile = path.join(destDir, 'dest-file')
 
-    await writeFile(scratchFile, '')
+    await writeFile(destFile, '')
 
-    expect(normalized.scratchDir).toBe(await realpath(scratchDir))
-    await expect(normalizeWebRoots({ destDir, scratchDir: '', sourceDir })).rejects.toThrow(
-      '--scratch-dir is required',
+    expect(normalized.destDir).toBe(await realpath(destDir))
+    await expect(normalizeWebRoots({ destDir: '', sourceDir })).rejects.toThrow(
+      '--dest-dir is required',
     )
-    await expect(normalizeWebRoots({ destDir, scratchDir: scratchFile, sourceDir })).rejects.toThrow(
-      '--scratch-dir must be an existing directory',
+    await expect(normalizeWebRoots({ destDir: destFile, sourceDir })).rejects.toThrow(
+      '--dest-dir must be an existing directory',
     )
   })
 
@@ -55,7 +52,6 @@ describe('web bootstrap', () => {
       destDir,
       host: '127.0.0.1',
       port: 0,
-      scratchDir,
       sourceDir,
     })
 

@@ -26,7 +26,6 @@ describe('audiobook web controller', () => {
   beforeEach(async () => {
     roots = await normalizeWebRoots({
       destDir: await createTempDir('web-controller-dest-'),
-      scratchDir: await createTempDir('web-controller-scratch-'),
       sourceDir: await createTempDir('web-controller-source-'),
     })
     controller = new ManageAudiobooksController(new WebPathResolver(roots))
@@ -35,7 +34,6 @@ describe('audiobook web controller', () => {
 
   afterEach(async () => {
     await removeTempDir(roots.destDir)
-    await removeTempDir(roots.scratchDir)
     await removeTempDir(roots.sourceDir)
   })
 

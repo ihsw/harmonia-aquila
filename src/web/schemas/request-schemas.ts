@@ -105,7 +105,6 @@ export const summarizeSourceDirQuerySchema = z.object({
 
 export const listAlbumQuerySchema = z.object({
   prefix: optionalString('prefix'),
-  useScratchDir: optionalQueryBoolean(),
 })
 
 export const validateAlbumQuerySchema = z.object({
@@ -136,7 +135,6 @@ export const organizeFilesBodySchema = z.object({
   setMetadata: albumSetMetadataRecordsSchema.optional(),
   swapArtistAlbumartist: optionalBodyBoolean(),
   titleFilenameStrategy: optionalString('titleFilenameStrategy'),
-  useScratchDir: optionalBodyBoolean(),
 })
 
 export const validateAudiobookQuerySchema = z.object({

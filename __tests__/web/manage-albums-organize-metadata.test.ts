@@ -16,7 +16,6 @@ describe('REST album organization metadata repair', () => {
   beforeEach(async () => {
     roots = {
       destDir: await createTempDir('rest-organize-dest-'),
-      scratchDir: await createTempDir('rest-organize-scratch-'),
       sourceDir: await createTempDir('rest-organize-source-'),
     }
     controller = new ManageAlbumsController(new WebPathResolver(roots))
@@ -25,7 +24,6 @@ describe('REST album organization metadata repair', () => {
 
   afterEach(async () => {
     await removeTempDir(roots.destDir)
-    await removeTempDir(roots.scratchDir)
     await removeTempDir(roots.sourceDir)
   })
 
@@ -51,7 +49,7 @@ describe('REST album organization metadata repair', () => {
     const rows = await controller.organizeFiles({ execute: true, setMetadata })
 
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
-      destDir: roots.sourceDir,
+      destDir: roots.destDir,
       execute: true,
       setMetadataRecords: setMetadata,
       sourceDir: roots.sourceDir,

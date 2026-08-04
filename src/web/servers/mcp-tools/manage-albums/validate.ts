@@ -12,9 +12,7 @@ export function createManageAlbumsValidateTool(
 ): WebMcpToolRegistration {
   return defineWebMcpTool({
     handler: async (input) => {
-      const dirName = input.useScratchDir === true
-        ? await context.pathResolver.resolveScratch(input.dirName, 'dirName')
-        : await context.pathResolver.resolveSource(input.dirName, 'dirName')
+      const dirName = await context.pathResolver.resolveSource(input.dirName, 'dirName')
 
       const rows = await validateAlbumSourceDir({
         dirName,
@@ -31,7 +29,7 @@ export function createManageAlbumsValidateTool(
       annotations: {
         readOnlyHint: true,
       },
-      description: 'Validate FLAC and MP3 metadata needed to organize a configured source or scratch directory.',
+      description: 'Validate FLAC and MP3 metadata needed to organize the configured source directory.',
       inputSchema: manageAlbumsValidateInputSchema,
       title: 'Manage albums validate',
     },

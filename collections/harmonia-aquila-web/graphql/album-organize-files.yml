@@ -1,5 +1,5 @@
 info:
-  name: album-organize-files-scratch-output
+  name: album-organize-files-destination-output
   type: http
   seq: 6
 
@@ -15,8 +15,7 @@ http:
           "input": {
             "ignoreNonAudioFiles": true,
             "limit": "1",
-            "setAlbum": "Reviewed Album",
-            "useScratchDir": true
+            "setAlbum": "Reviewed Album"
           }
         }
       }

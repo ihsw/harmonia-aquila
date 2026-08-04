@@ -48,9 +48,7 @@ Build and start the local web server against the live example directories:
 
 ```sh
 npm run build
-WEB_SCRATCH_DIR="$(mktemp -d)"
-mkdir "$WEB_SCRATCH_DIR/scratch-only"
-npm run web:serve -- --source-dir etc/1-source-files --dest-dir etc/2-destination-files --scratch-dir "$WEB_SCRATCH_DIR" --host 127.0.0.1 --port 3000
+npm run web:serve -- --source-dir etc/1-source-files --dest-dir etc/2-destination-files --host 127.0.0.1 --port 3000
 ```
 
 In another shell, run the Bruno collection from its collection root:
@@ -60,14 +58,7 @@ cd collections/harmonia-aquila-web
 ../../node_modules/.bin/bru run . -r --env local --bail
 ```
 
-The `scratch-only/` marker lets REST, GraphQL, and MCP list requests prove that
-`useScratchDir: true` selects the configured scratch root. After stopping the
-server, remove only the known marker and temporary root:
-
-```sh
-rmdir "$WEB_SCRATCH_DIR/scratch-only"
-rmdir "$WEB_SCRATCH_DIR"
-```
+The collection proves source-root reads and destination-root dry-run plans.
 
 The collection includes both the REST web routes and the scoped `/mcp` endpoint
 for the current manage-albums and manage-audiobooks tool surface.
@@ -84,11 +75,11 @@ never edit those source files or anything under `etc/**`:
 
 ```sh
 MULTI_ALBUM_ROOT="$(mktemp -d)"
-mkdir "$MULTI_ALBUM_ROOT/source" "$MULTI_ALBUM_ROOT/scratch" "$MULTI_ALBUM_ROOT/destination"
+mkdir "$MULTI_ALBUM_ROOT/source" "$MULTI_ALBUM_ROOT/destination"
 cp "etc/albums/1-source-files/Across The Universe Soundtrack/1-01 Girl.mp3" "$MULTI_ALBUM_ROOT/source/across.mp3"
 cp "etc/albums/1-source-files/Requiem For A Dream - OST/01.Summer - Summer Overture.mp3" "$MULTI_ALBUM_ROOT/source/requiem.mp3"
 npm run build
-npm run web:serve -- --source-dir "$MULTI_ALBUM_ROOT/source" --scratch-dir "$MULTI_ALBUM_ROOT/scratch" --dest-dir "$MULTI_ALBUM_ROOT/destination" --host 127.0.0.1 --port 3000 >"$MULTI_ALBUM_ROOT/web.log" 2>&1 &
+npm run web:serve -- --source-dir "$MULTI_ALBUM_ROOT/source" --dest-dir "$MULTI_ALBUM_ROOT/destination" --host 127.0.0.1 --port 3000 >"$MULTI_ALBUM_ROOT/web.log" 2>&1 &
 MULTI_ALBUM_SERVER_PID=$!
 ```
 
@@ -108,7 +99,7 @@ directories:
 kill "$MULTI_ALBUM_SERVER_PID"
 wait "$MULTI_ALBUM_SERVER_PID" || true
 rm "$MULTI_ALBUM_ROOT/source/across.mp3" "$MULTI_ALBUM_ROOT/source/requiem.mp3" "$MULTI_ALBUM_ROOT/web.log"
-rmdir "$MULTI_ALBUM_ROOT/source" "$MULTI_ALBUM_ROOT/scratch" "$MULTI_ALBUM_ROOT/destination"
+rmdir "$MULTI_ALBUM_ROOT/source" "$MULTI_ALBUM_ROOT/destination"
 rmdir "$MULTI_ALBUM_ROOT"
 ```
 

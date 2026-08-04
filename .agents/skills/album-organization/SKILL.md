@@ -18,9 +18,9 @@ album art. Reject other sidecars, subdirectories, and symlinks unless
 `ignoreNonAudioFiles` is deliberately enabled. Keep ambiguous duplicates in
 quarantine rather than deleting them.
 
-Before using a web API, determine the `--source-dir`, `--scratch-dir`, and
-`--dest-dir` supplied to `web serve`. API paths are relative to those configured
-roots. Never infer a root, pass a host path, or attempt traversal.
+Before using a web API, determine the `--source-dir` and `--dest-dir` supplied
+to `web serve`. API paths are relative to those configured roots. Never infer a
+root, pass a host path, or attempt traversal.
 
 Choose one interface for the workflow:
 
@@ -36,12 +36,11 @@ Choose one interface for the workflow:
 | Interface | Input selection | Organized output |
 | --- | --- | --- |
 | CLI | explicit flat `--source-dir` | explicit `--dest-dir` |
-| REST / GraphQL | complete configured source root | configured source root by default; configured scratch root when `useScratchDir: true` |
-| MCP | slash-terminated `albumDir` under source, or scratch when `useScratchDir: true` | configured destination root |
+| REST / GraphQL | complete configured source root | configured destination root |
+| MCP | slash-terminated `albumDir` under source | configured destination root |
 
 For REST or GraphQL, start `web serve` with the exact flat candidate as its
-source root. Select a separate empty scratch root as output when source and
-destination must not overlap. For MCP, discover `albumDir` with
+source root and a separate destination root. For MCP, discover `albumDir` with
 `manage_albums_list`; use `./` for files directly in a configured root.
 
 REST query booleans are `true`/`false` strings, and REST/GraphQL `limit` values
@@ -73,10 +72,8 @@ are strings. MCP uses native booleans and non-negative integers. MCP
    repairs a temporary copy, verifies it, and publishes it at the organized
    destination. Images are staged and published without metadata writes. It
    never changes source audio or images.
-8. Re-list, summarize, or validate the organized output when the chosen
-   interface exposes that root. Retain the dry-run and execution rows as audit
-   evidence and require parity apart from the action changing from
-   `would copy` to `copied`.
+8. Retain the dry-run and execution rows as audit evidence and require parity
+   apart from the action changing from `would copy` to `copied`.
 
 Never use `limit` for final validation or execution because it can hide
 conflicts. The limit selects audio only; art is planned only when at least one
@@ -156,8 +153,7 @@ curl -X POST "$BASE_URL/manage-albums/organize-files" \
     "setAlbum":"Canonical Album",
     "setAlbumArtist":"Various Artists",
     "artistFilenameStrategy":"albumartist",
-    "titleFilenameStrategy":"title",
-    "useScratchDir":true
+    "titleFilenameStrategy":"title"
   }'
 # Review, then repeat the same body with "execute":true.
 ```
@@ -179,7 +175,6 @@ mutation DryRunOrganize {
     setAlbumArtist: "Various Artists"
     artistFilenameStrategy: "albumartist"
     titleFilenameStrategy: "title"
-    useScratchDir: true
   }) {
     action
     fileType
@@ -213,11 +208,10 @@ When explicit per-file repair is required, include one inline `setMetadata`
 record for every selected audio file. MCP does not read metadata manifest
 paths.
 
-Use `useScratchDir: true` only when the selected input album is already under
-the configured scratch root; it no longer means “write repaired tags to
-scratch.” MCP always publishes organized output under the configured
-destination root. Treat tool-error content as failure, including path, schema,
-metadata conflict, duplicate, collision, and multiple-album/artist errors.
+MCP always reads selected albums from the configured source root and publishes
+organized output under the configured destination root. Treat tool-error
+content as failure, including path, schema, metadata conflict, duplicate,
+collision, and multiple-album/artist errors.
 
 The desired outcome is one reviewed operation that produces one selected copy
 of every track and recognized adjacent image, applies approved metadata repairs

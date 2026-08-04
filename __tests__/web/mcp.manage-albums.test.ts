@@ -23,30 +23,25 @@ describe('web MCP manage-albums tools', () => {
     testApp = undefined
   })
 
-  it('selects the list root from useScratchDir and preserves prefix', async () => {
+  it('selects the source list root and preserves prefix', async () => {
     const currentTestApp = requireTestApp()
     vi.mocked(listAlbumSourceDir).mockResolvedValue(['a.flac', 'sub/'])
 
     const defaultResponse = await callTool(10, MANAGE_ALBUMS_LIST_TOOL_NAME, {})
-    await callTool(11, MANAGE_ALBUMS_LIST_TOOL_NAME, { useScratchDir: false })
-    await callTool(12, MANAGE_ALBUMS_LIST_TOOL_NAME, { useScratchDir: true })
-    const scratchPrefixResponse = await callTool(13, MANAGE_ALBUMS_LIST_TOOL_NAME, {
+    const prefixResponse = await callTool(11, MANAGE_ALBUMS_LIST_TOOL_NAME, {
       prefix: 'sub/',
-      useScratchDir: true,
     })
 
     expect(listAlbumSourceDir).toHaveBeenNthCalledWith(1, { sourceDir: currentTestApp.sourceDir })
-    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(2, { sourceDir: currentTestApp.sourceDir })
-    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(3, { sourceDir: currentTestApp.scratchDir })
-    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(4, {
+    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(2, {
       prefix: 'sub/',
-      sourceDir: currentTestApp.scratchDir,
+      sourceDir: currentTestApp.sourceDir,
     })
     expect(JSON.parse(getToolText(defaultResponse))).toEqual(['a.flac', 'sub/'])
-    expect(JSON.parse(getToolText(scratchPrefixResponse))).toEqual(['a.flac', 'sub/'])
+    expect(JSON.parse(getToolText(prefixResponse))).toEqual(['a.flac', 'sub/'])
   })
 
-  it('discovers list as a read-only source-or-scratch tool', async () => {
+  it('discovers list as a read-only source tool', async () => {
     const response = await postMcp(requireTestApp().baseUrl, {
       id: 9,
       jsonrpc: '2.0',
@@ -68,22 +63,15 @@ describe('web MCP manage-albums tools', () => {
       annotations: { readOnlyHint: true },
       name: MANAGE_ALBUMS_LIST_TOOL_NAME,
     })
-    expect(listTool?.description).toContain('source or scratch')
-    expect(listTool?.title).toContain('source or scratch')
-    expect(listTool?.inputSchema?.properties?.useScratchDir).toEqual(expect.objectContaining({
-      type: 'boolean',
-    }))
+    expect(listTool?.description).toContain('configured source directory')
+    expect(listTool?.title).toContain('source directory')
+    expect(listTool?.inputSchema?.properties).not.toHaveProperty(['use', 'Scratch', 'Dir'].join(''))
   })
 
-  it('rejects invalid list selectors before the domain operation and propagates list errors', async () => {
-    const invalidSelector = await callTool(12, MANAGE_ALBUMS_LIST_TOOL_NAME, { useScratchDir: 'yes' })
-
-    expect(getToolText(invalidSelector)).toContain('Invalid arguments')
-    expect(listAlbumSourceDir).not.toHaveBeenCalled()
-
+  it('propagates list errors', async () => {
     vi.mocked(listAlbumSourceDir).mockRejectedValue(new UserInputError('prefix must end with /'))
 
-    const response = await callTool(13, MANAGE_ALBUMS_LIST_TOOL_NAME, { prefix: 'bad' })
+    const response = await callTool(12, MANAGE_ALBUMS_LIST_TOOL_NAME, { prefix: 'bad' })
 
     expect(getToolText(response)).toContain('prefix')
   })

@@ -38,9 +38,7 @@ export class ManageAlbumsController {
       const options = parseRequest(listAlbumQuerySchema, query)
 
       return await listAlbumSourceDir({
-        sourceDir: options.useScratchDir === true
-          ? this.pathResolver.scratchDir
-          : this.pathResolver.sourceDir,
+        sourceDir: this.pathResolver.sourceDir,
         ...optionalEntry('prefix', options.prefix),
       })
     }
@@ -87,14 +85,12 @@ export class ManageAlbumsController {
   public async organizeFiles(@Body() rawBody: unknown): Promise<unknown> {
     try {
       const options = parseRequest(organizeFilesBodySchema, rawBody, {
-        destDir: 'web serve --dest-dir is reserved for audiobooks; useScratchDir selects album output',
+        destDir: 'destDir is configured by web serve --dest-dir',
         sourceDir: 'sourceDir is configured by web serve --source-dir',
       })
 
       return await organizeAlbumFiles({
-        destDir: options.useScratchDir === true
-          ? this.pathResolver.scratchDir
-          : this.pathResolver.sourceDir,
+        destDir: this.pathResolver.destDir,
         ...(await resolveOrganizeSourceOptions(this.pathResolver, options.albumDirs)),
         ...optionalEntry('albumArtStrategy', options.albumArtStrategy),
         ...optionalEntry('albumArtistsStrategy', options.albumArtistsStrategy),

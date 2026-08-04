@@ -51,7 +51,6 @@ describe('web MCP manage-albums summarize and organize tools', () => {
       execute: true,
       limit: 4,
       setAlbumArtist: 'Various Artists',
-      useScratchDir: true,
     })
 
     expect(summarizeAlbumSourceDir).toHaveBeenCalledWith({
@@ -87,6 +86,7 @@ describe('web MCP manage-albums summarize and organize tools', () => {
     expect(tools.map(tool => tool.name)).not.toContain(retiredToolName)
     expect(organizeTool?.inputSchema?.properties?.discStrategy).toMatchObject({ type: 'string' })
     expect(organizeTool?.inputSchema?.properties?.setAlbumArtist).toMatchObject({ type: 'string' })
+    expect(organizeTool?.inputSchema?.properties).not.toHaveProperty(['use', 'Scratch', 'Dir'].join(''))
 
     const retiredCall = await postMcp(requireTestApp().baseUrl, {
       id: 31,
@@ -97,21 +97,13 @@ describe('web MCP manage-albums summarize and organize tools', () => {
     expect(getToolText(retiredCall)).toContain('not found')
   })
 
-  it('defaults organize input to source and always outputs to destination', async () => {
+  it('reads organize input from source and outputs to destination', async () => {
     const currentTestApp = requireTestApp()
     vi.mocked(organizeAlbumFiles).mockResolvedValue([])
 
     await callTool(4, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, { albumDir: 'music/' })
-    await callTool(5, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
-      albumDir: 'music/',
-      useScratchDir: false,
-    })
 
-    expect(organizeAlbumFiles).toHaveBeenNthCalledWith(1, {
-      destDir: currentTestApp.destDir,
-      sourceDir: `${currentTestApp.sourceDir}/music`,
-    })
-    expect(organizeAlbumFiles).toHaveBeenNthCalledWith(2, {
+    expect(organizeAlbumFiles).toHaveBeenCalledWith({
       destDir: currentTestApp.destDir,
       sourceDir: `${currentTestApp.sourceDir}/music`,
     })
@@ -133,7 +125,6 @@ describe('web MCP manage-albums summarize and organize tools', () => {
       albumArtStrategy: 'last',
       albumDirs: ['disc-1/', 'disc-2/'],
       discStrategy: 'concatenate',
-      useScratchDir: true,
     })
 
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
@@ -152,10 +143,6 @@ describe('web MCP manage-albums summarize and organize tools', () => {
     const organizeTraversal = await callTool(10, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
       albumDir: '../outside/',
     })
-    const organizeScratchTraversal = await callTool(11, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
-      albumDir: '../outside/',
-      useScratchDir: true,
-    })
     const duplicateAlbumDirs = await callTool(14, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
       albumDirs: ['music/', 'music/'],
     })
@@ -164,7 +151,6 @@ describe('web MCP manage-albums summarize and organize tools', () => {
     expect(getToolText(organizeMissing)).toContain('albumDir')
     expect(getToolText(organizeMalformed)).toContain('albumDir must end with /')
     expect(getToolText(organizeTraversal)).toContain('--source-dir')
-    expect(getToolText(organizeScratchTraversal)).toContain('--source-dir')
     expect(getToolText(duplicateAlbumDirs)).toContain('albumDirs must contain unique entries')
     expect(summarizeAlbumSourceDir).not.toHaveBeenCalled()
     expect(organizeAlbumFiles).not.toHaveBeenCalled()

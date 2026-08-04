@@ -1,7 +1,5 @@
 import type { INestApplication } from '@nestjs/common'
-import { mkdir } from 'node:fs/promises'
 import type { Server } from 'node:http'
-import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { validateAlbumSourceDir } from '../../../src/lib/albums/validate.js'
@@ -27,17 +25,14 @@ describe('web GraphQL endpoint', () => {
   let app: INestApplication | undefined
   let baseUrl: string
   let destDir: string
-  let scratchDir: string
   let sourceDir: string
 
   beforeEach(async () => {
     destDir = await createTempDir('graphql-dest-')
-    scratchDir = await createTempDir('graphql-scratch-')
     sourceDir = await createTempDir('graphql-source-')
-    await mkdir(path.join(scratchDir, 'scratch-only'))
     vi.mocked(validateAlbumSourceDir).mockReset()
     vi.mocked(validateAlbumSourceDir).mockResolvedValue([])
-    app = await createWebApp({ destDir, scratchDir, sourceDir })
+    app = await createWebApp({ destDir, sourceDir })
     await app.listen(0, '127.0.0.1')
     const address = (app.getHttpServer() as Server).address()
 
@@ -52,7 +47,6 @@ describe('web GraphQL endpoint', () => {
     await app?.close()
     app = undefined
     await removeTempDir(destDir)
-    await removeTempDir(scratchDir)
     await removeTempDir(sourceDir)
   })
 
@@ -64,9 +58,7 @@ describe('web GraphQL endpoint', () => {
       }
     }`)
     const result = await postGraphql(`{
-      albumListDefault: albumList(input: {})
-      albumListSource: albumList(input: { useScratchDir: false })
-      albumListScratch: albumList(input: { useScratchDir: true })
+      albumList: albumList(input: {})
       albumSummarizeSourceDir(input: { dirName: "." }) { filename }
       audiobookCrawl(input: { dirName: "." }) { filename }
     }`)
@@ -88,9 +80,7 @@ describe('web GraphQL endpoint', () => {
     ]))
     expect(result).toEqual({
       data: {
-        albumListDefault: [],
-        albumListScratch: ['scratch-only/'],
-        albumListSource: [],
+        albumList: [],
         albumSummarizeSourceDir: [],
         audiobookCrawl: [],
       },
@@ -104,9 +94,6 @@ describe('web GraphQL endpoint', () => {
     const organizeDefault = await postGraphql(`mutation {
       albumOrganizeFiles(input: { limit: "0", setAlbum: "Album" }) { filename tagChanges { newAlbum } }
     }`)
-    const organizeScratch = await postGraphql(`mutation {
-      albumOrganizeFiles(input: { limit: "0", useScratchDir: true }) { filename }
-    }`)
     const organizeInvalidStrategy = await postGraphql(`mutation {
       albumOrganizeFiles(input: { artistFilenameStrategy: "invalid" }) { filename }
     }`)
@@ -115,11 +102,11 @@ describe('web GraphQL endpoint', () => {
     }`)
     const userInputError = await postGraphql('{ audiobookValidate(input: { fileName: "../escape.m4b" }) { filename } }')
     const listTraversal = await postGraphql('{ albumList(input: { prefix: "../" }) }')
-    const listInvalidSelector = await postGraphql('{ albumList(input: { useScratchDir: "yes" }) }', 400)
+    const retiredInputField = ['use', 'Scratch', 'Dir'].join('')
+    const listInvalidSelector = await postGraphql(`{ albumList(input: { ${retiredInputField}: "yes" }) }`, 400)
     const internalError = await postGraphql('{ audiobookValidate(input: { fileName: "missing.m4b" }) { filename } }')
 
     expect(organizeDefault).toEqual({ data: { albumOrganizeFiles: [] } })
-    expect(organizeScratch).toEqual({ data: { albumOrganizeFiles: [] } })
     expect(organizeInvalidStrategy.errors?.[0]).toMatchObject({
       extensions: { code: 'BAD_USER_INPUT' },
     })

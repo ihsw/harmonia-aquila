@@ -25,7 +25,6 @@ describe('AudiobookResolver', () => {
   beforeEach(async () => {
     roots = {
       destDir: await createTempDir('graphql-audiobook-dest-'),
-      scratchDir: await createTempDir('graphql-audiobook-scratch-'),
       sourceDir: await createTempDir('graphql-audiobook-source-'),
     }
     resolver = new AudiobookResolver(new WebPathResolver(roots))
@@ -39,7 +38,6 @@ describe('AudiobookResolver', () => {
 
   afterEach(async () => {
     await removeTempDir(roots.destDir)
-    await removeTempDir(roots.scratchDir)
     await removeTempDir(roots.sourceDir)
   })
 

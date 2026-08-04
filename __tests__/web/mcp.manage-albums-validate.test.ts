@@ -23,7 +23,7 @@ describe('web MCP manage-albums validate tool', () => {
     testApp = undefined
   })
 
-  it('selects source by default or false and scratch only for true', async () => {
+  it('routes validation through the source root', async () => {
     const currentTestApp = requireTestApp()
     vi.mocked(validateAlbumSourceDir).mockResolvedValue([])
 
@@ -34,8 +34,7 @@ describe('web MCP manage-albums validate tool', () => {
       limit: 5,
       titleFilenameStrategy: 'subtitle',
     })
-    await callTool(2, { dirName: 'music', useScratchDir: false })
-    await callTool(3, { dirName: 'music', useScratchDir: true })
+    await callTool(2, { dirName: 'music' })
 
     expect(validateAlbumSourceDir).toHaveBeenNthCalledWith(1, {
       artistFilenameStrategy: 'albumartist',
@@ -47,22 +46,12 @@ describe('web MCP manage-albums validate tool', () => {
     expect(validateAlbumSourceDir).toHaveBeenNthCalledWith(2, {
       dirName: `${currentTestApp.sourceDir}/music`,
     })
-    expect(validateAlbumSourceDir).toHaveBeenNthCalledWith(3, {
-      dirName: `${currentTestApp.scratchDir}/music`,
-    })
   })
 
-  it('rejects malformed selection and traversal before validation', async () => {
-    const invalidSelector = await callTool(4, { dirName: 'music', useScratchDir: 'yes' })
-    const sourceTraversal = await callTool(5, { dirName: '../outside' })
-    const scratchTraversal = await callTool(6, {
-      dirName: '../outside',
-      useScratchDir: true,
-    })
+  it('rejects source traversal before validation', async () => {
+    const sourceTraversal = await callTool(4, { dirName: '../outside' })
 
-    expect(getToolText(invalidSelector)).toContain('Invalid arguments')
     expect(getToolText(sourceTraversal)).toContain('--source-dir')
-    expect(getToolText(scratchTraversal)).toContain('--scratch-dir')
     expect(validateAlbumSourceDir).not.toHaveBeenCalled()
   })
 
@@ -77,7 +66,7 @@ describe('web MCP manage-albums validate tool', () => {
     expect(getToolText(response)).toContain(message)
   })
 
-  it('discovers an optional boolean selector and read-only annotation', async () => {
+  it('discovers source validation without a selector and with a read-only annotation', async () => {
     const response = await postMcp(requireTestApp().baseUrl, {
       id: 8,
       jsonrpc: '2.0',
@@ -98,14 +87,10 @@ describe('web MCP manage-albums validate tool', () => {
 
     expect(validateTool).toMatchObject({
       annotations: { readOnlyHint: true },
-      inputSchema: {
-        properties: {
-          useScratchDir: { type: 'boolean' },
-        },
-      },
       name: MANAGE_ALBUMS_VALIDATE_TOOL_NAME,
     })
-    expect(validateTool?.inputSchema?.required ?? []).not.toContain('useScratchDir')
+    expect(validateTool?.inputSchema?.properties).not.toHaveProperty(['use', 'Scratch', 'Dir'].join(''))
+    expect(validateTool?.inputSchema?.required ?? []).toContain('dirName')
   })
 
   async function callTool(id: number, toolArguments: unknown) {

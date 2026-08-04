@@ -4,7 +4,6 @@
 
 input AlbumListInput {
   prefix: String
-  useScratchDir: Boolean
 }
 
 type AlbumMetadataChangesRow {
@@ -46,7 +45,6 @@ input AlbumOrganizeFilesInput {
   setMetadata: [AlbumSetMetadataRecordInput!]
   swapArtistAlbumartist: Boolean
   titleFilenameStrategy: String
-  useScratchDir: Boolean
 }
 
 type AlbumOrganizeFilesRow {

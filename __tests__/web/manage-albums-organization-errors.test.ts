@@ -18,7 +18,6 @@ describe('manage-albums organization controller errors', () => {
     sourceDir = await createTempDir('web-organization-source-')
     controller = new ManageAlbumsController(new WebPathResolver({
       destDir: sourceDir,
-      scratchDir: sourceDir,
       sourceDir,
     }))
     vi.mocked(organizeAlbumFiles).mockReset()

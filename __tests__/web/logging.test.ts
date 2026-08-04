@@ -25,16 +25,14 @@ describe('web structured logging', () => {
   let destDir: string
   let logger: Logger
   let records: LogRecord[]
-  let scratchDir: string
   let sourceDir: string
 
   beforeEach(async () => {
     destDir = await createTempDir('web-logging-dest-')
-    scratchDir = await createTempDir('web-logging-scratch-')
     sourceDir = await createTempDir('web-logging-source-')
     records = []
     logger = createWebLogger(createLogDestination(records))
-    app = await createWebApp({ destDir, scratchDir, sourceDir }, { logger })
+    app = await createWebApp({ destDir, sourceDir }, { logger })
     await app.listen(0, '127.0.0.1')
   })
 
@@ -42,7 +40,6 @@ describe('web structured logging', () => {
     await app?.close()
     app = undefined
     await removeTempDir(destDir)
-    await removeTempDir(scratchDir)
     await removeTempDir(sourceDir)
   })
 
@@ -109,7 +106,7 @@ describe('web structured logging', () => {
       Reflect.defineMetadata(key, value, mockedMethod)
     }
 
-    app = await createWebApp({ destDir, scratchDir, sourceDir }, { logger })
+    app = await createWebApp({ destDir, sourceDir }, { logger })
     await app.listen(0, '127.0.0.1')
 
     try {
@@ -135,7 +132,7 @@ describe('web structured logging', () => {
   })
 
   it('logs readiness only after an injected server listens', async () => {
-    const servedApp = await serveWeb({ destDir, host: '127.0.0.1', logger, port: 0, scratchDir, sourceDir })
+    const servedApp = await serveWeb({ destDir, host: '127.0.0.1', logger, port: 0, sourceDir })
 
     try {
       const readyRecords = records.filter(record => record.event === 'web.server.ready')

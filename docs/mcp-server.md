@@ -6,14 +6,13 @@ repository does not provide a separate stdio MCP entrypoint.
 
 ## Start the server
 
-Build the application and configure the three filesystem roots when starting
+Build the application and configure the two filesystem roots when starting
 the web server:
 
 ```sh
 npm run build
 npm run web:serve -- \
   --source-dir /absolute/path/to/source \
-  --scratch-dir /absolute/path/to/scratch \
   --dest-dir /absolute/path/to/destination \
   --host 127.0.0.1 \
   --port 3000
@@ -70,10 +69,10 @@ operation runs.
 
 | Tool | Input root | Output root |
 | --- | --- | --- |
-| `manage_albums_list` | source; scratch when `useScratchDir: true` | none |
+| `manage_albums_list` | source | none |
 | `manage_albums_summarize_source_dir` | source | none |
-| `manage_albums_validate` | source; scratch when `useScratchDir: true` | none |
-| `manage_albums_organize_files` | source; scratch when `useScratchDir: true` | destination |
+| `manage_albums_validate` | source | none |
+| `manage_albums_organize_files` | source | destination |
 | `manage_audiobooks_validate` | source | none |
 | `manage_audiobooks_crawl` | source | none |
 | `manage_audiobooks_copy_and_rename` | source | destination |
@@ -89,15 +88,15 @@ record for every selected audio file. MCP never resolves it as a host path.
 `manage_albums_list` returns immediate entries as strings. Directory entries
 end in `/`; pass one of those slash-terminated paths as `albumDir` to the tag
 fix or organization tools. Use `./` when the album files are directly in the
-selected root. A non-empty
-`prefix` must be a slash-terminated path relative to the selected root.
+source root. A non-empty `prefix` must be a slash-terminated path relative to
+the source root.
 
 | Tool | Required input | Optional input |
 | --- | --- | --- |
-| `manage_albums_list` | none | `prefix: string`, `useScratchDir: boolean` |
+| `manage_albums_list` | none | `prefix: string` |
 | `manage_albums_summarize_source_dir` | `dirName: string` | `ignoreNonAudioFiles: boolean`, `limit: non-negative integer` |
-| `manage_albums_validate` | `dirName: string` | `artistFilenameStrategy: string`, `titleFilenameStrategy: string`, `ignoreNonAudioFiles: boolean`, `limit: non-negative integer`, `useScratchDir: boolean` |
-| `manage_albums_organize_files` | `albumDir: string` ending in `/`, or `albumDirs: string[]` of at least two slash-terminated entries | `albumArtStrategy: string`; `setMetadata`: non-empty metadata-record array; strategy/set fields: strings; `execute`, `ignoreAudioFilesWithoutTracks`, `ignoreNonAudioFiles`, `resetTrack`, `swapArtistAlbumartist`, `useScratchDir`: booleans; `limit`: non-negative integer |
+| `manage_albums_validate` | `dirName: string` | `artistFilenameStrategy: string`, `titleFilenameStrategy: string`, `ignoreNonAudioFiles: boolean`, `limit: non-negative integer` |
+| `manage_albums_organize_files` | `albumDir: string` ending in `/`, or `albumDirs: string[]` of at least two slash-terminated entries | `albumArtStrategy: string`; `setMetadata`: non-empty metadata-record array; strategy/set fields: strings; `execute`, `ignoreAudioFilesWithoutTracks`, `ignoreNonAudioFiles`, `resetTrack`, `swapArtistAlbumartist`: booleans; `limit`: non-negative integer |
 
 Strategy values are validated by the shared album operations. Defaults are
 `artist`, `title`, `error`, and `no change`, as applicable. MCP uses native
@@ -111,8 +110,8 @@ places art at the effective album root. Other sidecars, subdirectories, and
 symlinks cause an error unless `ignoreNonAudioFiles: true` is supplied.
 
 Concatenation is enabled with `discStrategy: "concatenate"` plus ordered
-`albumDirs`. Each entry is resolved independently within the selected source or
-scratch root. The operation rejects duplicate entries, fewer than two
+`albumDirs`. Each entry is resolved independently within the selected source
+root. The operation rejects duplicate entries, fewer than two
 directories, `setMetadata`, `limit`, `resetTrack`, and
 `ignoreAudioFilesWithoutTracks`. Array order defines canonical disc position
 and the array length defines disc total. For example, with

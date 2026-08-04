@@ -3,8 +3,8 @@
 `web serve` exposes a code-first Apollo GraphQL API at `POST /graphql`. The
 schema is available in `src/web/modules/graphql/schema.gql`.
 
-All inputs use paths relative to the source, destination, or scratch root
-configured when starting `web serve`; clients cannot override those roots.
+All inputs use paths relative to the source or destination root configured when
+starting `web serve`; clients cannot override those roots.
 
 ## Operations
 
@@ -34,13 +34,11 @@ query {
 ```
 
 List direct entries at the configured source root, or provide a slash-terminated
-selected-root-relative `prefix` to list one subdirectory. Omitted or false
-`useScratchDir` selects `--source-dir`; true selects `--scratch-dir`:
+source-relative `prefix` to list one subdirectory:
 
 ```graphql
 query {
   albumList(input: { prefix: "" })
-  stagedAlbums: albumList(input: { prefix: "", useScratchDir: true })
 }
 ```
 
@@ -74,13 +72,13 @@ and populate metadata and filename fields. Adjacent recognized images use
 `.png`, `.tif`, `.tiff`, and `.webp` files are placed at the album root rather
 than under `Disc DD`. Destination collision handling applies to both variants.
 
-`albumOrganizeFiles` defaults its output root to the configured
-`--source-dir`; set `useScratchDir: true` to select `--scratch-dir` instead.
-It never accepts a client-supplied root path or changes source audio.
+`albumOrganizeFiles` reads album input from the configured `--source-dir` and
+publishes output to the configured `--dest-dir`. It never accepts a
+client-supplied root path or changes source audio.
 
 For concatenation, pass `albumDirs: ["disc-1", "disc-2"]` with
 `discStrategy: "concatenate"`. The mutation resolves each entry independently
-within the selected source or scratch root, requires at least two unique
+within the selected source root, requires at least two unique
 directories, preserves local track numbers, and assigns canonical disc metadata
 from array order. With two directories, their tracks receive disc `1/2` and
 `2/2`; correct values are preserved and missing, partial, or conflicting values

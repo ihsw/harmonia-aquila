@@ -5,9 +5,6 @@ import { Field, InputType, Int } from '@nestjs/graphql'
 export class AlbumListInput {
   @Field(() => String, { nullable: true })
   public prefix?: string
-
-  @Field(() => Boolean, { nullable: true })
-  public useScratchDir?: boolean
 }
 
 @InputType()
@@ -122,7 +119,4 @@ export class AlbumOrganizeFilesInput {
 
   @Field(() => String, { nullable: true })
   public titleFilenameStrategy?: string
-
-  @Field(() => Boolean, { nullable: true })
-  public useScratchDir?: boolean
 }

@@ -22,7 +22,6 @@ describe('AlbumResolver', () => {
   beforeEach(async () => {
     roots = {
       destDir: await createTempDir('graphql-album-dest-'),
-      scratchDir: await createTempDir('graphql-album-scratch-'),
       sourceDir: await createTempDir('graphql-album-source-'),
     }
     resolver = new AlbumResolver(new WebPathResolver(roots))
@@ -34,22 +33,17 @@ describe('AlbumResolver', () => {
 
   afterEach(async () => {
     await removeTempDir(roots.destDir)
-    await removeTempDir(roots.scratchDir)
     await removeTempDir(roots.sourceDir)
   })
 
-  it('selects the album list root from useScratchDir and preserves prefix', async () => {
+  it('selects the source root and preserves prefix', async () => {
     vi.mocked(listAlbumSourceDir).mockResolvedValue(['a.flac', 'sub/'])
 
     const defaultResult = await resolver.albumList({})
-    await resolver.albumList({ useScratchDir: false })
-    await resolver.albumList({ useScratchDir: true })
-    await resolver.albumList({ prefix: 'sub/', useScratchDir: true })
+    await resolver.albumList({ prefix: 'sub/' })
 
     expect(listAlbumSourceDir).toHaveBeenNthCalledWith(1, { sourceDir: roots.sourceDir })
-    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(2, { sourceDir: roots.sourceDir })
-    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(3, { sourceDir: roots.scratchDir })
-    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(4, { prefix: 'sub/', sourceDir: roots.scratchDir })
+    expect(listAlbumSourceDir).toHaveBeenNthCalledWith(2, { prefix: 'sub/', sourceDir: roots.sourceDir })
     expect(defaultResult).toEqual(['a.flac', 'sub/'])
   })
 
@@ -92,26 +86,10 @@ describe('AlbumResolver', () => {
       setMetadata,
     })
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
-      destDir: roots.sourceDir,
+      destDir: roots.destDir,
       execute: true,
       ignoreNonAudioFiles: true,
       setMetadataRecords: setMetadata,
-      sourceDir: roots.sourceDir,
-    })
-  })
-
-  it('selects the organize destination from useScratchDir', async () => {
-    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
-
-    await resolver.albumOrganizeFiles({ useScratchDir: false })
-    await resolver.albumOrganizeFiles({ useScratchDir: true })
-
-    expect(organizeAlbumFiles).toHaveBeenNthCalledWith(1, {
-      destDir: roots.sourceDir,
-      sourceDir: roots.sourceDir,
-    })
-    expect(organizeAlbumFiles).toHaveBeenNthCalledWith(2, {
-      destDir: roots.scratchDir,
       sourceDir: roots.sourceDir,
     })
   })
@@ -135,32 +113,11 @@ describe('AlbumResolver', () => {
 
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
       albumArtStrategy: 'first',
-      destDir: roots.sourceDir,
+      destDir: roots.destDir,
       discStrategy: 'concatenate',
       sourceDirs: [path.join(roots.sourceDir, 'disc-1'), path.join(roots.sourceDir, 'disc-2')],
     })
     expect(result).toEqual([row])
-  })
-
-  it('routes destination to scratch but reads albumDirs through source root when useScratchDir', async () => {
-    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
-
-    await resolver.albumOrganizeFiles({
-      albumArtStrategy: 'first',
-      albumDirs: ['disc-1', 'disc-2'],
-      discStrategy: 'concatenate',
-      useScratchDir: true,
-    })
-
-    expect(organizeAlbumFiles).toHaveBeenCalledWith({
-      albumArtStrategy: 'first',
-      destDir: roots.scratchDir,
-      discStrategy: 'concatenate',
-      sourceDirs: [
-        path.join(roots.sourceDir, 'disc-1'),
-        path.join(roots.sourceDir, 'disc-2'),
-      ],
-    })
   })
 
   it.each([

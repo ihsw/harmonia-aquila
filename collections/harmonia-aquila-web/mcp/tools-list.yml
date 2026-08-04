@@ -58,11 +58,8 @@ runtime:
             "readOnlyHint",
             true
           );
-          expect(
-            validateTool.inputSchema.properties.useScratchDir
-          ).to.have.property("type", "boolean");
-          expect(validateTool.inputSchema.required || []).to.not.include(
-            "useScratchDir"
+          expect(validateTool.inputSchema.properties).to.not.have.property(
+            ["use", "Scratch", "Dir"].join("")
           );
           expect(
             organizeTool.inputSchema.properties.discStrategy

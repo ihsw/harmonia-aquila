@@ -14,14 +14,12 @@ describe('GraphQL album organization output', () => {
   let app: INestApplication | undefined
   let baseUrl: string
   let destDir: string
-  let scratchDir: string
   let sourceDir: string
 
   beforeEach(async () => {
     destDir = await createTempDir('graphql-art-dest-')
-    scratchDir = await createTempDir('graphql-art-scratch-')
     sourceDir = await createTempDir('graphql-art-source-')
-    app = await createWebApp({ destDir, scratchDir, sourceDir })
+    app = await createWebApp({ destDir, sourceDir })
     await app.listen(0, '127.0.0.1')
     const address = (app.getHttpServer() as Server).address()
 
@@ -33,7 +31,7 @@ describe('GraphQL album organization output', () => {
 
   afterEach(async () => {
     await app?.close()
-    await Promise.all([removeTempDir(destDir), removeTempDir(scratchDir), removeTempDir(sourceDir)])
+    await Promise.all([removeTempDir(destDir), removeTempDir(sourceDir)])
   })
 
   it('serializes audio and album-art variants while remaining dry-run by default', async () => {
@@ -78,7 +76,7 @@ describe('GraphQL album organization output', () => {
         tagChanges: null,
       },
     ] } })
-    expect(organizeAlbumFiles).toHaveBeenCalledWith({ destDir: sourceDir, sourceDir })
+    expect(organizeAlbumFiles).toHaveBeenCalledWith({ destDir, sourceDir })
   })
 
   it('returns actionable duplicate-track guidance as BAD_USER_INPUT', async () => {
@@ -117,7 +115,7 @@ describe('GraphQL album organization output', () => {
 
     expect(await valid.json()).toEqual({ data: { albumOrganizeFiles: [] } })
     expect(organizeAlbumFiles).toHaveBeenCalledWith({
-      destDir: sourceDir, execute: true, setMetadataRecords: setMetadata, sourceDir,
+      destDir, execute: true, setMetadataRecords: setMetadata, sourceDir,
     })
     expect(await invalid.json()).toMatchObject({ errors: [{
       extensions: { code: 'GRAPHQL_VALIDATION_FAILED' },

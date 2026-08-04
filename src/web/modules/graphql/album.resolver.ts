@@ -46,9 +46,7 @@ export class AlbumResolver {
     @Args('input', { type: () => AlbumListInput }) input: AlbumListInput,
   ): Promise<ListAlbumSourceDirJsonOutput> {
     return listAlbumSourceDir({
-      sourceDir: input.useScratchDir === true
-        ? this.pathResolver.scratchDir
-        : this.pathResolver.sourceDir,
+      sourceDir: this.pathResolver.sourceDir,
       ...optionalEntry('prefix', input.prefix),
     })
   }
@@ -82,9 +80,7 @@ export class AlbumResolver {
     @Args('input', { type: () => AlbumOrganizeFilesInput }) input: AlbumOrganizeFilesInput,
   ): Promise<OrganizeFilesJsonOutput> {
     return organizeAlbumFiles({
-      destDir: input.useScratchDir === true
-        ? this.pathResolver.scratchDir
-        : this.pathResolver.sourceDir,
+      destDir: this.pathResolver.destDir,
       ...(await resolveOrganizeSourceOptions(this.pathResolver, input.albumDirs)),
       ...optionalEntry('albumArtStrategy', input.albumArtStrategy),
       ...optionalEntry('albumArtistsStrategy', input.albumArtistsStrategy),

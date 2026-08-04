@@ -18,7 +18,6 @@ describe('manage-albums validation controller errors', () => {
     sourceDir = await createTempDir('web-validation-source-')
     controller = new ManageAlbumsController(new WebPathResolver({
       destDir: sourceDir,
-      scratchDir: sourceDir,
       sourceDir,
     }))
     vi.mocked(validateAlbumSourceDir).mockReset()
