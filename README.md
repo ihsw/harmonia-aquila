@@ -64,7 +64,11 @@ If multiple disc folders have artwork that would write to the same destination, 
 
 ### Audit albums before choosing a plan
 
-> List the incoming albums, excluding singles and live releases from the recommendation. Compare duplicate editions, prefer 24-bit over otherwise identical 16-bit editions, and identify releases that need the concatenate strategy. Return a proposed dry-run plan only.
+For a typical discography intake, filter the catalog before asking for any copy plan. A useful prompt is:
+
+> List the incoming albums and descend into disc subfolders where needed. Recommend only albums to organize: exclude live releases and one-track singles. Group duplicate editions by artist and canonical album name; when the releases contain the same album, prefer the complete version with the higher audio bitrate and report the version left out. Identify compilations by comparing normalized track titles across the catalog; exclude a release when many of its tracks already occur on other albums, and report its overlap count. Keep all excluded source folders untouched. Return a proposed dry-run plan only.
+
+The audit should state its decisions explicitly: the chosen and excluded duplicate editions with their quality, the live and single releases excluded, and the matching-track count that caused a release to be treated as a compilation. Keep editions with materially different track lists or uncertain matches out of the recommendation until they are reviewed, rather than silently discarding them.
 
 Duplicate-track reports should state each matching track title, its album, and its duration so distinct versions are not mistaken for accidental duplicates.
 
