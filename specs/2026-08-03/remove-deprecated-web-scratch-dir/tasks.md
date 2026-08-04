@@ -3,7 +3,7 @@
 > ## Hard constraints (re-read before starting)
 >
 > - **DO NOT START** any task below until the user explicitly directs you to. This file is a plan, not a work order.
-> - **No npx** in any form. Use npm run <script> or ./node_modules/.bin/<tool> exclusively.
+> - **No npx** in any form. Use npm run \<script\> or ./node_modules/.bin/<tool> exclusively.
 > - Do not edit outside design.md section 2. If a required change falls outside that list, stop and obtain direction rather than expanding scope.
 > - Do not modify shared libraries, standalone album commands, audiobook tool source, dependencies, etc/**, or historical specs.
 > - After **every** source-code file modification, run npm run lint -- <modified-file> and fix reported issues before moving on (NFR-1). Lint only that edited file, per edit.
