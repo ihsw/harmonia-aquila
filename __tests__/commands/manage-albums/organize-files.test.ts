@@ -197,11 +197,11 @@ describe('organize-files', () => {
 
     expect(rows).toMatchObject([
       {
-        destination: 'Artist/Album/01 - First.flac', discNumber: '01', discTotal: '02',
+        destination: 'Artist/Album/101 - First.flac', discNumber: '01', discTotal: '02',
         fileType: 'audio', sourceDirectory: sourceDir, trackNumber: '01',
       },
       {
-        destination: 'Artist/Album/01 - Second.flac', discNumber: '02', discTotal: '02',
+        destination: 'Artist/Album/201 - Second.flac', discNumber: '02', discTotal: '02',
         fileType: 'audio', sourceDirectory: secondSourceDir, trackNumber: '01',
       },
       { action: 'would exclude', fileType: 'albumArt', sourceDirectory: sourceDir },
@@ -234,11 +234,11 @@ describe('organize-files', () => {
 
     expect(rows).toMatchObject([
       {
-        destination: 'Artist/Album/01 - One.flac', discNumber: '01', discTotal: '02',
+        destination: 'Artist/Album/101 - One.flac', discNumber: '01', discTotal: '02',
         fileType: 'audio', sourceDirectory: sourceDir, trackNumber: '01',
       },
       {
-        destination: 'Artist/Album/01 - Two.flac', discNumber: '02', discTotal: '02',
+        destination: 'Artist/Album/201 - Two.flac', discNumber: '02', discTotal: '02',
         fileType: 'audio', sourceDirectory: secondSourceDir, trackNumber: '01',
       },
     ])

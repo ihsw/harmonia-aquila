@@ -175,7 +175,7 @@ export async function validateAlbumSourceDir(options: ValidateAlbumSourceDirOpti
         parsed.trackNumber,
         parsed.row.titleFilename,
         parsed.row.filename,
-        { discNumber: parsed.discNumber, multiDisc },
+        { discNumber: parsed.discNumber, discTotal: parsed.discTotal, multiDisc },
       )
     }
   }

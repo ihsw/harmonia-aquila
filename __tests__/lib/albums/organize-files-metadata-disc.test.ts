@@ -36,10 +36,10 @@ describe('organize-files repaired disc metadata', () => {
 
     expect(rows.map(row => [row.destination, row.tagChanges.newDiscNumber, row.tagChanges.newDiscTotal]))
       .toEqual([
-        ['Artist/Album/Disc 01/01 - One.flac', 1, 2],
-        ['Artist/Album/Disc 01/02 - Two.flac', 1, 2],
-        ['Artist/Album/Disc 02/01 - Three.flac', 2, 2],
-        ['Artist/Album/Disc 02/02 - Four.flac', 2, 2],
+        ['Artist/Album/101 - One.flac', 1, 2],
+        ['Artist/Album/102 - Two.flac', 1, 2],
+        ['Artist/Album/201 - Three.flac', 2, 2],
+        ['Artist/Album/202 - Four.flac', 2, 2],
       ])
   })
 

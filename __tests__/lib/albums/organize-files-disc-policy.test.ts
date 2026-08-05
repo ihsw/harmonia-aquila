@@ -44,8 +44,8 @@ describe('organize-files optional disc metadata policy', () => {
     const rows = planned.filter(row => row.fileType === 'audio')
 
     expect(rows.map(row => [row.destination, row.tagChanges.newDiscNumber])).toEqual([
-      ['Artist/Album/Disc 01/01 - First.flac', 1],
-      ['Artist/Album/Disc 02/01 - Second.flac', 2],
+      ['Artist/Album/101 - First.flac', 1],
+      ['Artist/Album/201 - Second.flac', 2],
     ])
     expect(planned.at(-1)).toMatchObject({ destination: 'Artist/Album/cover.jpg', fileType: 'albumArt' })
     expect(await readdir(destDir)).toEqual([])

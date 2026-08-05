@@ -59,8 +59,14 @@ GraphQL, and MCP, when numbering is incorrect. Otherwise use explicit
 `--disc-strategy infer` only when the repeats are genuine disc boundaries.
 
 Single-disc albums retain `Artist/Album/TT - Title.ext`. A set with a disc
-number or total greater than 1 is organized as
-`Artist/Album/Disc DD/TT - Title.ext`. To repair a filename-ordered source set,
+number or total greater than 1 embeds the disc number directly in the track
+filename, adjacent to the track number, as `Artist/Album/DTT - Title.ext`.
+Disc digits are zero-padded to the width of the disc total (minimum one
+digit) and the track number keeps its two-digit padding, so a two-disc album
+yields `101 - Title.ext` (disc 1, track 1) and `201 - Title.ext` (disc 2,
+track 1), while a 22-disc set yields `0301 - Title.ext` (disc 3, track 1) and
+`2205 - Title.ext` (disc 22, track 5). No `Disc DD` subdirectory is ever
+created. To repair a filename-ordered source set,
 add `--disc-strategy infer` to the `organize-files` dry run. Inference is never
 automatic: without the flag, repeated tracks remain invalid. Inference starts
 a new disc whenever the next track number repeats or decreases; review every
@@ -75,8 +81,8 @@ unchanged; missing, partial, or conflicting values are set on destination copies
 from the reviewed directory order. MP3 output stores `N/M` in ID3v2 `TPOS`, and
 FLAC output stores the equivalent `DISCNUMBER` and `DISCTOTAL` values.
 
-Concatenation still plans one flat `Artist/Album/TT - Title` layout with no
-`Disc DD` directories even though the copied audio retains multi-disc metadata:
+Concatenation plans one flat `Artist/Album` directory whose filenames carry the
+disc number derived from directory order, exactly as any other multi-disc set:
 
 ```sh
 harmonia-aquila manage-albums organize-files \
@@ -87,9 +93,12 @@ harmonia-aquila manage-albums organize-files \
   --format json
 ```
 
-For example, local tracks `1,2` and `1` become flat tracks `1,2,1` tagged
-`1/2,1/2,2/2`. Exact flat destination collisions remain errors. Concatenation
-rejects `--limit`, `--reset-track`, and `--ignore-audio-files-without-tracks`.
+For example, local tracks `1,2` and `1` keep their local numbering, are tagged
+`1/2,1/2,2/2`, and land at `101 - …`, `102 - …`, and `201 - …`. Because the
+disc number is part of the filename, a track number repeated across discs no
+longer collides even when the titles are identical; genuine duplicates within
+one disc remain errors. Concatenation rejects `--limit`, `--reset-track`, and
+`--ignore-audio-files-without-tracks`.
 This behavior supersedes the initial global-track/cleared-disc concatenate
 semantics.
 

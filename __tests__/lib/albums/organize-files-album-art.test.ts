@@ -40,7 +40,7 @@ describe('organize-files album-art plans', () => {
     const rows = await organizeAlbumFiles({ destDir, setAlbum: 'New', sourceDir })
 
     expect(rows.map(row => [row.fileType, row.destination])).toEqual([
-      ['audio', 'Artist/New/Disc 01/01 - Song.flac'],
+      ['audio', 'Artist/New/101 - Song.flac'],
       ['albumArt', 'Artist/New/A.png'],
       ['albumArt', 'Artist/New/a.PNG'],
       ['albumArt', 'Artist/New/z.JPG'],

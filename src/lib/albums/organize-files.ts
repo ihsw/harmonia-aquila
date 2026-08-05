@@ -145,7 +145,7 @@ async function organizeConcatenatedAlbum(
     concatenated.discsBySourcePath,
   )
   const destinationDirectory = resolve(options.destDir)
-  const audioPlans = planOrganizationCopies(fixes, options, destinationDirectory, 'flat')
+  const audioPlans = planOrganizationCopies(fixes, options, destinationDirectory)
   const artItems = planAlbumArtCopies(
     concatenated.sourceEntries,
     destinationDirectory,

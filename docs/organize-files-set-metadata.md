@@ -117,6 +117,8 @@ restart at `1`:
 ```
 
 The first two records (disc 1) and the third record (disc 2) resolve to
-distinct destination filenames because their titles differ, even though their
-`trackNumber` values repeat across discs. `discNumber`/`discTotal` on the
-output rows come from directory order (`1/2`, `2/2`), never from this file.
+`101 - Enter the Realm.flac`, `102 - Colors.flac`, and
+`201 - Burnt Offerings.flac`. The embedded disc number keeps them distinct even
+though their `trackNumber` values repeat across discs — identical titles on
+different discs are fine. `discNumber`/`discTotal` on the output rows come from
+directory order (`1/2`, `2/2`), never from this file.

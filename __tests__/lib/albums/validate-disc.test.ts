@@ -21,7 +21,7 @@ describe('validateAlbumSourceDir disc metadata', () => {
     vi.restoreAllMocks()
   })
 
-  it('validates a multi-disc album and creates disc destinations', async () => {
+  it('validates a multi-disc album and creates disc-prefixed destinations', async () => {
     vi.mocked(parseFile)
       .mockResolvedValueOnce(makeAudioMetadata({
         album: 'Album',
@@ -46,8 +46,8 @@ describe('validateAlbumSourceDir disc metadata', () => {
       discTotal: row.discTotal,
       status: row.status,
     }))).toEqual([
-      { destination: 'Artist/Album/Disc 01/01 - First.flac', discNumber: '01', discTotal: '02', status: 'valid' },
-      { destination: 'Artist/Album/Disc 02/01 - Second.flac', discNumber: '02', discTotal: '02', status: 'valid' },
+      { destination: 'Artist/Album/101 - First.flac', discNumber: '01', discTotal: '02', status: 'valid' },
+      { destination: 'Artist/Album/201 - Second.flac', discNumber: '02', discTotal: '02', status: 'valid' },
     ])
   })
 })

@@ -69,8 +69,9 @@ Organization rows form a discriminated result. Every row includes `fileType`,
 and populate metadata and filename fields. Adjacent recognized images use
 `fileType: "albumArt"`; audio-only fields such as `album`, `discNumber`, and
 `tagChanges` are null. Recognized `.avif`, `.bmp`, `.gif`, `.jpeg`, `.jpg`,
-`.png`, `.tif`, `.tiff`, and `.webp` files are placed at the album root rather
-than under `Disc DD`. Destination collision handling applies to both variants.
+`.png`, `.tif`, `.tiff`, and `.webp` files are placed at the album root
+alongside the audio tracks. Destination collision handling applies to both
+variants.
 
 `albumOrganizeFiles` reads album input from the configured `--source-dir` and
 publishes output to the configured `--dest-dir`. It never accepts a
@@ -84,9 +85,11 @@ from array order. With two directories, their tracks receive disc `1/2` and
 `2/2`; correct values are preserved and missing, partial, or conflicting values
 are repaired on destination copies. MP3 copies encode those values in ID3v2
 `TPOS`, while FLAC copies use `DISCNUMBER` and `DISCTOTAL`. The physical output
-remains one flat album directory with no `Disc DD` component. For example,
+remains one flat album directory with no `Disc DD` component; each filename
+instead carries its disc number ahead of the track number. For example,
 local tracks `1,2` and `1` return `trackNumber` values `01,02,01` with
-`discNumber`/`discTotal` values `01/02,01/02,02/02`.
+`discNumber`/`discTotal` values `01/02,01/02,02/02`, written as `101 - …`,
+`102 - …`, and `201 - …`.
 
 `albumArtStrategy: "first" | "last" | "neither"` is only valid in this mode
 and is required when multiple source directories contain art that would land on
@@ -102,8 +105,8 @@ records with `filename`, `artist`, `album`, `trackNumber`, `title`, and optional
 disc fields; it is never a server-host filepath. Disc inference is opt-in through
 `discStrategy: "infer"` and uses filename order; omitted/default input never
 infers. A repeated or decreased track number starts the next disc. Review the
-dry-run values before passing `execute: true`. Multi-disc organization places
-tracks below `Disc DD` while preserving the flat unique-track path.
+dry-run values before passing `execute: true`. Multi-disc organization prefixes
+each filename with its disc number while preserving the flat unique-track path.
 
 `albumOrganizeFiles` accepts one normalized album directory per request. More
 than one album returns `BAD_USER_INPUT` with a message beginning

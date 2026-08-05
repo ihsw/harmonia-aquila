@@ -12,6 +12,7 @@ export interface AlbumOutputIdentity {
 
 export interface DiscDestinationContext {
   discNumber: number | null
+  discTotal: number | null
   multiDisc: boolean
 }
 
@@ -60,6 +61,12 @@ export function sanitizePathSegment(value: string): string {
 
 export function formatTrackNumber(trackNumber: number): string {
   return trackNumber.toString().padStart(2, '0')
+}
+
+export function formatDiscTrackPrefix(discNumber: number, discTotal: number, trackNumber: number): string {
+  const discWidth = Math.max(1, discTotal.toString().length)
+
+  return `${discNumber.toString().padStart(discWidth, '0')}${formatTrackNumber(trackNumber)}`
 }
 
 export function formatMetadataValues(values: string[] | undefined): string {
@@ -114,15 +121,16 @@ export function getAlbumDestination(
   trackNumber: number,
   titleFilename: string,
   sourceFilename: string,
-  discContext: DiscDestinationContext = { discNumber: null, multiDisc: false },
+  discContext: DiscDestinationContext = { discNumber: null, discTotal: null, multiDisc: false },
 ): string {
   const albumDirectory = join(
     sanitizePathSegment(artistFilename),
     sanitizePathSegment(album),
   )
-  const trackFilename = `${formatTrackNumber(trackNumber)} - ${sanitizePathSegment(titleFilename)}${extname(sourceFilename)}`
+  const numberPrefix = discContext.multiDisc && discContext.discNumber !== null && discContext.discTotal !== null
+    ? formatDiscTrackPrefix(discContext.discNumber, discContext.discTotal, trackNumber)
+    : formatTrackNumber(trackNumber)
+  const trackFilename = `${numberPrefix} - ${sanitizePathSegment(titleFilename)}${extname(sourceFilename)}`
 
-  return discContext.multiDisc && discContext.discNumber !== null
-    ? join(albumDirectory, `Disc ${formatTrackNumber(discContext.discNumber)}`, trackFilename)
-    : join(albumDirectory, trackFilename)
+  return join(albumDirectory, trackFilename)
 }

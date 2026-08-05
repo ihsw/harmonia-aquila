@@ -121,8 +121,10 @@ missing, partial, or conflicting values are repaired on destination copies.
 MP3 output encodes `N/M` in ID3v2 `TPOS`, and FLAC output uses `DISCNUMBER` and
 `DISCTOTAL`.
 
-The combined output remains flat with no `Disc DD` directory despite retaining
-multi-disc metadata. Exact duplicate flat audio destinations fail before any
+The combined output remains one flat album directory with no `Disc DD`
+subdirectory; each filename carries its disc number ahead of the track number,
+so `albumDirs: ["disc-1/", "disc-2/"]` yields `101 - …`, `102 - …`, and
+`201 - …`. Exact duplicate audio destinations fail before any
 write. If multiple source folders contain album art that would land on the same
 destination path, `albumArtStrategy` becomes mandatory and chooses the `first`,
 `last`, or `neither` candidate while unselected art is reported as
@@ -144,7 +146,7 @@ JSON/CSV path or explicit inference while retaining `missing disc number`.
 Call `manage_albums_organize_files` with
 `discStrategy: "infer"` only when filename order and track resets reliably
 describe the discs; inference is never the default. Review all inferred disc
-changes and `Disc DD` destinations before a separate `execute: true` call.
+changes and disc-prefixed destinations before a separate `execute: true` call.
 Partial disc metadata and disc totals without disc numbers remain invalid.
 
 ## Audiobook tool contracts

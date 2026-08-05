@@ -70,9 +70,9 @@ describe('organize-files concatenate disc strategy', () => {
     })
 
     expect(rows.map(row => [row.action, row.destination, row.fileType])).toEqual([
-      ['would copy', 'Artist/Album/01 - First.flac', 'audio'],
-      ['would copy', 'Artist/Album/02 - Second.flac', 'audio'],
-      ['would copy', 'Artist/Album/01 - Third.flac', 'audio'],
+      ['would copy', 'Artist/Album/101 - First.flac', 'audio'],
+      ['would copy', 'Artist/Album/102 - Second.flac', 'audio'],
+      ['would copy', 'Artist/Album/201 - Third.flac', 'audio'],
       ['would copy', 'Artist/Album/cover.jpg', 'albumArt'],
       ['would exclude', 'Artist/Album/cover.jpg', 'albumArt'],
     ])
@@ -157,7 +157,7 @@ describe('organize-files concatenate disc strategy', () => {
     }
   })
 
-  it('rejects an exact flat destination collision', async () => {
+  it('separates identical local track numbers and titles by embedded disc number', async () => {
     await Promise.all([
       createTempFile(firstDir, 'track.flac'),
       createTempFile(secondDir, 'track.flac'),
@@ -166,9 +166,14 @@ describe('organize-files concatenate disc strategy', () => {
       album: 'Album', artist: 'Artist', title: 'Same', track: { no: 1, of: null },
     }))
 
-    await expect(organizeAlbumFiles({
+    const rows = (await organizeAlbumFiles({
       destDir, discStrategy: 'concatenate', sourceDirs: [firstDir, secondDir],
-    })).rejects.toThrow('Multiple files resolve to the same destination')
+    })).filter(row => row.fileType === 'audio')
+
+    expect(rows.map(row => [row.destination, row.discNumber, row.trackNumber])).toEqual([
+      ['Artist/Album/101 - Same.flac', '01', '01'],
+      ['Artist/Album/201 - Same.flac', '02', '01'],
+    ])
   })
 
   it('requires albumArtStrategy when colliding art comes from multiple sources', async () => {
@@ -269,9 +274,9 @@ describe('organize-files concatenate disc strategy', () => {
 
     const audioRows = rows.filter(row => row.fileType === 'audio')
     expect(audioRows.map(row => [row.destination, row.trackNumber, row.discNumber, row.discTotal])).toEqual([
-      ['Artist/Album/01 - A.flac', '01', '01', '02'],
-      ['Artist/Album/02 - B.flac', '02', '01', '02'],
-      ['Artist/Album/01 - C.flac', '01', '02', '02'],
+      ['Artist/Album/101 - A.flac', '01', '01', '02'],
+      ['Artist/Album/102 - B.flac', '02', '01', '02'],
+      ['Artist/Album/201 - C.flac', '01', '02', '02'],
     ])
   })
 

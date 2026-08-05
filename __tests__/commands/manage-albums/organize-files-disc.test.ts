@@ -25,7 +25,7 @@ describe('organize-files disc metadata', () => {
     vi.restoreAllMocks()
   })
 
-  it('uses disc folders for repeated tracks on distinct discs', async () => {
+  it('embeds disc numbers in filenames for repeated tracks on distinct discs', async () => {
     vi.mocked(parseFile)
       .mockResolvedValueOnce(makeAudioMetadata({
         album: 'Album',
@@ -46,8 +46,8 @@ describe('organize-files disc metadata', () => {
       .filter(row => row.fileType === 'audio')
 
     expect(rows.map(row => [row.destination, row.discNumber, row.discTotal])).toEqual([
-      ['Artist/Album/Disc 01/01 - First.flac', '01', '02'],
-      ['Artist/Album/Disc 02/01 - Second.flac', '02', '02'],
+      ['Artist/Album/101 - First.flac', '01', '02'],
+      ['Artist/Album/201 - Second.flac', '02', '02'],
     ])
   })
 

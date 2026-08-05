@@ -49,8 +49,8 @@ describe('organize-files concatenate execution', () => {
 
     const audioRows = rows.filter(r => r.fileType === 'audio')
     expect(audioRows.map(r => r.destination)).toEqual([
-      'Artist/Album/01 - One.flac',
-      'Artist/Album/01 - Two.flac',
+      'Artist/Album/101 - One.flac',
+      'Artist/Album/201 - Two.flac',
     ])
     expect(audioRows.every(r => !r.destination.includes('Disc'))).toBe(true)
     expect(audioRows.map(r => [r.trackNumber, r.discNumber, r.discTotal])).toEqual([
@@ -94,19 +94,32 @@ describe('organize-files concatenate execution', () => {
     expect(await readFile(join(secondDir, `track1.${extension}`), 'utf8')).toBe('src-2')
   })
 
-  it('atomically rejects duplicate flat audio destinations before any write', async () => {
+  it('writes both discs when local track numbers and titles are identical', async () => {
     await Promise.all([
-      createTempFile(firstDir, 'track1.flac'),
-      createTempFile(secondDir, 'track1.flac'),
+      createTempFile(firstDir, 'track1.flac', 'src-1'),
+      createTempFile(secondDir, 'track1.flac', 'src-2'),
     ])
-    vi.mocked(parseFile).mockResolvedValue(meta('Same', 1))
+    vi.mocked(parseFile)
+      .mockResolvedValueOnce(meta('Same', 1))
+      .mockResolvedValueOnce(meta('Same', 1))
+      .mockResolvedValueOnce(meta('Same', 1, { no: 1, of: 2 }))
+      .mockResolvedValueOnce(meta('Same', 1, { no: 2, of: 2 }))
 
-    await expect(organizeAlbumFiles({
+    const rows = await organizeAlbumFiles({
       destDir, discStrategy: 'concatenate', execute: true, sourceDirs: [firstDir, secondDir],
-    })).rejects.toThrow('Multiple files resolve to the same destination')
+    })
 
-    expect(await readdir(destDir)).toEqual([])
-    expect(writeAudioTagFix).not.toHaveBeenCalled()
+    const audioRows = rows.filter(r => r.fileType === 'audio')
+    expect(audioRows.map(r => r.destination)).toEqual([
+      'Artist/Album/101 - Same.flac',
+      'Artist/Album/201 - Same.flac',
+    ])
+    expect((await readdir(join(destDir, 'Artist/Album'))).sort()).toEqual([
+      '101 - Same.flac',
+      '201 - Same.flac',
+    ])
+    expect(await readFile(join(destDir, 'Artist/Album/101 - Same.flac'), 'utf8')).toBe('src-1')
+    expect(await readFile(join(destDir, 'Artist/Album/201 - Same.flac'), 'utf8')).toBe('src-2')
   })
 
   it('atomically rejects art collision before any write when strategy is missing', async () => {
@@ -213,8 +226,8 @@ describe('organize-files concatenate execution', () => {
 
     const audioRows = rows.filter(r => r.fileType === 'audio')
     expect(audioRows.map(r => [r.destination, r.trackNumber, r.discNumber, r.discTotal])).toEqual([
-      ['Artist/Album/01 - One.flac', '01', '01', '02'],
-      ['Artist/Album/01 - Two.flac', '01', '02', '02'],
+      ['Artist/Album/101 - One.flac', '01', '01', '02'],
+      ['Artist/Album/201 - Two.flac', '01', '02', '02'],
     ])
     const calls = vi.mocked(writeAudioTagFix).mock.calls
     expect(calls[0]?.[1]).toEqual({
@@ -233,8 +246,8 @@ describe('organize-files concatenate execution', () => {
       title: 'Two',
       trackNumber: 1,
     })
-    expect(await readFile(join(destDir, 'Artist/Album/01 - One.flac'), 'utf8')).toBe('src-1')
-    expect(await readFile(join(destDir, 'Artist/Album/01 - Two.flac'), 'utf8')).toBe('src-2')
+    expect(await readFile(join(destDir, 'Artist/Album/101 - One.flac'), 'utf8')).toBe('src-1')
+    expect(await readFile(join(destDir, 'Artist/Album/201 - Two.flac'), 'utf8')).toBe('src-2')
   })
 
   it('atomically rejects setMetadata disc fields under concatenate, writing nothing', async () => {
