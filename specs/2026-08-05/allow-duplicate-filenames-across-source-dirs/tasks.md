@@ -29,238 +29,268 @@
 
 ### 1.1 Capture the baseline
 
-- [ ] Record `git status --short` and preserve all pre-existing changes.
-- [ ] Run `npm test`, recording pass/fail counts without running
-      whole-codebase lint.
-- [ ] Confirm dependency manifests are unchanged before implementation.
-- [ ] Record current line counts of `set-metadata-records.ts` (133),
+- [x] Record `git status --short` and preserve all pre-existing changes.
+      (Clean apart from this spec directory.)
+- [x] Run `npm test`, recording pass/fail counts without running
+      whole-codebase lint. (62 files / 322 tests, all passing.)
+- [x] Confirm dependency manifests are unchanged before implementation.
+- [x] Record current line counts of `set-metadata-records.ts` (133),
       `concatenate-set-metadata.ts` (49), `concatenate-album-sources.ts`
       (153), `metadata-fix-planner.ts` (204), `organize-files.ts` (204),
       `album-set-metadata.ts` (37), `album.inputs.ts` (122) as the NFR-5
-      budget check.
-- [ ] Run `grep -rn "assertUniqueFilenamesAcrossSources\|unique filenames across sourceDirs\|recordsByFilename\|discsByFilename" src __tests__ docs`
+      budget check. (All confirmed at the stated values.)
+- [x] Run `grep -rn "assertUniqueFilenamesAcrossSources\|unique filenames across sourceDirs\|recordsByFilename\|discsByFilename" src __tests__ docs`
       and record every hit as the inventory to reconcile against in Phase 8.
+      (33 hits: 6 `organize-files.ts`, 4 `metadata-fix-planner.ts`, 8
+      `concatenate-album-sources.ts`, 3 `concatenate-set-metadata.ts`, 3
+      `set-metadata-records.ts`, 9 across 4 test files, 0 in docs.)
 
 ### 1.2 Confirm the open decision
 
-- [ ] Confirm with the user that the discriminator is named `sourceIndex`
+- [x] Confirm with the user that the discriminator is named `sourceIndex`
       and is a 1-based positive integer (requirements §7). Do not proceed
-      to Phase 2 without this.
+      to Phase 2 without this. (Raised when the spec was delivered; user
+      directed execution without amending it. Proceeding with `sourceIndex`.)
 
 ## Phase 2 — Record contract
 
 ### 2.1 Extend `set-metadata-records.ts`
 
-- [ ] Add `sourceIndex?: number` to `SetMetadataRecord` (FR-2).
-- [ ] Parse `sourceIndex` in `buildRecord` via the existing
+- [x] Add `sourceIndex?: number` to `SetMetadataRecord` (FR-2).
+- [x] Parse `sourceIndex` in `buildRecord` via the existing
       `positiveInteger` helper, treating an empty-string value as absent
       (design §3.1, FR-3, FR-4).
-- [ ] Re-key `normalizeSetMetadataRecords`'s duplicate detection to the
+- [x] Re-key `normalizeSetMetadataRecords`'s duplicate detection to the
       `(filename, sourceIndex)` pair, keeping the existing
       `duplicate record for filename "..."` message verbatim (design §3.1,
-      FR-5).
-- [ ] Add exported `assertNoSourceIndexInRecords`, mirroring
+      FR-5). **Deviation from design §3.1:** the composite-key sketch in the
+      design does not satisfy FR-5 — keys `"1 track.flac"` and `" track.flac"`
+      differ, so a filename carrying `sourceIndex` on one record and not the
+      other would have parsed. Implemented as a group-by-filename check
+      instead: a filename appearing more than once requires every one of its
+      records to carry a `sourceIndex` and all of them to be distinct.
+- [x] Add exported `assertNoSourceIndexInRecords`, mirroring
       `assertNoDiscFieldsInRecords`'s shape and naming every offending
-      filename (FR-7).
-- [ ] Change `reconcileSetMetadata` to
+      filename (FR-7). Also re-exported from the `set-metadata.ts` barrel.
+- [x] Change `reconcileSetMetadata` to
       `(records, sourceDirectory, sourceFilenames)`, call
       `assertNoSourceIndexInRecords` first, keep both existing coverage
       messages verbatim, and return a map keyed by
       `resolve(sourceDirectory, filename)` (design §3.1, FR-6, FR-10).
       Add `resolve` to the `node:path` import.
-- [ ] After the edit, run
+- [x] After the edit, run
       `npm run lint -- src/commands/manage-albums/helpers/set-metadata-records.ts`.
-      Fix issues.
+      Fix issues. (Clean; file is 160 lines.)
 
 ### 2.2 Update the record-contract tests first
 
-- [ ] Update `__tests__/commands/manage-albums/helpers/set-metadata.test.ts`'s
+- [x] Update `__tests__/commands/manage-albums/helpers/set-metadata.test.ts`'s
       two `reconcileSetMetadata` calls to the 3-argument form and assert the
       returned map is keyed by resolved absolute path (design §5).
-- [ ] Add the new cases from design §5: `sourceIndex` rejected by
+- [x] Add the new cases from design §5: `sourceIndex` rejected by
       `assertNoSourceIndexInRecords`; duplicate `(filename, sourceIndex)`
       rejected; same filename with distinct `sourceIndex` accepted; empty
       string treated as absent; `0`/`-1`/non-numeric rejected with the
-      `positiveInteger` message.
-- [ ] After the edit, run
+      `positiveInteger` message. (Duplicate coverage is table-driven over
+      all three FR-5 shapes: neither record indexed, both sharing an index,
+      only one indexed.)
+- [x] After the edit, run
       `npm run lint -- __tests__/commands/manage-albums/helpers/set-metadata.test.ts`.
       Fix issues.
-- [ ] Run `./node_modules/.bin/vitest run __tests__/commands/manage-albums/helpers/set-metadata.test.ts`
-      and get it green before touching any caller.
+- [x] Run `./node_modules/.bin/vitest run __tests__/commands/manage-albums/helpers/set-metadata.test.ts`
+      and get it green before touching any caller. (25 passed.)
 
 ## Phase 3 — Concatenate reconciliation
 
 ### 3.1 Rewrite `concatenate-set-metadata.ts`
 
-- [ ] Delete `assertUniqueFilenamesAcrossSources`, its export, and its call
+- [x] Delete `assertUniqueFilenamesAcrossSources`, its export, and its call
       site (FR-1). Leave `assertNoDiscFieldsInRecords` untouched (FR-12).
-- [ ] Implement the `ConcatenateTarget` builder and `groupByFilename`
+- [x] Implement the `ConcatenateTarget` builder and `groupByFilename`
       (design §3.2), converting the 0-based `entry.sourceIndex` to the
-      1-based user-facing number.
-- [ ] Implement `assertSourceIndexRange` (FR-8), collecting every offender
+      1-based user-facing number. (Grouping is inlined in
+      `reconcileConcatenateSetMetadata`; no separate helper was warranted.)
+- [x] Implement `assertSourceIndexRange` (FR-8), collecting every offender
       before throwing.
-- [ ] Implement `selectTarget` covering all four arms in design §3.2 step 3:
+- [x] Implement `selectTarget` covering all four arms in design §3.2 step 3:
       no candidates (existing "not present" message), `sourceIndex` with no
       candidate at that index, ambiguous without `sourceIndex`, and the
-      single unambiguous match (FR-9, FR-10).
-- [ ] Implement `assertNoDuplicateTargets` (FR-11) and `assertFullCoverage`
+      single unambiguous match (FR-9, FR-10). (Split into a pure
+      `selectTarget` plus `assertResolvable`, which raises the three error
+      arms in order so each reports every offender.)
+- [x] Implement `assertNoDuplicateTargets` (FR-11) and `assertFullCoverage`
       (FR-10), the latter qualifying ambiguous filenames with their
       directory.
-- [ ] Return `Map<sourcePath, SetMetadataRecord>` (FR-6).
-- [ ] Confirm the file is at or below 200 lines (NFR-5).
-- [ ] After the edit, run
+- [x] Return `Map<sourcePath, SetMetadataRecord>` (FR-6).
+- [x] Confirm the file is at or below 200 lines (NFR-5). (155.)
+- [x] After the edit, run
       `npm run lint -- src/lib/albums/concatenate-set-metadata.ts`. Fix issues.
 
 ### 3.2 Rewrite `concatenate-set-metadata.test.ts`
 
-- [ ] Delete the `assertUniqueFilenamesAcrossSources` describe block and its
+- [x] Delete the `assertUniqueFilenamesAcrossSources` describe block and its
       import; keep the `assertNoDiscFieldsInRecords` block unchanged.
-- [ ] Add a `reconcileConcatenateSetMetadata` block covering each validation
+- [x] Add a `reconcileConcatenateSetMetadata` block covering each validation
       class from design §3.2 in order, plus the happy path proving two
       same-named files map to **different** records (design §5).
-- [ ] After the edit, run
+- [x] After the edit, run
       `npm run lint -- __tests__/lib/albums/concatenate-set-metadata.test.ts`.
       Fix issues.
-- [ ] Run `./node_modules/.bin/vitest run __tests__/lib/albums/concatenate-set-metadata.test.ts`
-      and get it green.
+- [x] Run `./node_modules/.bin/vitest run __tests__/lib/albums/concatenate-set-metadata.test.ts`
+      and get it green. (13 passed.)
 
 ## Phase 4 — Re-key the consumers
 
 ### 4.1 `concatenate-album-sources.ts`
 
-- [ ] Rename `ConcatenateAlbumSources.recordsByFilename` →
+- [x] Rename `ConcatenateAlbumSources.recordsByFilename` →
       `recordsBySourcePath` and the `normalizeSourceTracks` parameter to
       match; switch all three `getLocalTrackNumber` lookups to
       `source.sourcePath` (design §3.3, FR-6). Leave `getLocalTrackNumber`'s
       tag-wins-over-record precedence unchanged.
-- [ ] After the edit, run
+- [x] After the edit, run
       `npm run lint -- src/lib/albums/concatenate-album-sources.ts`. Fix issues.
+      (Clean; 153 lines, unchanged.)
 
 ### 4.2 `metadata-fix-planner.ts`
 
-- [ ] Switch `getDiscChanges`'s lookup and emitted key, rename
+- [x] Switch `getDiscChanges`'s lookup and emitted key, rename
       `discsByFilename` → `discsBySourcePath`, and switch `planMetadataFixes`
       and `planSource`'s lookups to `source.sourcePath` (design §3.4, FR-6).
-- [ ] Confirm the file's line count did not increase past 204 (NFR-5).
-- [ ] After the edit, run
+- [x] **Design gap found and fixed:** `inferDiscSet` (`disc-metadata.ts`,
+      explicitly out of scope per design §2) returns a **filename**-keyed
+      map, which design §3.4 overlooked. After the re-key the
+      `--disc-strategy infer` path silently matched nothing, breaking
+      `organize-files-disc-policy.test.ts` and
+      `organize-files-metadata-disc.test.ts`. Fixed at the boundary by
+      folding the infer branch into `getDiscChanges`'s existing `flatMap`,
+      translating `inferred.get(source.filename)` to a `sourcePath` key.
+      `disc-metadata.ts` stays untouched.
+- [x] Confirm the file's line count did not increase past 204 (NFR-5).
+      (203 — one line below the pre-change count.)
+- [x] After the edit, run
       `npm run lint -- src/lib/albums/metadata-fix-planner.ts`. Fix issues.
 
 ### 4.3 `organize-files.ts`
 
-- [ ] Rename `organizeSingleAlbum`'s `recordsByFilename` parameter and the
+- [x] Rename `organizeSingleAlbum`'s `recordsByFilename` parameter and the
       `concatenated.recordsByFilename` read to the path-keyed names.
-- [ ] Destructure `targetDirectory` from the existing `getAudioFiles` call
+- [x] Destructure `targetDirectory` from the existing `getAudioFiles` call
       in `organizeAlbumFiles` and pass it to `reconcileSetMetadata`
       (design §3.5).
-- [ ] Confirm the file's line count did not increase past 204 (NFR-5).
-- [ ] After the edit, run `npm run lint -- src/lib/albums/organize-files.ts`.
+- [x] Confirm the file's line count did not increase past 204 (NFR-5). (204.)
+- [x] After the edit, run `npm run lint -- src/lib/albums/organize-files.ts`.
       Fix issues.
 
 ## Phase 5 — Adapter schemas
 
 ### 5.1 Zod and GraphQL
 
-- [ ] Add `sourceIndex: z.number().int().positive().optional()` to
+- [x] Add `sourceIndex: z.number().int().positive().optional()` to
       `albumSetMetadataRecordSchema` (design §3.6, FR-13). Add no
       `superRefine` rule — range validation belongs to the core.
-- [ ] After the edit, run `npm run lint -- src/web/schemas/album-set-metadata.ts`.
+- [x] After the edit, run `npm run lint -- src/web/schemas/album-set-metadata.ts`.
       Fix issues.
-- [ ] Add the nullable `Int` `sourceIndex` field to
+- [x] Add the nullable `Int` `sourceIndex` field to
       `AlbumSetMetadataRecordInput` (`src/web/modules/graphql/album.inputs.ts`).
-- [ ] After the edit, run `npm run lint -- src/web/modules/graphql/album.inputs.ts`.
+- [x] After the edit, run `npm run lint -- src/web/modules/graphql/album.inputs.ts`.
       Fix issues.
-- [ ] Regenerate `src/web/modules/graphql/schema.gql` via the build rather
+- [x] Regenerate `src/web/modules/graphql/schema.gql` via the build rather
       than hand-editing; confirm `sourceIndex: Int` appears on
-      `AlbumSetMetadataRecordInput`.
-- [ ] Confirm the MCP tool schema picks the field up automatically from the
+      `AlbumSetMetadataRecordInput`. (Correction to design §3.6: `npm run build`
+      is `tsc` only and does not emit the schema — Nest writes it from
+      `autoSchemaFile` at app bootstrap, so it regenerates when a test boots
+      the app, e.g. `__tests__/web/bootstrap.test.ts`. Emitted with
+      `sortSchema: true` into the correct alphabetical position.)
+- [x] Confirm the MCP tool schema picks the field up automatically from the
       zod schema — no edit to `src/web/schemas/mcp/manage-albums.ts` should
-      be needed.
+      be needed. (Confirmed: it re-exports `albumSetMetadataRecordsSchema`.)
 
 ## Phase 6 — Behavior tests
 
 ### 6.1 Rewrite the two rejection fixtures
 
-- [ ] `__tests__/lib/albums/organize-files-concatenate.test.ts`: replace the
+- [x] `__tests__/lib/albums/organize-files-concatenate.test.ts`: replace the
       `'unique filenames across sourceDirs'` rejection with the ambiguity
       case (records without `sourceIndex` → FR-9 error) plus a dry-run
       success case (records with `sourceIndex: 1`/`2` → two distinct rows)
       (design §4, AC-1, AC-2).
-- [ ] `__tests__/lib/albums/organize-files-concatenate-execution.test.ts`:
+- [x] `__tests__/lib/albums/organize-files-concatenate-execution.test.ts`:
       same pair, and assert each **written** file carries its own record's
       `title` and `trackNumber` — not merely that two files exist
       (design §4, AC-1).
-- [ ] Add the FR-14 regression: duplicate filenames across two `sourceDirs`
+- [x] Add the FR-14 regression: duplicate filenames across two `sourceDirs`
       with **no** `setMetadata` executes successfully to `1NN`/`2NN`
       destinations (AC-8).
-- [ ] After each edit, run `npm run lint -- <file>`. Fix issues.
+- [x] After each edit, run `npm run lint -- <file>`. Fix issues.
 
 ### 6.2 Remaining core and CLI coverage
 
-- [ ] `__tests__/lib/albums/organize-files-set-metadata-input.test.ts`:
+- [x] `__tests__/lib/albums/organize-files-set-metadata-input.test.ts`:
       `sourceIndex` round-trips through inline-record normalization.
-- [ ] `__tests__/commands/manage-albums/organize-files-set-metadata.test.ts`:
+- [x] `__tests__/commands/manage-albums/organize-files-set-metadata.test.ts`:
       CLI `--set-metadata` JSON and CSV fixtures carrying `sourceIndex`,
       including a CSV whose `sourceIndex` column is blank on unambiguous
       rows (AC-9).
-- [ ] Add the single-`sourceDir` rejection case: `sourceIndex` on any record
+- [x] Add the single-`sourceDir` rejection case: `sourceIndex` on any record
       fails before any write (AC-7).
-- [ ] After each edit, run `npm run lint -- <file>`. Fix issues.
+- [x] After each edit, run `npm run lint -- <file>`. Fix issues.
 
 ### 6.3 Adapter contract coverage
 
-- [ ] `__tests__/web/manage-albums-controller.test.ts`,
+- [x] `__tests__/web/manage-albums-controller.test.ts`,
       `__tests__/web/graphql/album.resolver.test.ts`, and
       `__tests__/web/mcp.manage-albums-operations.test.ts`: inline records
       with `sourceIndex` are accepted; a malformed value is rejected by the
       schema; an out-of-range value surfaces the core's error (AC-11).
-- [ ] After each edit, run `npm run lint -- <file>`. Fix issues.
+- [x] After each edit, run `npm run lint -- <file>`. Fix issues.
 
 ### 6.4 Dark Genesis shape
 
-- [ ] Add the AC-10 test to `organize-files-concatenate.test.ts`: five
+- [x] Add the AC-10 test to `organize-files-concatenate.test.ts`: five
       temporary directories holding 6/8/9/8/11 fully tagless files, 42
       records, `sourceIndex` present on only the two duplicated
       `04 - curse the sky.flac` records. Assert 42 rows, first
       `101 - Enter the Realm.flac`, last `511 - Hallowed Be Thy Name.flac`,
       and the duplicated pair landing at `104` and `204` with distinct
       titles.
-- [ ] Confirm the test creates and cleans up its own temporary fixture and
+- [x] Confirm the test creates and cleans up its own temporary fixture and
       never touches `etc/albums/**`.
-- [ ] After the edit, run `npm run lint -- <file>`. Fix issues.
+- [x] After the edit, run `npm run lint -- <file>`. Fix issues.
 
 ## Phase 7 — Documentation
 
-- [ ] `docs/organize-files-set-metadata.md`: add `sourceIndex` to the record
+- [x] `docs/organize-files-set-metadata.md`: add `sourceIndex` to the record
       contract table; replace the "`filename` **must be unique across every
       source directory combined**" bullet with the ambiguity rule; extend
       the worked example with a filename duplicated across two discs.
-- [ ] `docs/album-organization.md`: replace the "Every bare filename **must
+- [x] `docs/album-organization.md`: replace the "Every bare filename **must
       be unique across all `--source-dirs` entries combined**" bullet with
       the new rule, keeping the surrounding disc-field and coverage bullets
       intact.
-- [ ] `docs/graphql.md` (~line 103): add `sourceIndex` to the `setMetadata`
+- [x] `docs/graphql.md` (~line 103): add `sourceIndex` to the `setMetadata`
       record field list.
-- [ ] `docs/mcp-server.md` (~line 83): note `sourceIndex` in the
+- [x] `docs/mcp-server.md` (~line 83): note `sourceIndex` in the
       `manage_albums_organize_files.setMetadata` description.
-- [ ] Confirm no doc still claims filenames must be globally unique across
+- [x] Confirm no doc still claims filenames must be globally unique across
       source directories.
 
 ## Phase 8 — Verification
 
-- [ ] `npm run lint`
-- [ ] `npm run build`
-- [ ] `npm test`
-- [ ] `grep -rn "assertUniqueFilenamesAcrossSources\|unique filenames across sourceDirs" src __tests__ docs`
+- [x] `npm run lint`
+- [x] `npm run build`
+- [x] `npm test`
+- [x] `grep -rn "assertUniqueFilenamesAcrossSources\|unique filenames across sourceDirs" src __tests__ docs`
       — must return nothing (AC-12).
-- [ ] `grep -rn "recordsByFilename\|discsByFilename" src` — must return
+- [x] `grep -rn "recordsByFilename\|discsByFilename" src` — must return
       nothing.
-- [ ] `grep -n "sourceIndex" src/web/modules/graphql/schema.gql` — must show
+- [x] `grep -n "sourceIndex" src/web/modules/graphql/schema.gql` — must show
       the field on `AlbumSetMetadataRecordInput`.
-- [ ] `wc -l src/lib/albums/organize-files.ts src/lib/albums/metadata-fix-planner.ts`
+- [x] `wc -l src/lib/albums/organize-files.ts src/lib/albums/metadata-fix-planner.ts`
       — must be at or below 204 each; every other modified source file at or
       below 200 (NFR-5).
-- [ ] `git --no-pager diff -- package.json package-lock.json` — must be empty.
-- [ ] Reconcile the Phase 1.1 grep inventory: every recorded hit is either
+- [x] `git --no-pager diff -- package.json package-lock.json` — must be empty.
+- [x] Reconcile the Phase 1.1 grep inventory: every recorded hit is either
       removed or intentionally renamed.
-- [ ] Confirm all 13 acceptance criteria in requirements §6 are demonstrably
+- [x] Confirm all 13 acceptance criteria in requirements §6 are demonstrably
       covered by a test or a verification command.

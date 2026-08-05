@@ -72,17 +72,16 @@ function getDiscChanges(
   if (options.discStrategy === 'infer' && explicit.length > 0) {
     throw new UserInputError('--disc-strategy infer conflicts with disc fields in --set-metadata')
   }
-  if (options.discStrategy === 'infer') {
-    return inferDiscSet(sources)
-  }
+  const inferred = options.discStrategy === 'infer' ? inferDiscSet(sources) : undefined
   return new Map(sources.flatMap((source) => {
-    const record = records?.get(source.filename)
-    return record?.discNumber === undefined
-      ? []
-      : [[source.filename, {
+    const record = records?.get(source.sourcePath)
+    const disc = inferred?.get(source.filename) ?? (record?.discNumber === undefined
+      ? undefined
+      : {
           discNumber: record.discNumber,
           discTotal: record.discTotal ?? source.discTotal ?? record.discNumber,
-        }]]
+        })
+    return disc === undefined ? [] : [[source.sourcePath, disc] as const]
   }))
 }
 function projectMetadata(source: ParsedAlbumSource, tagFix: PlannedMetadataFix['tagFix']): EffectiveAlbumMetadata {
@@ -118,15 +117,15 @@ export function planMetadataFixes(
   const artistsByGrouping = collectByGrouping(sources, source => source.artists)
   const producersByGrouping = collectByGrouping(sources, source => source.producers)
   const tracksByPath = resetTrackNumbers(sources, options)
-  const discsByFilename = getDiscChanges(sources, records, options)
+  const discsBySourcePath = getDiscChanges(sources, records, options)
   return sources.map(source => planSource(
     source,
-    records?.get(source.filename),
+    records?.get(source.sourcePath),
     options,
     artistsByGrouping,
     producersByGrouping,
     tracksByPath,
-    discsByFilename,
+    discsBySourcePath,
   ))
 }
 
@@ -137,7 +136,7 @@ function planSource(
   artistsByGrouping: Map<string, string[]>,
   producersByGrouping: Map<string, string[]>,
   tracksByPath: Map<string, number>,
-  discsByFilename: Map<string, { discNumber: number, discTotal: number }>,
+  discsBySourcePath: Map<string, { discNumber: number, discTotal: number }>,
 ): PlannedMetadataFix {
   const album = record?.album ?? (options.setAlbum !== undefined || options.albumStrategy !== 'no change'
     ? effectiveAlbum(source, options)
@@ -147,7 +146,7 @@ function planSource(
   const producers = getProducers(source, options, producersByGrouping)
   const title = record?.title
   const trackNumber = record?.trackNumber ?? tracksByPath.get(source.sourcePath)
-  const disc = discsByFilename.get(source.filename)
+  const disc = discsBySourcePath.get(source.sourcePath)
   const tagFix = {
     ...(album === undefined ? {} : { album }),
     ...(albumArtists === undefined ? {} : { albumArtists }),

@@ -12,7 +12,11 @@ import {
 } from './set-metadata-records.js'
 
 export type { SetMetadataRecord } from './set-metadata-records.js'
-export { normalizeSetMetadataRecords, reconcileSetMetadata } from './set-metadata-records.js'
+export {
+  assertNoSourceIndexInRecords,
+  normalizeSetMetadataRecords,
+  reconcileSetMetadata,
+} from './set-metadata-records.js'
 
 const REQUIRED_FIELDS = ['filename', 'artist', 'album', 'trackNumber', 'title'] as const
 

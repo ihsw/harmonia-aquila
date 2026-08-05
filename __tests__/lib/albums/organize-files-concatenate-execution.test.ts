@@ -272,7 +272,7 @@ describe('organize-files concatenate execution', () => {
     expect(writeAudioTagFix).not.toHaveBeenCalled()
   })
 
-  it('atomically rejects a filename collision across sourceDirs under setMetadata, writing nothing', async () => {
+  it('atomically rejects an ambiguous filename across sourceDirs under setMetadata, writing nothing', async () => {
     await Promise.all([
       createTempFile(firstDir, 'track.flac'),
       createTempFile(secondDir, 'track.flac'),
@@ -287,10 +287,44 @@ describe('organize-files concatenate execution', () => {
         { album: 'Album', artist: 'Artist', filename: 'track.flac', title: 'One', trackNumber: 1 },
       ],
       sourceDirs: [firstDir, secondDir],
-    })).rejects.toThrow('unique filenames across sourceDirs')
+    })).rejects.toThrow('requires sourceIndex to disambiguate')
 
     expect(await readdir(destDir)).toEqual([])
     expect(writeAudioTagFix).not.toHaveBeenCalled()
+  })
+
+  it('executes a filename repeated across sourceDirs, applying each record to its own file', async () => {
+    await Promise.all([
+      createTempFile(firstDir, 'track.flac', 'src-1'),
+      createTempFile(secondDir, 'track.flac', 'src-2'),
+    ])
+    vi.mocked(parseFile)
+      .mockResolvedValueOnce(makeAudioMetadata())
+      .mockResolvedValueOnce(makeAudioMetadata())
+      .mockResolvedValueOnce(meta('First', 4, { no: 1, of: 2 }))
+      .mockResolvedValueOnce(meta('Second', 7, { no: 2, of: 2 }))
+
+    await organizeAlbumFiles({
+      destDir,
+      discStrategy: 'concatenate',
+      execute: true,
+      setMetadataRecords: [
+        { album: 'Album', artist: 'Artist', filename: 'track.flac', sourceIndex: 1, title: 'First', trackNumber: 4 },
+        { album: 'Album', artist: 'Artist', filename: 'track.flac', sourceIndex: 2, title: 'Second', trackNumber: 7 },
+      ],
+      sourceDirs: [firstDir, secondDir],
+    })
+
+    expect(await readFile(join(destDir, 'Artist/Album/104 - First.flac'), 'utf8')).toBe('src-1')
+    expect(await readFile(join(destDir, 'Artist/Album/207 - Second.flac'), 'utf8')).toBe('src-2')
+
+    const written = vi.mocked(writeAudioTagFix).mock.calls
+      .map(([, tagFix]) => [tagFix.title, tagFix.trackNumber, tagFix.discNumber])
+
+    expect(written).toEqual([
+      ['First', 4, { kind: 'set', value: 1 }],
+      ['Second', 7, { kind: 'set', value: 2 }],
+    ])
   })
 
   it('atomically rejects incomplete setMetadata coverage across sourceDirs, writing nothing', async () => {

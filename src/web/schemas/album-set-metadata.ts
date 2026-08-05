@@ -18,6 +18,7 @@ export const albumSetMetadataRecordSchema = z.object({
   discNumber: z.number().int().positive().optional(),
   discTotal: z.number().int().positive().optional(),
   filename: filenameSchema,
+  sourceIndex: z.number().int().positive().optional(),
   title: nonEmptyString,
   trackNumber: z.number().int().positive(),
 }).superRefine((record, context) => {

@@ -97,7 +97,7 @@ function applyConcatenateDiscMetadata(
 
 async function organizeSingleAlbum(
   options: OrganizeFilesOptions,
-  recordsByFilename: Map<string, SetMetadataRecord> | undefined,
+  recordsBySourcePath: Map<string, SetMetadataRecord> | undefined,
   execute: boolean,
 ): Promise<OrganizeFilesJsonOutput> {
   const sourceDir = options.sourceDir
@@ -113,7 +113,7 @@ async function organizeSingleAlbum(
   const selectedFiles = (limit === undefined ? files : files.slice(0, limit)).map(file => file.name)
   const sources = await parseAlbumSources(sourceDirectory, selectedFiles)
   const normalized = normalizeMetadataFixOptions(options)
-  const fixes = planMetadataFixes(sources, recordsByFilename, normalized)
+  const fixes = planMetadataFixes(sources, recordsBySourcePath, normalized)
   const destinationDirectory = resolve(options.destDir)
   const audioPlans = planOrganizationCopies(fixes, options, destinationDirectory)
   const artItems = planAlbumArtCopies(
@@ -141,7 +141,7 @@ async function organizeConcatenatedAlbum(
   const albumArtStrategy = parseAlbumArtStrategy(options.albumArtStrategy)
   const concatenated = await readConcatenateAlbumSources(options, normalized, records)
   const fixes = applyConcatenateDiscMetadata(
-    planMetadataFixes(concatenated.sources, concatenated.recordsByFilename, normalized),
+    planMetadataFixes(concatenated.sources, concatenated.recordsBySourcePath, normalized),
     concatenated.discsBySourcePath,
   )
   const destinationDirectory = resolve(options.destDir)
@@ -182,9 +182,9 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
     if (sourceDir === undefined) {
       throw new UserInputError('sourceDir is required')
     }
-    let recordsByFilename: Map<string, SetMetadataRecord> | undefined
+    let recordsBySourcePath: Map<string, SetMetadataRecord> | undefined
     const limit = parseLimit(options.limit)
-    const { files } = await getAudioFiles(sourceDir, {
+    const { files, targetDirectory } = await getAudioFiles(sourceDir, {
       acceptAlbumArt: true,
       ignoreNonAudioFiles: options.ignoreNonAudioFiles === true,
     })
@@ -192,13 +192,13 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
 
     if (records !== undefined) {
       try {
-        recordsByFilename = reconcileSetMetadata(records, selectedFiles)
+        recordsBySourcePath = reconcileSetMetadata(records, targetDirectory, selectedFiles)
       }
       catch (error) {
         throw new UserInputError(getErrorMessage(error))
       }
     }
-    return organizeSingleAlbum(options, recordsByFilename, options.execute === true)
+    return organizeSingleAlbum(options, recordsBySourcePath, options.execute === true)
   }
   return organizeConcatenatedAlbum(options, options.execute === true, records)
 }

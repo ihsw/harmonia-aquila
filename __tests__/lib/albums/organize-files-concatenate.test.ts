@@ -280,7 +280,7 @@ describe('organize-files concatenate disc strategy', () => {
     ])
   })
 
-  it('rejects a filename repeated across sourceDirs when setMetadata is supplied', async () => {
+  it('rejects a filename repeated across sourceDirs when setMetadata omits sourceIndex', async () => {
     await Promise.all([
       createTempFile(firstDir, 'track.flac'),
       createTempFile(secondDir, 'track.flac'),
@@ -294,7 +294,83 @@ describe('organize-files concatenate disc strategy', () => {
         { album: 'Album', artist: 'Artist', filename: 'track.flac', title: 'A', trackNumber: 1 },
       ],
       sourceDirs: [firstDir, secondDir],
-    })).rejects.toThrow('unique filenames across sourceDirs')
+    })).rejects.toThrow('requires sourceIndex to disambiguate')
+  })
+
+  it('accepts a filename repeated across sourceDirs when sourceIndex disambiguates the records', async () => {
+    await Promise.all([
+      createTempFile(firstDir, 'track.flac'),
+      createTempFile(secondDir, 'track.flac'),
+    ])
+    vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata())
+
+    const rows = await organizeAlbumFiles({
+      destDir,
+      discStrategy: 'concatenate',
+      setMetadataRecords: [
+        { album: 'Album', artist: 'Artist', filename: 'track.flac', sourceIndex: 1, title: 'First', trackNumber: 4 },
+        { album: 'Album', artist: 'Artist', filename: 'track.flac', sourceIndex: 2, title: 'Second', trackNumber: 4 },
+      ],
+      sourceDirs: [firstDir, secondDir],
+    })
+
+    const audioRows = rows.filter(row => row.fileType === 'audio')
+    expect(audioRows.map(row => [row.destination, row.discNumber, row.titleFilename])).toEqual([
+      ['Artist/Album/104 - First.flac', '01', 'First'],
+      ['Artist/Album/204 - Second.flac', '02', 'Second'],
+    ])
+  })
+
+  it('rejects a sourceIndex beyond the sourceDirs count before planning', async () => {
+    await Promise.all([
+      createTempFile(firstDir, 'one.flac'),
+      createTempFile(secondDir, 'two.flac'),
+    ])
+    vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata())
+
+    await expect(organizeAlbumFiles({
+      destDir,
+      discStrategy: 'concatenate',
+      setMetadataRecords: [
+        { album: 'Album', artist: 'Artist', filename: 'one.flac', title: 'One', trackNumber: 1 },
+        { album: 'Album', artist: 'Artist', filename: 'two.flac', sourceIndex: 3, title: 'Two', trackNumber: 1 },
+      ],
+      sourceDirs: [firstDir, secondDir],
+    })).rejects.toThrow('sourceIndex is out of range (expected 1..2): "two.flac" (3)')
+  })
+
+  it('rejects sourceIndex on records in single-sourceDir mode', async () => {
+    await createTempFile(firstDir, 'one.flac')
+    vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata())
+
+    await expect(organizeAlbumFiles({
+      destDir,
+      setMetadataRecords: [
+        { album: 'Album', artist: 'Artist', filename: 'one.flac', sourceIndex: 1, title: 'One', trackNumber: 1 },
+      ],
+      sourceDir: firstDir,
+    })).rejects.toThrow('sourceIndex is only supported with sourceDirs')
+  })
+
+  it('concatenates a filename repeated across sourceDirs without setMetadata', async () => {
+    await Promise.all([
+      createTempFile(firstDir, 'track.flac'),
+      createTempFile(secondDir, 'track.flac'),
+    ])
+    vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata({
+      album: 'Album', artist: 'Artist', title: 'Song', track: { no: 1, of: null },
+    }))
+
+    const rows = await organizeAlbumFiles({
+      destDir,
+      discStrategy: 'concatenate',
+      sourceDirs: [firstDir, secondDir],
+    })
+
+    expect(rows.filter(row => row.fileType === 'audio').map(row => row.destination)).toEqual([
+      'Artist/Album/101 - Song.flac',
+      'Artist/Album/201 - Song.flac',
+    ])
   })
 
   it('rejects setMetadata records that supply discNumber or discTotal under concatenate', async () => {
@@ -355,6 +431,63 @@ describe('organize-files concatenate disc strategy', () => {
     finally {
       const { rm } = await import('node:fs/promises')
       await rm(linkPath, { force: true })
+    }
+  })
+
+  it('organizes a five-disc fully tagless box set, indexing only the duplicated filename', async () => {
+    const discs = [
+      ['01 - enter the realm', '02 - colors', '03 - nightmares', '04 - curse the sky', '05 - solitude', '06 - iced earth'],
+      ['01 - iced earth', '02 - written on the walls', '03 - colors', '04 - curse the sky', '05 - life and death',
+        '06 - solitude', '07 - funeral', '08 - when the night falls'],
+      ['01 - angels holocaust', '02 - stormrider', '03 - the path i choose', '04 - before the vision', '05 - mystical end',
+        '06 - desert rain', '07 - pure evil', '08 - reaching the end', '09 - travel in stygian'],
+      ['01 - burnt offerings', '02 - last december', '03 - diary', '04 - brainwashed', '05 - burning oasis',
+        '06 - creator failure', '07 - the pierced spirit', '08 - dantes inferno'],
+      ['01 - creatures of the night', '02 - number of the beast', '03 - highway to hell', '04 - burnin for you',
+        '05 - god of thunder', '06 - screaming for vengeance', '07 - dead babies', '08 - cities on flame',
+        '09 - its a long way to the top', '10 - black sabbath', '11 - hallowed be thy name'],
+    ]
+    const discDirs = await Promise.all(discs.map(async (_names, index) => (
+      createTempDir(`organize-concat-boxset-${index.toString()}-`)
+    )))
+
+    try {
+      await Promise.all(discs.flatMap((names, index) => names.map(async (name) => {
+        const dir = discDirs[index]
+
+        return dir === undefined ? undefined : createTempFile(dir, `${name}.flac`)
+      })))
+      vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata())
+      const records = discs.flatMap((names, discIndex) => names.map((name, trackIndex) => ({
+        album: 'Dark Genesis',
+        artist: 'Iced Earth',
+        filename: `${name}.flac`,
+        // Only "04 - curse the sky.flac" repeats, in discs 1 and 2.
+        ...(name === '04 - curse the sky' ? { sourceIndex: discIndex + 1 } : {}),
+        title: name.slice(5),
+        trackNumber: trackIndex + 1,
+      })))
+
+      const rows = await organizeAlbumFiles({
+        destDir,
+        discStrategy: 'concatenate',
+        setMetadataRecords: records,
+        sourceDirs: discDirs,
+      })
+
+      const destinations = rows.filter(row => row.fileType === 'audio').map(row => row.destination)
+
+      expect(destinations).toHaveLength(42)
+      expect(destinations[0]).toBe('Iced Earth/Dark Genesis/101 - enter the realm.flac')
+      expect(destinations.at(-1)).toBe('Iced Earth/Dark Genesis/511 - hallowed be thy name.flac')
+      expect(destinations.filter(destination => destination.endsWith('curse the sky.flac'))).toEqual([
+        'Iced Earth/Dark Genesis/104 - curse the sky.flac',
+        'Iced Earth/Dark Genesis/204 - curse the sky.flac',
+      ])
+      expect(new Set(destinations).size).toBe(42)
+    }
+    finally {
+      await Promise.all(discDirs.map(removeTempDir))
     }
   })
 })

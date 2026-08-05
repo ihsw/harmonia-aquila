@@ -141,10 +141,27 @@ describe('AlbumResolver', () => {
     })
   })
 
+  it('maps setMetadata sourceIndex through for concatenate', async () => {
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+    const setMetadata = [
+      { album: 'Album', artist: 'Artist', filename: 'track.flac', sourceIndex: 1, title: 'One', trackNumber: 1 },
+      { album: 'Album', artist: 'Artist', filename: 'track.flac', sourceIndex: 2, title: 'Two', trackNumber: 1 },
+    ]
+
+    await resolver.albumOrganizeFiles({
+      albumDirs: ['disc-1', 'disc-2'],
+      discStrategy: 'concatenate',
+      setMetadata,
+    })
+
+    expect(organizeAlbumFiles).toHaveBeenCalledWith(expect.objectContaining({ setMetadataRecords: setMetadata }))
+  })
+
   it.each([
     'Multiple albums found: Album A, Album B',
     'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',
     'Duplicate track numbers were detected: Track 32. Fix with setMetadata or discStrategy "infer".',
+    '--set-metadata requires sourceIndex to disambiguate filenames present in multiple sourceDirs: "track.flac"',
   ])('preserves organize-files conflicts for GraphQL error filtering: %s', async (message) => {
     vi.mocked(organizeAlbumFiles).mockRejectedValue(new UserInputError(message))
 

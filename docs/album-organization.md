@@ -112,9 +112,12 @@ concatenate mode:
 
 - Records **must not** include `discNumber` or `discTotal` — disc identity
   always comes from `--source-dirs` order, never from record content.
-- Every bare filename **must be unique across all `--source-dirs` entries
-  combined**; a filename repeated in two directories is rejected before any
-  write, naming the filename and both directories.
+- A bare filename repeated across `--source-dirs` entries **must** be
+  disambiguated by `sourceIndex` on each of its records — the 1-based
+  position of the directory that record targets. Omitting it is rejected
+  before any write, naming the filename and every directory holding it.
+  Filenames unique across all directories need no `sourceIndex`, and it is
+  rejected outside concatenate mode.
 - Every file across every directory needs exactly one matching record, and
   every record needs exactly one matching file, checked against the combined
   set of all directories (not directory-by-directory).

@@ -1,11 +1,11 @@
 import type { Dirent } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import type { SetMetadataRecord } from '../../../src/commands/manage-albums/helpers/set-metadata.js'
 import type { ConcatenateSourceEntry } from '../../../src/lib/albums/concatenate-album-sources.js'
 import {
   assertNoDiscFieldsInRecords,
-  assertUniqueFilenamesAcrossSources,
   reconcileConcatenateSetMetadata,
 } from '../../../src/lib/albums/concatenate-set-metadata.js'
 
@@ -50,47 +50,77 @@ describe('assertNoDiscFieldsInRecords', () => {
   })
 })
 
-describe('assertUniqueFilenamesAcrossSources', () => {
-  it('accepts unique filenames across directories', () => {
-    const entries = [entry('/a', 0, ['one.flac']), entry('/b', 1, ['two.flac'])]
-
-    expect(() => {
-      assertUniqueFilenamesAcrossSources(entries)
-    }).not.toThrow()
-  })
-
-  it('rejects a filename repeated across directories, naming both', () => {
-    const entries = [entry('/a', 0, ['track.flac']), entry('/b', 1, ['track.flac'])]
-
-    expect(() => {
-      assertUniqueFilenamesAcrossSources(entries)
-    }).toThrow('"track.flac" (/a, /b)')
-  })
-})
-
 describe('reconcileConcatenateSetMetadata', () => {
-  it('reconciles records to a filename map when every file has exactly one match', () => {
+  it('reconciles records to a source-path map when every file has exactly one match', () => {
     const entries = [entry('/a', 0, ['one.flac']), entry('/b', 1, ['two.flac'])]
     const records = [record({ filename: 'one.flac' }), record({ filename: 'two.flac', trackNumber: 2 })]
 
     const result = reconcileConcatenateSetMetadata(records, entries)
 
-    expect(result.get('one.flac')).toEqual(records[0])
-    expect(result.get('two.flac')).toEqual(records[1])
+    expect(result.get(resolve('/a', 'one.flac'))).toEqual(records[0])
+    expect(result.get(resolve('/b', 'two.flac'))).toEqual(records[1])
+    expect(result.get('one.flac')).toBeUndefined()
   })
 
-  it('rejects disc fields before checking coverage', () => {
+  it('maps a filename repeated across directories to a distinct record per sourceIndex', () => {
+    const entries = [entry('/a', 0, ['track.flac']), entry('/b', 1, ['track.flac'])]
+    const records = [
+      record({ filename: 'track.flac', sourceIndex: 1, title: 'First' }),
+      record({ filename: 'track.flac', sourceIndex: 2, title: 'Second', trackNumber: 2 }),
+    ]
+
+    const result = reconcileConcatenateSetMetadata(records, entries)
+
+    expect(result.get(resolve('/a', 'track.flac'))?.title).toBe('First')
+    expect(result.get(resolve('/b', 'track.flac'))?.title).toBe('Second')
+  })
+
+  it('rejects disc fields before any other check', () => {
     const entries = [entry('/a', 0, ['one.flac'])]
     const records = [record({ discNumber: 1, filename: 'one.flac' })]
 
     expect(() => reconcileConcatenateSetMetadata(records, entries)).toThrow('discNumber/discTotal')
   })
 
-  it('rejects cross-directory filename collisions before checking coverage', () => {
+  it('rejects a sourceIndex beyond the sourceDirs count', () => {
+    const entries = [entry('/a', 0, ['one.flac']), entry('/b', 1, ['two.flac'])]
+    const records = [
+      record({ filename: 'one.flac', sourceIndex: 1 }),
+      record({ filename: 'two.flac', sourceIndex: 3 }),
+    ]
+
+    expect(() => reconcileConcatenateSetMetadata(records, entries))
+      .toThrow('sourceIndex is out of range (expected 1..2): "two.flac" (3)')
+  })
+
+  it('rejects an ambiguous filename supplied without sourceIndex, naming every directory', () => {
     const entries = [entry('/a', 0, ['track.flac']), entry('/b', 1, ['track.flac'])]
     const records = [record({ filename: 'track.flac' })]
 
-    expect(() => reconcileConcatenateSetMetadata(records, entries)).toThrow('unique filenames across sourceDirs')
+    expect(() => reconcileConcatenateSetMetadata(records, entries))
+      .toThrow('requires sourceIndex to disambiguate filenames present in multiple sourceDirs: "track.flac" (/a (1), /b (2))')
+  })
+
+  it('rejects a sourceIndex naming a directory that does not contain the file', () => {
+    const entries = [entry('/a', 0, ['one.flac']), entry('/b', 1, ['two.flac'])]
+    const records = [
+      record({ filename: 'one.flac', sourceIndex: 2 }),
+      record({ filename: 'two.flac', sourceIndex: 2 }),
+    ]
+
+    expect(() => reconcileConcatenateSetMetadata(records, entries))
+      .toThrow('does not contain the file: "one.flac" (2); present in /a (1)')
+  })
+
+  it('rejects two records resolving to the same file', () => {
+    const entries = [entry('/a', 0, ['one.flac'])]
+    const records = [
+      record({ filename: 'one.flac' }),
+      record({ filename: 'one.flac', sourceIndex: 1, title: 'Other' }),
+    ]
+
+    expect(() => reconcileConcatenateSetMetadata(records, entries))
+      .toThrow(`multiple records resolving to the same file: ${resolve('/a', 'one.flac')}`)
   })
 
   it('rejects missing records relative to the union of all sourceDirs files', () => {
@@ -99,6 +129,14 @@ describe('reconcileConcatenateSetMetadata', () => {
 
     expect(() => reconcileConcatenateSetMetadata(records, entries))
       .toThrow('Source audio files are missing metadata records: two.flac')
+  })
+
+  it('qualifies a missing ambiguous filename with its directory', () => {
+    const entries = [entry('/a', 0, ['track.flac']), entry('/b', 1, ['track.flac'])]
+    const records = [record({ filename: 'track.flac', sourceIndex: 1 })]
+
+    expect(() => reconcileConcatenateSetMetadata(records, entries))
+      .toThrow('Source audio files are missing metadata records: track.flac (/b)')
   })
 
   it('rejects extra records that reference files absent from every sourceDir', () => {

@@ -60,4 +60,84 @@ describe('organize-files CLI set-metadata filepath', () => {
       album: 'New', artists: ['Artist'], title: 'One', trackNumber: 1,
     })
   })
+
+  it.each([
+    ['metadata.json', JSON.stringify([
+      { album: 'New', artist: 'Artist', filename: 'track.flac', sourceIndex: 1, title: 'First', trackNumber: 4 },
+      { album: 'New', artist: 'Artist', filename: 'track.flac', sourceIndex: 2, title: 'Second', trackNumber: 4 },
+    ])],
+    [
+      'metadata.csv',
+      'filename,artist,album,trackNumber,title,sourceIndex\n'
+      + 'track.flac,Artist,New,4,First,1\ntrack.flac,Artist,New,4,Second,2\n',
+    ],
+  ])('disambiguates a repeated filename across --source-dirs from %s', async (manifestName, manifestContents) => {
+    const firstDir = await createTempDir('organize-cli-metadata-first-')
+    const secondDir = await createTempDir('organize-cli-metadata-second-')
+
+    try {
+      await Promise.all([createTempFile(firstDir, 'track.flac'), createTempFile(secondDir, 'track.flac')])
+      const manifestPath = await createTempFile(destDir, manifestName, manifestContents)
+      vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata())
+      const program = new Command()
+      registerOrganizeFilesCommand(program)
+
+      await program.parseAsync([
+        'node', 'test', 'organize-files',
+        '--source-dirs', firstDir, secondDir,
+        '--dest-dir', destDir,
+        '--disc-strategy', 'concatenate',
+        '--set-metadata', manifestPath,
+        '--format', 'json',
+      ])
+
+      const output = vi.mocked(console.info).mock.calls.map(([value]) => String(value)).join('\n')
+
+      expect(output).toContain('Artist/New/104 - First.flac')
+      expect(output).toContain('Artist/New/204 - Second.flac')
+    }
+    finally {
+      await Promise.all([removeTempDir(firstDir), removeTempDir(secondDir)])
+    }
+  })
+
+  it('treats a blank CSV sourceIndex column as absent for unambiguous rows', async () => {
+    const firstDir = await createTempDir('organize-cli-metadata-blank-first-')
+    const secondDir = await createTempDir('organize-cli-metadata-blank-second-')
+
+    try {
+      await Promise.all([
+        createTempFile(firstDir, 'track.flac'),
+        createTempFile(firstDir, 'solo.flac'),
+        createTempFile(secondDir, 'track.flac'),
+      ])
+      const manifestPath = await createTempFile(
+        destDir,
+        'metadata.csv',
+        'filename,artist,album,trackNumber,title,sourceIndex\n'
+        + 'track.flac,Artist,New,1,First,1\ntrack.flac,Artist,New,1,Second,2\nsolo.flac,Artist,New,2,Solo,\n',
+      )
+      vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata())
+      const program = new Command()
+      registerOrganizeFilesCommand(program)
+
+      await program.parseAsync([
+        'node', 'test', 'organize-files',
+        '--source-dirs', firstDir, secondDir,
+        '--dest-dir', destDir,
+        '--disc-strategy', 'concatenate',
+        '--set-metadata', manifestPath,
+        '--format', 'json',
+      ])
+
+      const output = vi.mocked(console.info).mock.calls.map(([value]) => String(value)).join('\n')
+
+      expect(output).toContain('Artist/New/101 - First.flac')
+      expect(output).toContain('Artist/New/102 - Solo.flac')
+      expect(output).toContain('Artist/New/201 - Second.flac')
+    }
+    finally {
+      await Promise.all([removeTempDir(firstDir), removeTempDir(secondDir)])
+    }
+  })
 })

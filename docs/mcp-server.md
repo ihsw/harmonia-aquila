@@ -81,7 +81,10 @@ operation runs.
 | `manage_audiobooks_set_metadata` | source | destination |
 
 `manage_albums_organize_files.setMetadata` is a non-empty inline array with one
-record for every selected audio file. MCP never resolves it as a host path.
+record for every selected audio file. MCP never resolves it as a host path. A
+record may carry an optional `sourceIndex` (1-based `albumDirs` position),
+required only for a filename that repeats across directories under
+`discStrategy: "concatenate"`.
 
 ## Album tool contracts
 

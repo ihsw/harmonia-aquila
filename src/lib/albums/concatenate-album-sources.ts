@@ -24,7 +24,7 @@ export interface ConcatenateDiscContext {
 
 export interface ConcatenateAlbumSources {
   discsBySourcePath: Map<string, ConcatenateDiscContext>
-  recordsByFilename: Map<string, SetMetadataRecord> | undefined
+  recordsBySourcePath: Map<string, SetMetadataRecord> | undefined
   sourceEntries: ConcatenateSourceEntry[]
   sources: ParsedAlbumSource[]
 }
@@ -84,12 +84,12 @@ function getLocalTrackNumber(source: ParsedAlbumSource, record: SetMetadataRecor
 function normalizeSourceTracks(
   sourceDirectory: string,
   parsedSources: ParsedAlbumSource[],
-  recordsByFilename: Map<string, SetMetadataRecord> | undefined,
+  recordsBySourcePath: Map<string, SetMetadataRecord> | undefined,
 ): ParsedAlbumSource[] {
   const countsByTrack = new Map<number, string[]>()
 
   for (const source of parsedSources) {
-    const trackNumber = getLocalTrackNumber(source, recordsByFilename?.get(source.filename))
+    const trackNumber = getLocalTrackNumber(source, recordsBySourcePath?.get(source.sourcePath))
     countsByTrack.set(trackNumber, [...(countsByTrack.get(trackNumber) ?? []), source.filename])
   }
   const duplicates = [...countsByTrack.entries()]
@@ -101,8 +101,8 @@ function normalizeSourceTracks(
   }
   return [...parsedSources]
     .sort((left, right) => (
-      getLocalTrackNumber(left, recordsByFilename?.get(left.filename))
-      - getLocalTrackNumber(right, recordsByFilename?.get(right.filename))
+      getLocalTrackNumber(left, recordsBySourcePath?.get(left.sourcePath))
+      - getLocalTrackNumber(right, recordsBySourcePath?.get(right.sourcePath))
     ))
     .map(source => ({ ...source, sourceDirectory }))
 }
@@ -127,7 +127,7 @@ export async function readConcatenateAlbumSources(
     }
   }))
   await assertUniqueSourceDirs(sourceEntries)
-  const recordsByFilename = records === undefined
+  const recordsBySourcePath = records === undefined
     ? undefined
     : reconcileConcatenateSetMetadata(records, sourceEntries)
 
@@ -136,7 +136,7 @@ export async function readConcatenateAlbumSources(
 
     return {
       entry,
-      sources: normalizeSourceTracks(entry.sourceDirectory, parsedSources, recordsByFilename),
+      sources: normalizeSourceTracks(entry.sourceDirectory, parsedSources, recordsBySourcePath),
     }
   }))
   const discsBySourcePath = new Map<string, ConcatenateDiscContext>()
@@ -149,5 +149,5 @@ export async function readConcatenateAlbumSources(
       sources.push(source)
     }
   }
-  return { discsBySourcePath, recordsByFilename, sourceEntries, sources }
+  return { discsBySourcePath, recordsBySourcePath, sourceEntries, sources }
 }

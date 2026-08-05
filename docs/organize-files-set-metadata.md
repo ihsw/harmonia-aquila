@@ -67,6 +67,7 @@ Omit `execute` for review, then repeat the identical API input with
 | `title` | string | Non-empty |
 | `discNumber` | positive integer | Optional; required with `discTotal` |
 | `discTotal` | positive integer | Optional; at least `discNumber` |
+| `sourceIndex` | positive integer | Optional; concatenate mode only. 1-based `--source-dirs` position |
 
 Unknown files, duplicates, missing coverage, invalid extensions or paths,
 empty values, and invalid integers fail before writes. JSON/CSV file parsing
@@ -90,9 +91,13 @@ Three additional rules apply only in this mode:
 
 - Records **must not** set `discNumber`/`discTotal` — concatenate always
   derives disc identity from `--source-dirs` order.
-- `filename` **must be unique across every source directory combined**, not
-  just within one directory, since disc-local rips often reuse the same
-  numbered filenames per disc.
+- A `filename` that appears in more than one source directory **must** carry
+  `sourceIndex`, the 1-based position of its directory in `--source-dirs`.
+  Disc-local rips often reuse the same numbered filenames per disc, so
+  `sourceIndex` is what tells two same-named files apart; without it the run
+  is rejected before any write, naming the filename and every directory
+  holding it. Filenames unique across all directories need no `sourceIndex`,
+  and supplying it outside concatenate mode is an error.
 - Coverage is checked against the union of every directory's files, not
   directory-by-directory.
 
@@ -122,3 +127,18 @@ The first two records (disc 1) and the third record (disc 2) resolve to
 though their `trackNumber` values repeat across discs — identical titles on
 different discs are fine. `discNumber`/`discTotal` on the output rows come from
 directory order (`1/2`, `2/2`), never from this file.
+
+No filename repeats above, so no record needs `sourceIndex`. When one does
+repeat — as in Dark Genesis, where `04 - curse the sky.flac` is on both disc 1
+and disc 2 — give each of its records the position of its own directory and
+leave every other record alone:
+
+```json
+[
+  { "filename": "04 - curse the sky.flac", "sourceIndex": 1, "artist": "Iced Earth", "album": "Dark Genesis", "trackNumber": 4, "title": "Curse the Sky" },
+  { "filename": "04 - curse the sky.flac", "sourceIndex": 2, "artist": "Iced Earth", "album": "Dark Genesis", "trackNumber": 4, "title": "Curse the Sky" }
+]
+```
+
+These resolve to `104 - Curse the Sky.flac` and `204 - Curse the Sky.flac`. In
+CSV, add a `sourceIndex` column and leave it blank on every unambiguous row.

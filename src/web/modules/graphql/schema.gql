@@ -70,6 +70,7 @@ input AlbumSetMetadataRecordInput {
   discNumber: Int
   discTotal: Int
   filename: String!
+  sourceIndex: Int
   title: String!
   trackNumber: Int!
 }

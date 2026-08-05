@@ -54,6 +54,9 @@ export class AlbumSetMetadataRecordInput {
   @Field(() => String)
   public filename!: string
 
+  @Field(() => Int, { nullable: true })
+  public sourceIndex?: number
+
   @Field(() => String)
   public title!: string
 

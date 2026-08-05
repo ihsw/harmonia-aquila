@@ -51,6 +51,34 @@ describe('organize-files set-metadata input sources', () => {
     expect(await readdir(destDir)).toEqual([])
   })
 
+  it('round-trips sourceIndex through file and inline records identically', async () => {
+    const secondDir = await createTempDir('organize-inline-second-')
+
+    try {
+      await Promise.all([createTempFile(sourceDir, 'track.flac'), createTempFile(secondDir, 'track.flac')])
+      const records = [
+        { album: 'New', artist: 'Artist', filename: 'track.flac', sourceIndex: 1, title: 'One', trackNumber: 1 },
+        { album: 'New', artist: 'Artist', filename: 'track.flac', sourceIndex: 2, title: 'Two', trackNumber: 1 },
+      ]
+      const metadataPath = await createTempFile(manifestDir, 'metadata.json', JSON.stringify(records))
+      vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata())
+      const options = { destDir, discStrategy: 'concatenate', sourceDirs: [sourceDir, secondDir] } as const
+
+      const filePlan = await organizeAlbumFiles({ ...options, setMetadata: metadataPath })
+      const inlinePlan = await organizeAlbumFiles({ ...options, setMetadataRecords: records })
+
+      expect(inlinePlan).toEqual(filePlan)
+      expect(inlinePlan.map(row => row.destination)).toEqual([
+        'Artist/New/101 - One.flac',
+        'Artist/New/201 - Two.flac',
+      ])
+      expect(await readdir(destDir)).toEqual([])
+    }
+    finally {
+      await removeTempDir(secondDir)
+    }
+  })
+
   it('rejects invalid record sources before writes', async () => {
     await createTempFile(sourceDir, 'one.flac')
     vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata({

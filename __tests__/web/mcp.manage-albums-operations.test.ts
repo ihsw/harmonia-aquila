@@ -158,6 +158,36 @@ describe('web MCP manage-albums summarize and organize tools', () => {
     })
   })
 
+  it('accepts setMetadata sourceIndex and rejects a malformed one', async () => {
+    const currentTestApp = requireTestApp()
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+    const setMetadata = [
+      { album: 'Album', artist: 'Artist', filename: 'track.flac', sourceIndex: 1, title: 'One', trackNumber: 1 },
+      { album: 'Album', artist: 'Artist', filename: 'track.flac', sourceIndex: 2, title: 'Two', trackNumber: 1 },
+    ]
+
+    await callTool(16, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
+      albumDirs: ['disc-1/', 'disc-2/'],
+      discStrategy: 'concatenate',
+      setMetadata,
+    })
+
+    expect(organizeAlbumFiles).toHaveBeenCalledWith(expect.objectContaining({
+      destDir: currentTestApp.destDir,
+      setMetadataRecords: setMetadata,
+    }))
+    vi.mocked(organizeAlbumFiles).mockClear()
+
+    const malformed = await callTool(17, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
+      albumDirs: ['disc-1/', 'disc-2/'],
+      discStrategy: 'concatenate',
+      setMetadata: [{ ...setMetadata[0], sourceIndex: 0 }],
+    })
+
+    expect(getToolText(malformed)).toContain('sourceIndex')
+    expect(organizeAlbumFiles).not.toHaveBeenCalled()
+  })
+
   it('rejects traversal and malformed input before domain operations', async () => {
     const summarizeTraversal = await callTool(6, MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME, { dirName: '..' })
     const organizeMissing = await callTool(8, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {})

@@ -1,4 +1,4 @@
-import { basename, extname } from 'node:path'
+import { basename, extname, resolve } from 'node:path'
 
 import { createSetMetadataError } from './set-metadata-file-parsers.js'
 import { getSupportedAudioExtensions, isSupportedAudioExtension } from './utils.js'
@@ -9,6 +9,7 @@ export interface SetMetadataRecord {
   discNumber?: number
   discTotal?: number
   filename: string
+  sourceIndex?: number
   title: string
   trackNumber: number
 }
@@ -83,12 +84,16 @@ function buildRecord(rawValue: unknown, context: string): SetMetadataRecord {
   if (discNumber !== undefined && discTotal !== undefined && discNumber > discTotal) {
     throw createSetMetadataError(`Metadata record ${context} has discNumber greater than discTotal`)
   }
+  const sourceIndex = !('sourceIndex' in rawRecord) || rawRecord.sourceIndex === ''
+    ? undefined
+    : positiveInteger(rawRecord.sourceIndex, 'sourceIndex', context)
   return {
     album: values.album,
     artist: values.artist,
     ...(discNumber === undefined ? {} : { discNumber }),
     ...(discTotal === undefined ? {} : { discTotal }),
     filename: values.filename,
+    ...(sourceIndex === undefined ? {} : { sourceIndex }),
     title: values.title,
     trackNumber: positiveInteger(rawRecord.trackNumber, 'trackNumber', context),
   }
@@ -102,21 +107,38 @@ export function normalizeSetMetadataRecords(
     throw createSetMetadataError(`${sourceDescription} does not contain any records`)
   }
   const records = rawRecords.map((record, index) => buildRecord(record, `at index ${index.toString()}`))
-  const seenFilenames = new Set<string>()
+  const groupsByFilename = new Map<string, SetMetadataRecord[]>()
   for (const record of records) {
-    if (seenFilenames.has(record.filename)) {
-      throw createSetMetadataError(`${sourceDescription} has a duplicate record for filename "${record.filename}"`)
+    groupsByFilename.set(record.filename, [...(groupsByFilename.get(record.filename) ?? []), record])
+  }
+  for (const [filename, group] of groupsByFilename) {
+    const sourceIndexes = group.map(record => record.sourceIndex)
+    if (group.length > 1
+      && (sourceIndexes.includes(undefined) || new Set(sourceIndexes).size !== group.length)) {
+      throw createSetMetadataError(`${sourceDescription} has a duplicate record for filename "${filename}"`)
     }
-    seenFilenames.add(record.filename)
   }
   return records
 }
 
+export function assertNoSourceIndexInRecords(records: SetMetadataRecord[]): void {
+  const offending = records.filter(record => record.sourceIndex !== undefined)
+
+  if (offending.length > 0) {
+    throw createSetMetadataError(
+      'sourceIndex is only supported with sourceDirs and --disc-strategy concatenate: '
+      + offending.map(record => record.filename).join(', '),
+    )
+  }
+}
+
 export function reconcileSetMetadata(
   records: SetMetadataRecord[],
+  sourceDirectory: string,
   sourceFilenames: string[],
 ): Map<string, SetMetadataRecord> {
-  const recordsByFilename = new Map(records.map(record => [record.filename, record]))
+  assertNoSourceIndexInRecords(records)
+  const recordLookup = new Map(records.map(record => [record.filename, record]))
   const sourceFilenameSet = new Set(sourceFilenames)
   const unknownFilenames = records.map(record => record.filename)
     .filter(filename => !sourceFilenameSet.has(filename))
@@ -125,9 +147,13 @@ export function reconcileSetMetadata(
       `Metadata records reference files that are not present in the source directory: ${unknownFilenames.join(', ')}`,
     )
   }
-  const missingFilenames = sourceFilenames.filter(filename => !recordsByFilename.has(filename))
+  const missingFilenames = sourceFilenames.filter(filename => !recordLookup.has(filename))
   if (missingFilenames.length > 0) {
     throw createSetMetadataError(`Source audio files are missing metadata records: ${missingFilenames.join(', ')}`)
   }
-  return recordsByFilename
+  return new Map(sourceFilenames.flatMap((filename) => {
+    const record = recordLookup.get(filename)
+
+    return record === undefined ? [] : [[resolve(sourceDirectory, filename), record] as const]
+  }))
 }

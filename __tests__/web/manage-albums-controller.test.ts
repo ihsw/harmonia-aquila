@@ -130,6 +130,34 @@ describe('album web controller', () => {
     })
   })
 
+  it('passes setMetadata sourceIndex through to the core and surfaces its errors as 400', async () => {
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+    const setMetadata = [
+      { album: 'Album', artist: 'Artist', filename: 'track.flac', sourceIndex: 1, title: 'One', trackNumber: 1 },
+      { album: 'Album', artist: 'Artist', filename: 'track.flac', sourceIndex: 2, title: 'Two', trackNumber: 1 },
+    ]
+
+    await controller.organizeFiles({ albumDirs: ['disc-1', 'disc-2'], discStrategy: 'concatenate', setMetadata })
+
+    expect(organizeAlbumFiles).toHaveBeenCalledWith(expect.objectContaining({ setMetadataRecords: setMetadata }))
+    vi.mocked(organizeAlbumFiles).mockRejectedValue(
+      new UserInputError('--set-metadata sourceIndex is out of range (expected 1..2): "track.flac" (3)'),
+    )
+    await expect(controller.organizeFiles({ albumDirs: ['disc-1', 'disc-2'], setMetadata })).rejects.toMatchObject({
+      response: { error: 'Bad Request', statusCode: 400 },
+    })
+  })
+
+  it('rejects a malformed setMetadata sourceIndex at the schema boundary', async () => {
+    await expect(controller.organizeFiles({ setMetadata: [{
+      album: 'Album', artist: 'Artist', filename: 'track.flac', sourceIndex: 0, title: 'Title', trackNumber: 1,
+    }] })).rejects.toBeInstanceOf(BadRequestException)
+    await expect(controller.organizeFiles({ setMetadata: [{
+      album: 'Album', artist: 'Artist', filename: 'track.flac', sourceIndex: 1.5, title: 'Title', trackNumber: 1,
+    }] })).rejects.toBeInstanceOf(BadRequestException)
+    expect(organizeAlbumFiles).not.toHaveBeenCalled()
+  })
+
   it('maps metadata repair fields through organize-files', async () => {
     vi.mocked(organizeAlbumFiles).mockResolvedValue([])
     const setMetadata = [{
