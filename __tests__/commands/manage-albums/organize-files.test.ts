@@ -209,6 +209,41 @@ describe('organize-files', () => {
     ])
   })
 
+  it('accepts --set-metadata together with --source-dirs for concatenate', async () => {
+    await Promise.all([
+      createTempFile(sourceDir, 'one.flac'),
+      createTempFile(secondSourceDir, 'two.flac'),
+    ])
+    mockParseFile.mockResolvedValue(makeAudioMetadata())
+    const manifestPath = await createTempFile(destDir, 'metadata.json', JSON.stringify([
+      { album: 'Album', artist: 'Artist', filename: 'one.flac', title: 'One', trackNumber: 1 },
+      { album: 'Album', artist: 'Artist', filename: 'two.flac', title: 'Two', trackNumber: 1 },
+    ]))
+
+    await makeProgram().parseAsync([
+      'node', 's', 'organize-files',
+      '--source-dirs', sourceDir, secondSourceDir,
+      '--disc-strategy', 'concatenate',
+      '--set-metadata', manifestPath,
+      '--dest-dir', destDir,
+      '--format', 'json',
+    ])
+
+    const rawArg: unknown = infoSpy.mock.calls[0]?.[0]
+    const rows = JSON.parse(String(rawArg)) as OrganizeFilesJsonOutput
+
+    expect(rows).toMatchObject([
+      {
+        destination: 'Artist/Album/01 - One.flac', discNumber: '01', discTotal: '02',
+        fileType: 'audio', sourceDirectory: sourceDir, trackNumber: '01',
+      },
+      {
+        destination: 'Artist/Album/01 - Two.flac', discNumber: '02', discTotal: '02',
+        fileType: 'audio', sourceDirectory: secondSourceDir, trackNumber: '01',
+      },
+    ])
+  })
+
   it('describes ordered concatenate inputs as disc boundaries', () => {
     const command = makeProgram().commands.find(item => item.name() === 'organize-files')
 

@@ -189,6 +189,118 @@ describe('organize-files concatenate execution', () => {
     expect(neitherArt.find(r => r.filename === 'unique.png')?.action).toBe('would copy')
   })
 
+  it('executes a fully tagless two-disc source using setMetadata, writing records plus order-derived disc tags', async () => {
+    await Promise.all([
+      createTempFile(firstDir, 'one.flac', 'src-1'),
+      createTempFile(secondDir, 'two.flac', 'src-2'),
+    ])
+    vi.mocked(parseFile)
+      .mockResolvedValueOnce(makeAudioMetadata())
+      .mockResolvedValueOnce(makeAudioMetadata())
+      .mockResolvedValueOnce(meta('One', 1, { no: 1, of: 2 }))
+      .mockResolvedValueOnce(meta('Two', 1, { no: 2, of: 2 }))
+
+    const rows = await organizeAlbumFiles({
+      destDir,
+      discStrategy: 'concatenate',
+      execute: true,
+      setMetadataRecords: [
+        { album: 'Album', artist: 'Artist', filename: 'one.flac', title: 'One', trackNumber: 1 },
+        { album: 'Album', artist: 'Artist', filename: 'two.flac', title: 'Two', trackNumber: 1 },
+      ],
+      sourceDirs: [firstDir, secondDir],
+    })
+
+    const audioRows = rows.filter(r => r.fileType === 'audio')
+    expect(audioRows.map(r => [r.destination, r.trackNumber, r.discNumber, r.discTotal])).toEqual([
+      ['Artist/Album/01 - One.flac', '01', '01', '02'],
+      ['Artist/Album/01 - Two.flac', '01', '02', '02'],
+    ])
+    const calls = vi.mocked(writeAudioTagFix).mock.calls
+    expect(calls[0]?.[1]).toEqual({
+      album: 'Album',
+      artists: ['Artist'],
+      discNumber: { kind: 'set', value: 1 },
+      discTotal: { kind: 'set', value: 2 },
+      title: 'One',
+      trackNumber: 1,
+    })
+    expect(calls[1]?.[1]).toEqual({
+      album: 'Album',
+      artists: ['Artist'],
+      discNumber: { kind: 'set', value: 2 },
+      discTotal: { kind: 'set', value: 2 },
+      title: 'Two',
+      trackNumber: 1,
+    })
+    expect(await readFile(join(destDir, 'Artist/Album/01 - One.flac'), 'utf8')).toBe('src-1')
+    expect(await readFile(join(destDir, 'Artist/Album/01 - Two.flac'), 'utf8')).toBe('src-2')
+  })
+
+  it('atomically rejects setMetadata disc fields under concatenate, writing nothing', async () => {
+    await Promise.all([
+      createTempFile(firstDir, 'one.flac'),
+      createTempFile(secondDir, 'two.flac'),
+    ])
+    vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata())
+
+    await expect(organizeAlbumFiles({
+      destDir,
+      discStrategy: 'concatenate',
+      execute: true,
+      setMetadataRecords: [
+        { album: 'Album', artist: 'Artist', discNumber: 1, filename: 'one.flac', title: 'One', trackNumber: 1 },
+        { album: 'Album', artist: 'Artist', filename: 'two.flac', title: 'Two', trackNumber: 1 },
+      ],
+      sourceDirs: [firstDir, secondDir],
+    })).rejects.toThrow('discNumber/discTotal')
+
+    expect(await readdir(destDir)).toEqual([])
+    expect(writeAudioTagFix).not.toHaveBeenCalled()
+  })
+
+  it('atomically rejects a filename collision across sourceDirs under setMetadata, writing nothing', async () => {
+    await Promise.all([
+      createTempFile(firstDir, 'track.flac'),
+      createTempFile(secondDir, 'track.flac'),
+    ])
+    vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata())
+
+    await expect(organizeAlbumFiles({
+      destDir,
+      discStrategy: 'concatenate',
+      execute: true,
+      setMetadataRecords: [
+        { album: 'Album', artist: 'Artist', filename: 'track.flac', title: 'One', trackNumber: 1 },
+      ],
+      sourceDirs: [firstDir, secondDir],
+    })).rejects.toThrow('unique filenames across sourceDirs')
+
+    expect(await readdir(destDir)).toEqual([])
+    expect(writeAudioTagFix).not.toHaveBeenCalled()
+  })
+
+  it('atomically rejects incomplete setMetadata coverage across sourceDirs, writing nothing', async () => {
+    await Promise.all([
+      createTempFile(firstDir, 'one.flac'),
+      createTempFile(secondDir, 'two.flac'),
+    ])
+    vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata())
+
+    await expect(organizeAlbumFiles({
+      destDir,
+      discStrategy: 'concatenate',
+      execute: true,
+      setMetadataRecords: [
+        { album: 'Album', artist: 'Artist', filename: 'one.flac', title: 'One', trackNumber: 1 },
+      ],
+      sourceDirs: [firstDir, secondDir],
+    })).rejects.toThrow('Source audio files are missing metadata records: two.flac')
+
+    expect(await readdir(destDir)).toEqual([])
+    expect(writeAudioTagFix).not.toHaveBeenCalled()
+  })
+
   it('singular mode: sourceDirectory absent, existing art and audio behavior unchanged', async () => {
     await Promise.all([
       createTempFile(firstDir, 'track1.flac'),

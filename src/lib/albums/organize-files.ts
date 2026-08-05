@@ -135,12 +135,13 @@ async function organizeSingleAlbum(
 async function organizeConcatenatedAlbum(
   options: OrganizeFilesOptions,
   execute: boolean,
+  records: SetMetadataRecord[] | undefined,
 ): Promise<OrganizeFilesJsonOutput> {
   const normalized = normalizeMetadataFixOptions(options)
   const albumArtStrategy = parseAlbumArtStrategy(options.albumArtStrategy)
-  const concatenated = await readConcatenateAlbumSources(options, normalized)
+  const concatenated = await readConcatenateAlbumSources(options, normalized, records)
   const fixes = applyConcatenateDiscMetadata(
-    planMetadataFixes(concatenated.sources, undefined, normalized),
+    planMetadataFixes(concatenated.sources, concatenated.recordsByFilename, normalized),
     concatenated.discsBySourcePath,
   )
   const destinationDirectory = resolve(options.destDir)
@@ -199,8 +200,5 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
     }
     return organizeSingleAlbum(options, recordsByFilename, options.execute === true)
   }
-  if (records !== undefined) {
-    throw new UserInputError('--set-metadata is not supported with sourceDirs')
-  }
-  return organizeConcatenatedAlbum(options, options.execute === true)
+  return organizeConcatenatedAlbum(options, options.execute === true, records)
 }

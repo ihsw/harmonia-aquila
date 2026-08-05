@@ -80,3 +80,43 @@ remain compatible.
 Organization fields use proposed metadata and `tagChanges` shows the current
 and new values. Execution repairs a temporary destination copy before
 publishing it; source files are never changed.
+
+## Concatenate mode (`--source-dirs` / `sourceDirs` / `albumDirs`)
+
+`setMetadata` is also supported with `--disc-strategy concatenate`, which
+unblocks fully tagless multi-disc sources: a record's `trackNumber` becomes
+the local sort/validation fallback whenever a file has no embedded track tag.
+Three additional rules apply only in this mode:
+
+- Records **must not** set `discNumber`/`discTotal` — concatenate always
+  derives disc identity from `--source-dirs` order.
+- `filename` **must be unique across every source directory combined**, not
+  just within one directory, since disc-local rips often reuse the same
+  numbered filenames per disc.
+- Coverage is checked against the union of every directory's files, not
+  directory-by-directory.
+
+Worked example — two fully tagless discs where each disc's own track numbers
+restart at `1`:
+
+```sh
+./build/dist/index.js manage-albums organize-files \
+  --source-dirs "/music/Days of Purgatory/01" "/music/Days of Purgatory/02" \
+  --dest-dir "$DEST_DIR" \
+  --disc-strategy concatenate \
+  --set-metadata days-of-purgatory-metadata.json \
+  --format json
+```
+
+```json
+[
+  { "filename": "01 - enter the realm.flac", "artist": "Iced Earth", "album": "Days of Purgatory", "trackNumber": 1, "title": "Enter the Realm" },
+  { "filename": "02 - colors.flac", "artist": "Iced Earth", "album": "Days of Purgatory", "trackNumber": 2, "title": "Colors" },
+  { "filename": "01 - burnt offerings.flac", "artist": "Iced Earth", "album": "Days of Purgatory", "trackNumber": 1, "title": "Burnt Offerings" }
+]
+```
+
+The first two records (disc 1) and the third record (disc 2) resolve to
+distinct destination filenames because their titles differ, even though their
+`trackNumber` values repeat across discs. `discNumber`/`discTotal` on the
+output rows come from directory order (`1/2`, `2/2`), never from this file.

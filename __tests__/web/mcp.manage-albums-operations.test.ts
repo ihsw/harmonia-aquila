@@ -136,6 +136,28 @@ describe('web MCP manage-albums summarize and organize tools', () => {
     expect(JSON.parse(getToolText(response))).toEqual([row])
   })
 
+  it('maps albumDirs together with setMetadata through MCP organize input', async () => {
+    const currentTestApp = requireTestApp()
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+    const setMetadata = [
+      { album: 'Album', artist: 'Artist', filename: 'one.flac', title: 'One', trackNumber: 1 },
+      { album: 'Album', artist: 'Artist', filename: 'two.flac', title: 'Two', trackNumber: 1 },
+    ]
+
+    await callTool(15, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {
+      albumDirs: ['disc-1/', 'disc-2/'],
+      discStrategy: 'concatenate',
+      setMetadata,
+    })
+
+    expect(organizeAlbumFiles).toHaveBeenCalledWith({
+      destDir: currentTestApp.destDir,
+      discStrategy: 'concatenate',
+      setMetadataRecords: setMetadata,
+      sourceDirs: [`${currentTestApp.sourceDir}/disc-1`, `${currentTestApp.sourceDir}/disc-2`],
+    })
+  })
+
   it('rejects traversal and malformed input before domain operations', async () => {
     const summarizeTraversal = await callTool(6, MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME, { dirName: '..' })
     const organizeMissing = await callTool(8, MANAGE_ALBUMS_ORGANIZE_FILES_TOOL_NAME, {})

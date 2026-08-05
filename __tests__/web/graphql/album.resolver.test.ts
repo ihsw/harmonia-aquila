@@ -120,6 +120,27 @@ describe('AlbumResolver', () => {
     expect(result).toEqual([row])
   })
 
+  it('maps albumDirs together with setMetadata for concatenate', async () => {
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+    const setMetadata = [
+      { album: 'Album', artist: 'Artist', filename: 'one.flac', title: 'One', trackNumber: 1 },
+      { album: 'Album', artist: 'Artist', filename: 'two.flac', title: 'Two', trackNumber: 1 },
+    ]
+
+    await resolver.albumOrganizeFiles({
+      albumDirs: ['disc-1', 'disc-2'],
+      discStrategy: 'concatenate',
+      setMetadata,
+    })
+
+    expect(organizeAlbumFiles).toHaveBeenCalledWith({
+      destDir: roots.destDir,
+      discStrategy: 'concatenate',
+      setMetadataRecords: setMetadata,
+      sourceDirs: [path.join(roots.sourceDir, 'disc-1'), path.join(roots.sourceDir, 'disc-2')],
+    })
+  })
+
   it.each([
     'Multiple albums found: Album A, Album B',
     'Multiple artists resolve to the same album directory: Same Album (Artist A, Artist B)',

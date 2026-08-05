@@ -89,9 +89,29 @@ harmonia-aquila manage-albums organize-files \
 
 For example, local tracks `1,2` and `1` become flat tracks `1,2,1` tagged
 `1/2,1/2,2/2`. Exact flat destination collisions remain errors. Concatenation
-rejects `--limit`, `--reset-track`, `--ignore-audio-files-without-tracks`, and
-`--set-metadata`. This behavior supersedes the initial global-track/cleared-disc
-concatenate semantics.
+rejects `--limit`, `--reset-track`, and `--ignore-audio-files-without-tracks`.
+This behavior supersedes the initial global-track/cleared-disc concatenate
+semantics.
+
+`--set-metadata` (CLI file/CSV, or inline `setMetadata` records in REST,
+GraphQL, and MCP) is supported with `--source-dirs`, which is what makes fully
+tagless multi-disc sources organizable: a record's `trackNumber` becomes the
+local sort/validation fallback whenever a file has no embedded track tag, and
+`artist`/`album`/`title`/`trackNumber` apply to concatenated output exactly as
+they do for a single `--source-dir`. Three constraints apply only in
+concatenate mode:
+
+- Records **must not** include `discNumber` or `discTotal` — disc identity
+  always comes from `--source-dirs` order, never from record content.
+- Every bare filename **must be unique across all `--source-dirs` entries
+  combined**; a filename repeated in two directories is rejected before any
+  write, naming the filename and both directories.
+- Every file across every directory needs exactly one matching record, and
+  every record needs exactly one matching file, checked against the combined
+  set of all directories (not directory-by-directory).
+
+All three checks run before any destination write, alongside the existing
+disc-collision and album-art-collision preflight.
 
 When concatenating, adjacent recognized album art is selected per resolved album
 root separately from the destination collision strategy. If two source folders

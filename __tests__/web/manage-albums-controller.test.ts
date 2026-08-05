@@ -109,6 +109,27 @@ describe('album web controller', () => {
     expect(result).toEqual([row])
   })
 
+  it('maps albumDirs together with setMetadata through organize-files', async () => {
+    vi.mocked(organizeAlbumFiles).mockResolvedValue([])
+    const setMetadata = [
+      { album: 'Album', artist: 'Artist', filename: 'one.flac', title: 'One', trackNumber: 1 },
+      { album: 'Album', artist: 'Artist', filename: 'two.flac', title: 'Two', trackNumber: 1 },
+    ]
+
+    await controller.organizeFiles({
+      albumDirs: ['disc-1', 'disc-2'],
+      discStrategy: 'concatenate',
+      setMetadata,
+    })
+
+    expect(organizeAlbumFiles).toHaveBeenCalledWith({
+      destDir: roots.destDir,
+      discStrategy: 'concatenate',
+      setMetadataRecords: setMetadata,
+      sourceDirs: [path.join(roots.sourceDir, 'disc-1'), path.join(roots.sourceDir, 'disc-2')],
+    })
+  })
+
   it('maps metadata repair fields through organize-files', async () => {
     vi.mocked(organizeAlbumFiles).mockResolvedValue([])
     const setMetadata = [{

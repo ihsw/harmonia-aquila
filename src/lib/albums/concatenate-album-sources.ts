@@ -1,9 +1,11 @@
 import type { Dirent } from 'node:fs'
 import { realpath } from 'node:fs/promises'
 
+import type { SetMetadataRecord } from '../../commands/manage-albums/helpers/set-metadata.js'
 import { UserInputError } from '../errors.js'
 
 import { getAudioFiles } from './audio-files.js'
+import { reconcileConcatenateSetMetadata } from './concatenate-set-metadata.js'
 import { parseAlbumSources } from './metadata-fix-sources.js'
 import type { NormalizedMetadataFixOptions, ParsedAlbumSource } from './metadata-fix-types.js'
 import type { OrganizeFilesOptions } from './organize-files-types.js'
@@ -22,6 +24,7 @@ export interface ConcatenateDiscContext {
 
 export interface ConcatenateAlbumSources {
   discsBySourcePath: Map<string, ConcatenateDiscContext>
+  recordsByFilename: Map<string, SetMetadataRecord> | undefined
   sourceEntries: ConcatenateSourceEntry[]
   sources: ParsedAlbumSource[]
 }
@@ -40,7 +43,6 @@ function assertConcatenateOptions(
     options.limit === undefined ? undefined : '--limit',
     normalized.resetTrack ? '--reset-track' : undefined,
     options.ignoreAudioFilesWithoutTracks === true ? '--ignore-audio-files-without-tracks' : undefined,
-    normalized.setMetadata === undefined && normalized.setMetadataRecords === undefined ? undefined : '--set-metadata',
   ].filter((value): value is string => value !== undefined)
 
   if (conflicts.length > 0) {
@@ -70,18 +72,24 @@ async function assertUniqueSourceDirs(sourceEntries: ConcatenateSourceEntry[]): 
   }
 }
 
-function getLocalTrackNumber(source: ParsedAlbumSource): number {
-  if (source.trackNumber === null || !Number.isInteger(source.trackNumber) || source.trackNumber < 1) {
+function getLocalTrackNumber(source: ParsedAlbumSource, record: SetMetadataRecord | undefined): number {
+  const trackNumber = source.trackNumber ?? record?.trackNumber ?? null
+
+  if (trackNumber === null || !Number.isInteger(trackNumber) || trackNumber < 1) {
     throw new UserInputError(`${source.sourcePath} must have a positive integer track number for concatenation`)
   }
-  return source.trackNumber
+  return trackNumber
 }
 
-function normalizeSourceTracks(sourceDirectory: string, parsedSources: ParsedAlbumSource[]): ParsedAlbumSource[] {
+function normalizeSourceTracks(
+  sourceDirectory: string,
+  parsedSources: ParsedAlbumSource[],
+  recordsByFilename: Map<string, SetMetadataRecord> | undefined,
+): ParsedAlbumSource[] {
   const countsByTrack = new Map<number, string[]>()
 
   for (const source of parsedSources) {
-    const trackNumber = getLocalTrackNumber(source)
+    const trackNumber = getLocalTrackNumber(source, recordsByFilename?.get(source.filename))
     countsByTrack.set(trackNumber, [...(countsByTrack.get(trackNumber) ?? []), source.filename])
   }
   const duplicates = [...countsByTrack.entries()]
@@ -92,13 +100,17 @@ function normalizeSourceTracks(sourceDirectory: string, parsedSources: ParsedAlb
     throw new UserInputError(`Concatenate source "${sourceDirectory}" has duplicate track numbers: ${duplicates.join('; ')}`)
   }
   return [...parsedSources]
-    .sort((left, right) => getLocalTrackNumber(left) - getLocalTrackNumber(right))
+    .sort((left, right) => (
+      getLocalTrackNumber(left, recordsByFilename?.get(left.filename))
+      - getLocalTrackNumber(right, recordsByFilename?.get(right.filename))
+    ))
     .map(source => ({ ...source, sourceDirectory }))
 }
 
 export async function readConcatenateAlbumSources(
   options: OrganizeFilesOptions,
   normalized: NormalizedMetadataFixOptions,
+  records: SetMetadataRecord[] | undefined,
 ): Promise<ConcatenateAlbumSources> {
   const requestedSourceDirs = assertConcatenateOptions(options, normalized)
   const sourceEntries = await Promise.all(requestedSourceDirs.map(async (sourceDir, sourceIndex) => {
@@ -115,13 +127,16 @@ export async function readConcatenateAlbumSources(
     }
   }))
   await assertUniqueSourceDirs(sourceEntries)
+  const recordsByFilename = records === undefined
+    ? undefined
+    : reconcileConcatenateSetMetadata(records, sourceEntries)
 
   const parsedByEntry = await Promise.all(sourceEntries.map(async (entry) => {
     const parsedSources = await parseAlbumSources(entry.sourceDirectory, entry.files.map(file => file.name))
 
     return {
       entry,
-      sources: normalizeSourceTracks(entry.sourceDirectory, parsedSources),
+      sources: normalizeSourceTracks(entry.sourceDirectory, parsedSources, recordsByFilename),
     }
   }))
   const discsBySourcePath = new Map<string, ConcatenateDiscContext>()
@@ -134,5 +149,5 @@ export async function readConcatenateAlbumSources(
       sources.push(source)
     }
   }
-  return { discsBySourcePath, sourceEntries, sources }
+  return { discsBySourcePath, recordsByFilename, sourceEntries, sources }
 }
