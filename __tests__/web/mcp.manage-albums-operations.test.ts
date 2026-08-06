@@ -36,10 +36,11 @@ describe('web MCP manage-albums summarize and organize tools', () => {
     const artRow = {
       action: 'copied', destination: 'Artist/Album/cover.jpg', fileType: 'albumArt', filename: 'cover.jpg',
     } as const
-    vi.mocked(summarizeAlbumSourceDir).mockResolvedValue([{ filename: 'a.flac' } as never])
+    const summarizeRow = { bitDepth: '24-bit', filename: 'a.flac' } as const
+    vi.mocked(summarizeAlbumSourceDir).mockResolvedValue([{ ...summarizeRow } as never])
     vi.mocked(organizeAlbumFiles).mockResolvedValue([artRow])
 
-    await callTool(1, MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME, {
+    const summarizeResponse = await callTool(1, MANAGE_ALBUMS_SUMMARIZE_SOURCE_DIR_TOOL_NAME, {
       dirName: 'music',
       ignoreNonAudioFiles: true,
       limit: 2,
@@ -67,6 +68,7 @@ describe('web MCP manage-albums summarize and organize tools', () => {
       setAlbumArtist: 'Various Artists',
       sourceDir: `${currentTestApp.sourceDir}/music`,
     })
+    expect(JSON.parse(getToolText(summarizeResponse))).toEqual([summarizeRow])
     expect(JSON.parse(getToolText(organizeResponse))).toEqual([artRow])
   })
 

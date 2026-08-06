@@ -44,7 +44,7 @@ describe('summarize-source-dir', () => {
           title: 'First Track',
           track: { no: 1, of: 10 },
         },
-        { bitrate: 800000, duration: 300, sampleRate: 44100 },
+        { bitrate: 800000, bitsPerSample: 24, duration: 300, sampleRate: 44100 },
       ),
     )
 
@@ -60,6 +60,7 @@ describe('summarize-source-dir', () => {
     expect(rows).toHaveLength(1)
     expect(rows[0]?.album).toBe('My Album')
     expect(rows[0]?.artist).toBe('The Artist')
+    expect(rows[0]?.bitDepth).toBe('24-bit')
     expect(rows[0]?.discNumber).toBe('02')
     expect(rows[0]?.discTotal).toBe('03')
     expect(rows[0]?.title).toBe('First Track')

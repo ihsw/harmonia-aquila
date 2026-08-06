@@ -10,6 +10,7 @@ import {
   isSupportedAudioExtension,
   parseLimit,
 } from '../../../../src/commands/manage-albums/helpers/utils.js'
+import { formatAudioBitDepth } from '../../../../src/lib/albums/audio-files.js'
 import { createTempDir, createTempFile, removeTempDir } from '../../../test-helpers.js'
 
 function makeCmd(): Command {
@@ -149,5 +150,19 @@ describe('formatAudioSampleRate', () => {
 
   it('formats kHz from Hz', () => {
     expect(formatAudioSampleRate(44100)).toBe('44.1 kHz')
+  })
+})
+
+describe('formatAudioBitDepth', () => {
+  it('returns empty string for undefined', () => {
+    expect(formatAudioBitDepth(undefined)).toBe('')
+  })
+
+  it.each([
+    [16, '16-bit'],
+    [24, '24-bit'],
+    [32, '32-bit'],
+  ])('formats %i bits as %s', (bitsPerSample, expected) => {
+    expect(formatAudioBitDepth(bitsPerSample)).toBe(expected)
   })
 })

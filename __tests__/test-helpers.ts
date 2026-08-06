@@ -41,6 +41,7 @@ export interface CommonTagsOverrides {
 }
 
 export interface FormatOverrides {
+  bitsPerSample?: number
   bitrate?: number
   duration?: number
   sampleRate?: number

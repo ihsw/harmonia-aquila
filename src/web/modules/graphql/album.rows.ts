@@ -13,6 +13,9 @@ export class AlbumSummaryRow {
   public artist!: string
 
   @Field(() => String)
+  public bitDepth!: string
+
+  @Field(() => String)
   public bitrate!: string
 
   @Field(() => String)

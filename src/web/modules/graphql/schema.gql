@@ -88,6 +88,7 @@ type AlbumSummaryRow {
   album: String!
   albumartist: String!
   artist: String!
+  bitDepth: String!
   bitrate: String!
   discNumber: String!
   discTotal: String!

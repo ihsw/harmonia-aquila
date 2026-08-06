@@ -58,6 +58,13 @@ whole-album JSON/CSV file in the CLI, or inline `setMetadata` records in REST,
 GraphQL, and MCP, when numbering is incorrect. Otherwise use explicit
 `--disc-strategy infer` only when the repeats are genuine disc boundaries.
 
+Summary rows expose the audio characteristics `bitrate`, `sampleRate`, and
+`bitDepth`. `bitDepth` is empty for MP3 and other lossy sources: bits-per-sample
+is a PCM concept, so an empty value is correct output, not a defect. It reports
+how the file is encoded, not the depth of the master it came from — a 16-bit
+source padded to 24 bits reports `24-bit`. Treat it as evidence when checking a
+hi-res claim, not proof of one.
+
 Single-disc albums retain `Artist/Album/TT - Title.ext`. A set with a disc
 number or total greater than 1 embeds the disc number directly in the track
 filename, adjacent to the track number, as `Artist/Album/DTT - Title.ext`.

@@ -126,3 +126,11 @@ export function formatAudioSampleRate(sampleRateInHertz: number | undefined): st
     maximumFractionDigits: 1,
   }).format(sampleRateInKilohertz)} kHz`
 }
+
+export function formatAudioBitDepth(bitsPerSample: number | undefined): string {
+  if (bitsPerSample === undefined) {
+    return ''
+  }
+
+  return `${bitsPerSample.toString()}-bit`
+}

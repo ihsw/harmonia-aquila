@@ -59,7 +59,7 @@ describe('web GraphQL endpoint', () => {
     }`)
     const result = await postGraphql(`{
       albumList: albumList(input: {})
-      albumSummarizeSourceDir(input: { dirName: "." }) { filename }
+      albumSummarizeSourceDir(input: { dirName: "." }) { filename bitDepth }
       audiobookCrawl(input: { dirName: "." }) { filename }
     }`)
 

@@ -74,6 +74,15 @@ describe('AlbumResolver', () => {
     })
   })
 
+  it('carries bitDepth through the summarize query', async () => {
+    const row = { bitDepth: '24-bit', bitrate: '3,000 kbps', filename: 'a.flac', sampleRate: '48 kHz' } as const
+    vi.mocked(summarizeAlbumSourceDir).mockResolvedValue([{ ...row } as never])
+
+    const result = await resolver.albumSummarizeSourceDir({ dirName: 'albums' })
+
+    expect(result).toEqual([row])
+  })
+
   it('maps mutations with configured roots and dry-run defaults', async () => {
     vi.mocked(organizeAlbumFiles).mockResolvedValue([])
     const setMetadata = [{

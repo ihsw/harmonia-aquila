@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import pLimit from 'p-limit'
 
 import {
+  formatAudioBitDepth,
   formatAudioBitrate,
   formatAudioDuration,
   formatAudioSampleRate,
@@ -22,6 +23,7 @@ export interface SummarizeSourceDirJsonOutputRow {
   grouping: string
   artist: string
   albumartist: string
+  bitDepth: string
   bitrate: string
   discNumber: string
   discTotal: string
@@ -55,6 +57,7 @@ export async function summarizeAlbumSourceDir(options: SummarizeSourceDirOptions
         album: metadata.common.album ?? '',
         albumartist: metadata.common.albumartist ?? '',
         artist: metadata.common.artist ?? '',
+        bitDepth: formatAudioBitDepth(metadata.format.bitsPerSample),
         bitrate: formatAudioBitrate(metadata.format.bitrate),
         discNumber: formatDiscNumber(metadata.common.disk.no),
         discTotal: formatDiscNumber(metadata.common.disk.of),

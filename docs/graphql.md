@@ -26,12 +26,20 @@ query {
     filename
     artist
     album
+    bitDepth
     discNumber
     discTotal
     title
   }
 }
 ```
+
+Summary rows expose the audio characteristics `bitrate`, `sampleRate`, and
+`bitDepth`. `bitDepth` is empty for MP3 and other lossy sources — bits-per-sample
+is a PCM concept, so an empty value is correct output, not a defect. It reports
+how the file is encoded, not the depth of the master it came from: a 16-bit
+source padded to 24 bits reports `24-bit`, useful evidence when checking a
+hi-res claim but not proof of one.
 
 List direct entries at the configured source root, or provide a slash-terminated
 source-relative `prefix` to list one subdirectory:
