@@ -20,9 +20,11 @@ type AlbumMetadataChangesRow {
   newProducers: [String!]
   newTitle: String
   newTrackNumber: Int
+  newYear: Int
   producers: [String!]
   title: String!
   trackNumber: String
+  year: Int
 }
 
 input AlbumOrganizeFilesInput {
@@ -73,6 +75,7 @@ input AlbumSetMetadataRecordInput {
   sourceIndex: Int
   title: String!
   trackNumber: Int!
+  year: Int
 }
 
 input AlbumSummaryInput {

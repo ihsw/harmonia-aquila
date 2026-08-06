@@ -62,6 +62,9 @@ export class AlbumSetMetadataRecordInput {
 
   @Field(() => Int)
   public trackNumber!: number
+
+  @Field(() => Int, { nullable: true })
+  public year?: number
 }
 
 @InputType()

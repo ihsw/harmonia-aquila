@@ -33,6 +33,12 @@ describe('assertNoDiscFieldsInRecords', () => {
     }).not.toThrow()
   })
 
+  it('accepts records carrying a year (year is not a disc field)', () => {
+    expect(() => {
+      assertNoDiscFieldsInRecords([record({ filename: 'one.flac', year: 1986 })])
+    }).not.toThrow()
+  })
+
   it('rejects a single record with discNumber', () => {
     expect(() => {
       assertNoDiscFieldsInRecords([record({ discNumber: 1, filename: 'one.flac' })])
@@ -73,6 +79,19 @@ describe('reconcileConcatenateSetMetadata', () => {
 
     expect(result.get(resolve('/a', 'track.flac'))?.title).toBe('First')
     expect(result.get(resolve('/b', 'track.flac'))?.title).toBe('Second')
+  })
+
+  it('carries year through reconciliation on both discs', () => {
+    const entries = [entry('/a', 0, ['track.flac']), entry('/b', 1, ['track.flac'])]
+    const records = [
+      record({ filename: 'track.flac', sourceIndex: 1, year: 1986 }),
+      record({ filename: 'track.flac', sourceIndex: 2, trackNumber: 2, year: 1986 }),
+    ]
+
+    const result = reconcileConcatenateSetMetadata(records, entries)
+
+    expect(result.get(resolve('/a', 'track.flac'))?.year).toBe(1986)
+    expect(result.get(resolve('/b', 'track.flac'))?.year).toBe(1986)
   })
 
   it('rejects disc fields before any other check', () => {

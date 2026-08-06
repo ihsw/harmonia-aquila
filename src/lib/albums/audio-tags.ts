@@ -18,6 +18,7 @@ export interface AudioTagFix {
   producers?: string[]
   title?: string
   trackNumber?: number
+  year?: number
 }
 
 export type NumericTagFix = { kind: 'clear' } | { kind: 'set', value: number }
@@ -120,6 +121,10 @@ export function writeAudioTagFix(filePath: string, tagFix: AudioTagFix): void {
 
     if (tagFix.trackNumber !== undefined) {
       audioFile.tag.track = tagFix.trackNumber
+    }
+
+    if (tagFix.year !== undefined) {
+      audioFile.tag.year = tagFix.year
     }
 
     audioFile.save()

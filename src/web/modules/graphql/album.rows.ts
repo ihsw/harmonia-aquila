@@ -132,6 +132,9 @@ export class AlbumMetadataChangesRow {
   @Field(() => Int, { nullable: true })
   public newTrackNumber?: number
 
+  @Field(() => Int, { nullable: true })
+  public newYear?: number
+
   @Field(() => [String], { nullable: true })
   public producers?: string[]
 
@@ -140,6 +143,9 @@ export class AlbumMetadataChangesRow {
 
   @Field(() => String, { nullable: true })
   public trackNumber?: string
+
+  @Field(() => Int, { nullable: true })
+  public year?: number
 }
 
 @ObjectType()

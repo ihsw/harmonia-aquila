@@ -29,7 +29,8 @@ metadata filepath. REST example:
       "artist": "Artist",
       "album": "Album",
       "trackNumber": 1,
-      "title": "Song"
+      "title": "Song",
+      "year": 1986
     }
   ]
 }
@@ -46,8 +47,9 @@ mutation {
       album: "Album"
       trackNumber: 1
       title: "Song"
+      year: 1986
     }]
-  }) { action destination tagChanges { newTrackNumber newTitle } }
+  }) { action destination tagChanges { newTrackNumber newTitle year newYear } }
 }
 ```
 
@@ -68,10 +70,36 @@ Omit `execute` for review, then repeat the identical API input with
 | `discNumber` | positive integer | Optional; required with `discTotal` |
 | `discTotal` | positive integer | Optional; at least `discNumber` |
 | `sourceIndex` | positive integer | Optional; concatenate mode only. 1-based `--source-dirs` position |
+| `year` | integer 1000–9999 | Optional; set-only. Omit to leave the source year untouched |
 
 Unknown files, duplicates, missing coverage, invalid extensions or paths,
 empty values, and invalid integers fail before writes. JSON/CSV file parsing
 for the CLI preserves the same validation; CSV follows RFC 4180 quoting.
+
+### `year`
+
+`year` overwrites the release year tag, which is the only way to correct
+reissue and deluxe pressings that carry the reissue year instead of the
+original — a 1986 album tagged `2009` by its 2009 remaster, for example.
+`tagChanges` reports the pair as `year` (current) and `newYear` (proposed).
+
+Three rules:
+
+- **Set-only.** There is no clear semantic; omitting `year` leaves the tag
+  alone. Unlike `discNumber`/`discTotal`, it cannot be blanked.
+- **Range-checked.** Values outside 1000–9999, non-integers, and non-numeric
+  strings are rejected before any write, naming the offending record index.
+- **Permitted under concatenate**, unlike the disc fields — `year` carries no
+  disc identity, so it is not rejected by `--disc-strategy concatenate`.
+
+The CLI accepts a numeric string (`"1986"`) from JSON or a CSV column, matching
+how it already coerces `trackNumber`; an empty CSV cell counts as absent. REST,
+GraphQL, and MCP accept only a JSON number, with GraphQL typing it as `Int`.
+
+> Before `year` was supported, an unrecognized `year` key in a `setMetadata`
+> record was **silently accepted and discarded** — no error, no tag write.
+> Manifests written against older builds therefore appeared to succeed while
+> having no effect on the year tag.
 
 `setMetadata` conflicts with set-artist, set-album, non-default album strategy,
 track reset, and artist/album-artist swap options. Disc inference also

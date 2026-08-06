@@ -2,6 +2,7 @@ import type { SetMetadataRecord } from '../../commands/manage-albums/helpers/set
 import { UserInputError } from '../errors.js'
 
 import { inferDiscSet } from './disc-metadata.js'
+import { getAlbumArtists, getArtists, getProducers } from './metadata-fix-strategies.js'
 import type {
   EffectiveAlbumMetadata,
   NormalizedMetadataFixOptions,
@@ -106,6 +107,7 @@ function projectMetadata(source: ParsedAlbumSource, tagFix: PlannedMetadataFix['
     producers: tagFix.producers ?? source.producers,
     title: tagFix.title ?? source.title,
     trackNumber: tagFix.trackNumber ?? source.trackNumber,
+    year: tagFix.year ?? source.year,
   }
 }
 
@@ -147,6 +149,7 @@ function planSource(
   const title = record?.title
   const trackNumber = record?.trackNumber ?? tracksByPath.get(source.sourcePath)
   const disc = discsBySourcePath.get(source.sourcePath)
+  const year = record?.year
   const tagFix = {
     ...(album === undefined ? {} : { album }),
     ...(albumArtists === undefined ? {} : { albumArtists }),
@@ -160,6 +163,7 @@ function planSource(
     ...(producers === undefined ? {} : { producers }),
     ...(title === undefined ? {} : { title }),
     ...(trackNumber === undefined ? {} : { trackNumber }),
+    ...(year === undefined ? {} : { year }),
   }
   return {
     effective: projectMetadata(source, tagFix),
@@ -177,27 +181,9 @@ function planSource(
       ...(producers === undefined ? {} : { newProducers: producers, producers: source.producers }),
       ...(title === undefined ? {} : { newTitle: title }),
       ...(trackNumber === undefined ? {} : { newTrackNumber: trackNumber, trackNumber: source.trackNumber ?? '' }),
+      ...(year === undefined ? {} : { newYear: year, year: source.year }),
     },
     source,
     tagFix,
   }
-}
-function getAlbumArtists(source: ParsedAlbumSource, options: NormalizedMetadataFixOptions,
-  grouped: Map<string, string[]>): string[] | undefined {
-  if (options.setAlbumArtist !== undefined) return [options.setAlbumArtist]
-  if (options.swapArtistAlbumartist) return source.artists
-  if (options.albumArtistsStrategy === 'aggregate') return grouped.get(source.grouping) ?? []
-  return options.albumArtistsStrategy === 'blank' ? [] : undefined
-}
-
-function getArtists(source: ParsedAlbumSource, options: NormalizedMetadataFixOptions): string[] | undefined {
-  if (options.setArtist !== undefined) return [options.setArtist]
-  return options.swapArtistAlbumartist ? source.albumArtists : undefined
-}
-
-function getProducers(source: ParsedAlbumSource, options: NormalizedMetadataFixOptions,
-  grouped: Map<string, string[]>): string[] | undefined {
-  if (options.producerStrategy === 'aggregate') return grouped.get(source.grouping) ?? []
-  if (options.producerStrategy === 'copy-from-album-artists') return source.albumArtists
-  return options.producerStrategy === 'blank' ? [] : undefined
 }

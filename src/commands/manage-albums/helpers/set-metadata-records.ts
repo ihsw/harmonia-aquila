@@ -12,10 +12,13 @@ export interface SetMetadataRecord {
   sourceIndex?: number
   title: string
   trackNumber: number
+  year?: number
 }
 
 const REQUIRED_FIELDS = ['filename', 'artist', 'album', 'trackNumber', 'title'] as const
 const STRING_FIELDS = ['filename', 'artist', 'album', 'title'] as const
+const MIN_YEAR = 1000
+const MAX_YEAR = 9999
 
 function asRawRecord(rawValue: unknown, context: string): Record<string, unknown> {
   if (typeof rawValue !== 'object' || rawValue === null || Array.isArray(rawValue)) {
@@ -36,6 +39,23 @@ function positiveInteger(rawValue: unknown, fieldName: string, context: string):
   }
   throw createSetMetadataError(
     `Metadata record ${context} has an invalid ${fieldName} ${JSON.stringify(rawValue)} (expected a positive integer)`,
+  )
+}
+
+function yearValue(rawValue: unknown, context: string): number {
+  const candidate = typeof rawValue === 'string' && /^\d+$/.test(rawValue.trim())
+    ? Number(rawValue.trim())
+    : rawValue
+
+  if (typeof candidate === 'number'
+    && Number.isInteger(candidate)
+    && candidate >= MIN_YEAR
+    && candidate <= MAX_YEAR) {
+    return candidate
+  }
+  throw createSetMetadataError(
+    `Metadata record ${context} has an invalid year ${JSON.stringify(rawValue)} `
+    + `(expected an integer between ${MIN_YEAR.toString()} and ${MAX_YEAR.toString()})`,
   )
 }
 
@@ -87,6 +107,9 @@ function buildRecord(rawValue: unknown, context: string): SetMetadataRecord {
   const sourceIndex = !('sourceIndex' in rawRecord) || rawRecord.sourceIndex === ''
     ? undefined
     : positiveInteger(rawRecord.sourceIndex, 'sourceIndex', context)
+  const year = !('year' in rawRecord) || rawRecord.year === ''
+    ? undefined
+    : yearValue(rawRecord.year, context)
   return {
     album: values.album,
     artist: values.artist,
@@ -96,6 +119,7 @@ function buildRecord(rawValue: unknown, context: string): SetMetadataRecord {
     ...(sourceIndex === undefined ? {} : { sourceIndex }),
     title: values.title,
     trackNumber: positiveInteger(rawRecord.trackNumber, 'trackNumber', context),
+    ...(year === undefined ? {} : { year }),
   }
 }
 

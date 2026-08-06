@@ -17,8 +17,10 @@ export interface MetadataFixJsonOutputRow {
   newProducers?: string[]
   newTitle?: string
   newTrackNumber?: number
+  newYear?: number
   producers?: string[]
   trackNumber?: number | string
+  year?: number | null
 }
 
 export interface MetadataFixOptions {
@@ -60,6 +62,7 @@ export interface ParsedAlbumSource {
   subtitle: string
   title: string
   trackNumber: number | null
+  year: number | null
 }
 
 export interface EffectiveAlbumMetadata {
@@ -71,6 +74,7 @@ export interface EffectiveAlbumMetadata {
   producers: string[]
   title: string
   trackNumber: number | null
+  year: number | null
 }
 
 export interface PlannedMetadataFix {

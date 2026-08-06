@@ -36,6 +36,7 @@ export async function parseAlbumSources(
         subtitle: metadata.common.subtitle?.[0] ?? '',
         title: metadata.common.title ?? '',
         trackNumber: metadata.common.track.no,
+        year: metadata.common.year ?? null,
       }
     }
     catch (error) {

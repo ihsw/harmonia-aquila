@@ -105,6 +105,34 @@ describe('organize-files set-metadata input sources', () => {
     expect(await readdir(destDir)).toEqual([])
   })
 
+  it('reports the year/newYear pair and writes the year tag', async () => {
+    await createTempFile(sourceDir, 'one.flac')
+    const records = [
+      { album: 'New', artist: 'Artist', filename: 'one.flac', title: 'One', trackNumber: 1, year: 1986 },
+    ]
+    vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata({
+      album: 'Old', artist: 'Artist', title: 'Old', track: { no: 1, of: null }, year: 2009,
+    }))
+
+    const [row] = await organizeAlbumFiles({ destDir, setMetadataRecords: records, sourceDir })
+
+    expect(row?.tagChanges).toMatchObject({ newYear: 1986, year: 2009 })
+    expect(row?.destination).toBe('Artist/New/01 - One.flac')
+  })
+
+  it('omits year keys entirely when records do not supply a year', async () => {
+    await createTempFile(sourceDir, 'one.flac')
+    const records = [{ album: 'New', artist: 'Artist', filename: 'one.flac', title: 'One', trackNumber: 1 }]
+    vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata({
+      album: 'Old', artist: 'Artist', title: 'Old', track: { no: 1, of: null }, year: 2009,
+    }))
+
+    const [row] = await organizeAlbumFiles({ destDir, setMetadataRecords: records, sourceDir })
+
+    expect(row?.tagChanges).not.toHaveProperty('year')
+    expect(row?.tagChanges).not.toHaveProperty('newYear')
+  })
+
   it('executes file and inline records with equivalent repaired output', async () => {
     const secondDestDir = await createTempDir('organize-inline-second-dst-')
     try {

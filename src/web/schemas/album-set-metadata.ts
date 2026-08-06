@@ -21,6 +21,7 @@ export const albumSetMetadataRecordSchema = z.object({
   sourceIndex: z.number().int().positive().optional(),
   title: nonEmptyString,
   trackNumber: z.number().int().positive(),
+  year: z.number().int().min(1000).max(9999).optional(),
 }).superRefine((record, context) => {
   if (record.discTotal !== undefined && record.discNumber === undefined) {
     context.addIssue({ code: 'custom', message: 'discTotal requires discNumber', path: ['discTotal'] })

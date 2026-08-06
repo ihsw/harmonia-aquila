@@ -102,9 +102,12 @@ track numbers without effective disc numbers return `BAD_USER_INPUT` with the
 duplicate track groups, the `missing disc number` reason, and `setMetadata` or
 explicit-inference guidance. `setMetadata` is a typed list of whole-album
 records with `filename`, `artist`, `album`, `trackNumber`, `title`, optional
-disc fields, and an optional `sourceIndex` (the 1-based `albumDirs` position,
+disc fields, an optional `year` (`Int`, 1000–9999, set-only, and permitted
+under `discStrategy: "concatenate"` unlike the disc fields), and an optional
+`sourceIndex` (the 1-based `albumDirs` position,
 required only for a filename that repeats across directories under
-`discStrategy: "concatenate"`); it is never a server-host filepath. Disc inference is opt-in through
+`discStrategy: "concatenate"`); it is never a server-host filepath.
+`AlbumMetadataChangesRow` reports the year as the `year`/`newYear` pair. Disc inference is opt-in through
 `discStrategy: "infer"` and uses filename order; omitted/default input never
 infers. A repeated or decreased track number starts the next disc. Review the
 dry-run values before passing `execute: true`. Multi-disc organization prefixes

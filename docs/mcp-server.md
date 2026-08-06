@@ -84,7 +84,10 @@ operation runs.
 record for every selected audio file. MCP never resolves it as a host path. A
 record may carry an optional `sourceIndex` (1-based `albumDirs` position),
 required only for a filename that repeats across directories under
-`discStrategy: "concatenate"`.
+`discStrategy: "concatenate"`. A record may also carry an optional `year`
+(integer 1000–9999); it is set-only, is permitted under
+`discStrategy: "concatenate"`, and surfaces in `tagChanges` as the
+`year`/`newYear` pair.
 
 ## Album tool contracts
 

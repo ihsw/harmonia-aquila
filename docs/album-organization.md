@@ -122,6 +122,13 @@ concatenate mode:
   every record needs exactly one matching file, checked against the combined
   set of all directories (not directory-by-directory).
 
+An optional `year` (integer 1000–9999) is **not** subject to the first
+constraint: it carries no disc identity, so it is permitted in concatenate mode
+as well as for a single `--source-dir`. It is set-only — omitting it leaves the
+source year untouched — and `tagChanges` reports the `year`/`newYear` pair. Use
+it to correct reissue pressings whose tags carry the remaster year rather than
+the original release year.
+
 All three checks run before any destination write, alongside the existing
 disc-collision and album-art-collision preflight.
 

@@ -27,6 +27,27 @@ describe('organize-files metadata repair', () => {
     vi.restoreAllMocks()
   })
 
+  it.each(['flac', 'mp3'])('writes the year tag on execute for .%s', async (extension) => {
+    await createTempFile(sourceDir, `track01.${extension}`, 'source')
+    const records = [{
+      album: 'Album',
+      artist: 'Artist',
+      filename: `track01.${extension}`,
+      title: 'Title',
+      trackNumber: 1,
+      year: 2004,
+    }]
+    vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata({
+      album: 'Album', artist: 'Artist', title: 'Title', track: { no: 1, of: null }, year: 2005,
+    }))
+
+    await organizeAlbumFiles({ destDir, execute: true, setMetadataRecords: records, sourceDir })
+
+    expect(vi.mocked(writeAudioTagFix).mock.calls.map(call => call[1])).toEqual([
+      { album: 'Album', artists: ['Artist'], title: 'Title', trackNumber: 1, year: 2004 },
+    ])
+  })
+
   it('plans destinations from repaired metadata without writing', async () => {
     const sourcePath = await createTempFile(sourceDir, 'track01.flac', 'source')
     vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata({

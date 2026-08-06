@@ -50,7 +50,7 @@ export function registerOrganizeFilesCommand(program: Command): void {
     .option('--album-art-strategy <strategy>', 'how to resolve duplicate album-art destinations across sourceDirs: first, last, neither')
     .option('--set-album-artist <albumArtist>', 'set album artist metadata to the provided value')
     .option('--set-artist <artist>', 'set artist metadata to the provided value')
-    .option('--set-metadata <path>', 'set per-track metadata, including optional disc fields, from JSON or CSV')
+    .option('--set-metadata <path>', 'set per-track metadata, including optional disc and year fields, from JSON or CSV')
     .option('--disc-strategy <strategy>', 'disc metadata strategy: no change, infer, or concatenate ordered directories as discs', 'no change')
     .option('--producer-strategy <strategy>', 'how to update producers: no change, blank, aggregate, copy-from-album-artists', 'no change')
     .option('--reset-track', 'reset track number metadata from alphabetical source order within each album')
