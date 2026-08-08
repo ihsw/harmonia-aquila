@@ -13,5 +13,5 @@ node . manage-albums organize-files \
   --set-artist "OverClocked ReMix" \
   --album-strategy grouping \
   --destination-strategy ignore \
-  --limit 5 \
+  --format json \
   --execute
