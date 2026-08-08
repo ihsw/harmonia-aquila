@@ -1,0 +1,38 @@
+info:
+  name: rest-allow-multiple-albums-source-tags
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseUrl}}/manage-albums/organize-files"
+  body:
+    type: json
+    data: |-
+      {
+        "allowMultipleAlbums": true
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("REST organizes one album title held by two artists", function () {
+          const body = res.getBody();
+          const rows = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(201);
+          expect(rows).to.have.lengthOf(2);
+
+          const destinations = rows.map(row => row.destination).sort();
+          expect(destinations[0]).to.match(/^AmIEviL\/ocremix\.org\/127 - /);
+          expect(destinations[1]).to.match(/^The Fat Man\/ocremix\.org\/741 - /);
+          expect(rows.every(row => row.action === "would copy")).to.eql(true);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

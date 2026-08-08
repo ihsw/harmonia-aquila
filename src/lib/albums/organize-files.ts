@@ -173,6 +173,9 @@ export async function organizeAlbumFiles(options: OrganizeFilesOptions): Promise
   if (mode === 'concatenate' && normalized.discStrategy !== 'concatenate') {
     throw new UserInputError('sourceDirs requires --disc-strategy concatenate')
   }
+  if (mode === 'concatenate' && options.allowMultipleAlbums === true) {
+    throw new UserInputError('--allow-multiple-albums requires sourceDir')
+  }
   if (mode === 'single') {
     if (options.albumArtStrategy !== undefined) {
       throw new UserInputError('--album-art-strategy requires sourceDirs')

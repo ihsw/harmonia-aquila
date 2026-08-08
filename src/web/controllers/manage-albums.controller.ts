@@ -95,6 +95,7 @@ export class ManageAlbumsController {
         ...optionalEntry('albumArtStrategy', options.albumArtStrategy),
         ...optionalEntry('albumArtistsStrategy', options.albumArtistsStrategy),
         ...optionalEntry('albumStrategy', options.albumStrategy),
+        ...optionalEntry('allowMultipleAlbums', options.allowMultipleAlbums),
         ...optionalEntry('artistFilenameStrategy', options.artistFilenameStrategy),
         ...optionalEntry('destinationStrategy', options.destinationStrategy),
         ...optionalEntry('discStrategy', options.discStrategy),

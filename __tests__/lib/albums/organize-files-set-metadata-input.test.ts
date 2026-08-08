@@ -168,4 +168,27 @@ describe('organize-files set-metadata input sources', () => {
       await removeTempDir(secondDestDir)
     }
   })
+
+  it('assigns distinct albums from records when allowMultipleAlbums is set', async () => {
+    await createTempFile(sourceDir, 'track-a.mp3')
+    await createTempFile(sourceDir, 'track-b.mp3')
+    const records = [
+      { album: 'Album A', artist: 'Artist A', filename: 'track-a.mp3', title: 'Title A', trackNumber: 1 },
+      { album: 'Album B', artist: 'Artist B', filename: 'track-b.mp3', title: 'Title B', trackNumber: 1 },
+    ]
+    vi.mocked(parseFile).mockResolvedValue(makeAudioMetadata({
+      album: 'ocremix.org', artist: 'Original', title: 'Original', track: { no: null, of: null },
+    }))
+
+    const rows = await organizeAlbumFiles({
+      allowMultipleAlbums: true, destDir, setMetadataRecords: records, sourceDir,
+    })
+
+    expect(rows.map(row => row.destination)).toEqual([
+      join('Artist A', 'Album A', '01 - Title A.mp3'),
+      join('Artist B', 'Album B', '01 - Title B.mp3'),
+    ])
+    await expect(organizeAlbumFiles({ destDir, setMetadataRecords: records, sourceDir }))
+      .rejects.toThrow('Duplicate track numbers were detected:')
+  })
 })

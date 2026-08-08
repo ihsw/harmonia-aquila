@@ -80,8 +80,11 @@ src/web/servers/mcp-tools/manage-albums/organize-files.ts (+2 LOC — optionalEn
 ## 3. Surface wiring
 
 Four surfaces, one shape — but **placement differs** (FR-11): REST, GraphQL and MCP option lists
-are alphabetical, so the field goes first; the CLI's 22 `.option(...)` calls are grouped by topic,
-so the flag goes after `--ignore-audio-files-without-tracks` and before `--execute`.
+are alphabetical, which puts the field after the `album*` group and before
+`artistFilenameStrategy` (`'b' < 'l'`, so `albumStrategy` sorts ahead of `allowMultipleAlbums` —
+not first, as an earlier draft of this section claimed); the CLI's 22 `.option(...)` calls are
+grouped by topic, so the flag goes after `--ignore-audio-files-without-tracks` and before
+`--execute`.
 
 | Surface | File (current size) | Edit |
 | --- | --- | --- |

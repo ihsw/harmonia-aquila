@@ -32,6 +32,7 @@ input AlbumOrganizeFilesInput {
   albumArtistsStrategy: String
   albumDirs: [String!]
   albumStrategy: String
+  allowMultipleAlbums: Boolean
   artistFilenameStrategy: String
   destinationStrategy: String
   discStrategy: String

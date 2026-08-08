@@ -1,0 +1,58 @@
+info:
+  name: graphql-allow-multiple-albums
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/graphql"
+  body:
+    type: json
+    data: |-
+      {
+        "query": "mutation ($input: AlbumOrganizeFilesInput!) { albumOrganizeFiles(input: $input) { action destination } }",
+        "variables": {
+          "input": {
+            "allowMultipleAlbums": true,
+            "setMetadata": [
+              {
+                "filename": "track-a.mp3",
+                "artist": "Artist A",
+                "album": "Album A",
+                "trackNumber": 1,
+                "title": "Title A"
+              },
+              {
+                "filename": "track-b.mp3",
+                "artist": "Artist B",
+                "album": "Album B",
+                "trackNumber": 1,
+                "title": "Title B"
+              }
+            ]
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("GraphQL plans two albums that both start at track 1", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(200);
+          expect(json).to.not.have.property("errors");
+          expect(json.data.albumOrganizeFiles.map(row => row.destination)).to.eql([
+            "Artist A/Album A/01 - Title A.mp3",
+            "Artist B/Album B/01 - Title B.mp3"
+          ]);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

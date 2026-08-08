@@ -38,6 +38,7 @@ export const manageAlbumsOrganizeFilesInputSchema = {
   albumDir: albumDirSchema.optional(),
   albumDirs: albumDirsSchema.optional(),
   albumStrategy: z.string().optional(),
+  allowMultipleAlbums: z.boolean().optional(),
   artistFilenameStrategy: z.string().optional(),
   destinationStrategy: z.string().optional(),
   discStrategy: z.string().optional(),

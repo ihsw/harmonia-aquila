@@ -38,7 +38,7 @@ function normalizeSourceOptions(
 export function registerOrganizeFilesCommand(program: Command): void {
   const organizeFilesCommand = program
     .command('organize-files')
-    .description('Repair and organize one album per run plus adjacent album art; fail for multiple albums or artists')
+    .description('Repair and organize albums plus adjacent album art; one album per run unless --allow-multiple-albums')
     .option('--source-dir <sourceDir>', 'directory containing FLAC/MP3 album files and optional album art')
     .option('--source-dirs <sourceDirs...>', 'ordered flat album directories treated as discs in one flat album output')
     .requiredOption('--dest-dir <destDir>', 'directory to copy organized files into')
@@ -59,6 +59,7 @@ export function registerOrganizeFilesCommand(program: Command): void {
     .option('--title-filename-strategy <strategy>', 'metadata field to use for the title portion of the filename: subtitle, title', 'title')
     .option('--ignore-non-audio-files', 'ignore non-audio files in the source directory')
     .option('--ignore-audio-files-without-tracks', 'ignore audio files without track number metadata')
+    .option('--allow-multiple-albums', 'organize a source directory holding more than one album in one run; album art is excluded when several albums resolve')
     .option('--execute', 'repair metadata and copy files into organized destinations')
     .option('--format <format>', 'output format: plaintext, json', 'plaintext')
     .action(async (options: CliOrganizeOptions) => {

@@ -66,12 +66,24 @@ export function planAlbumArtCopies(
   albumArtStrategy: AlbumArtStrategy | undefined,
   execute: boolean,
 ): AlbumArtPlanItem[] {
-  const albumDestinationPath = audioPlans[0]?.albumDestinationPath
+  const albumDestinationPaths = [...new Set(audioPlans.map(plan => plan.albumDestinationPath))]
+  const albumDestinationPath = albumDestinationPaths[0]
   const includeSourceDirectory = artSources.length > 1
   const isConcatenate = artSources.length > 1
 
   if (albumDestinationPath === undefined) {
     return []
+  }
+  if (albumDestinationPaths.length > 1) {
+    return artSources.flatMap(source => source.albumArtFiles.map((file): AlbumArtPlanItem => ({
+      row: {
+        action: execute ? 'excluded' : 'would exclude',
+        destination: '',
+        fileType: 'albumArt',
+        filename: file.name,
+      },
+      type: 'excluded',
+    })))
   }
   const candidates = artSources.flatMap(source => source.albumArtFiles.map((file): PlannedArtCandidate => {
     const destinationPath = join(albumDestinationPath, isConcatenate ? sanitizePathSegment(file.name) : file.name)

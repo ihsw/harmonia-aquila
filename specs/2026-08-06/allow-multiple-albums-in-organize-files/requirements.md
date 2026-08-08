@@ -154,9 +154,10 @@ identical to today.
   handler, and the tool's `description` MUST mention the capability — it is the only text an MCP
   client reads before choosing arguments.
 - **FR-11** Field placement MUST follow each surface's existing convention, which is **not
-  uniform**: REST, GraphQL, and MCP option lists are alphabetical, so `allowMultipleAlbums` goes
-  first, before `albumArtStrategy`; the CLI's 22 `.option(...)` calls are ordered by topic, so
-  the flag goes with the other plan-shaping booleans — after
+  uniform**: REST, GraphQL, and MCP option lists are alphabetical, which puts
+  `allowMultipleAlbums` **after the `album*` group and before `artistFilenameStrategy`** —
+  `'b' < 'l'`, so `albumStrategy` sorts ahead of it; the CLI's 22 `.option(...)` calls are ordered
+  by topic, so the flag goes with the other plan-shaping booleans — after
   `--ignore-audio-files-without-tracks`, before `--execute`. All four MUST forward it through the
   same `optionalEntry` pattern every sibling option uses.
 - **FR-12** `--limit` MUST keep its current meaning: it truncates the alphabetically ordered file

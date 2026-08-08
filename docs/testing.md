@@ -70,18 +70,30 @@ inline-record dry runs; it never sets `execute`.
 ### Multiple-album conflict smoke test
 
 The dedicated six-request group requires a temporary flat source containing
-two tracks with distinct album tags. Build it from read-only sample tracks;
-never edit those source files or anything under `etc/**`:
+two tracks with **distinct album tags**. No two files in `etc/**` carry distinct
+albums any more — the surviving OC ReMix collection tags every file
+`album: "ocremix.org"` — so the album values must be written onto temporary
+copies. Never edit the source files or anything under `etc/**`:
 
 ```sh
 MULTI_ALBUM_ROOT="$(mktemp -d)"
 mkdir "$MULTI_ALBUM_ROOT/source" "$MULTI_ALBUM_ROOT/destination"
-cp "etc/albums/1-source-files/Across The Universe Soundtrack/1-01 Girl.mp3" "$MULTI_ALBUM_ROOT/source/across.mp3"
-cp "etc/albums/1-source-files/Requiem For A Dream - OST/01.Summer - Summer Overture.mp3" "$MULTI_ALBUM_ROOT/source/requiem.mp3"
+OCR="etc/albums/1-source-files/OC ReMix Collection - 1 to 4000 [v20201028]"
+cp "$OCR/7th_Guest_AmIEviL_OC_ReMix.mp3"   "$MULTI_ALBUM_ROOT/source/track-a.mp3"
+cp "$OCR/7th_Guest_Fat_Dance_OC_ReMix.mp3" "$MULTI_ALBUM_ROOT/source/track-b.mp3"
 npm run build
+node -e "
+const { writeAudioTagFix } = await import('./build/dist/lib/albums/audio-tags.js');
+writeAudioTagFix(process.argv[1] + '/source/track-a.mp3', { album: 'Album A' });
+writeAudioTagFix(process.argv[1] + '/source/track-b.mp3', { album: 'Album B' });
+" "$MULTI_ALBUM_ROOT"
 npm run web:serve -- --source-dir "$MULTI_ALBUM_ROOT/source" --dest-dir "$MULTI_ALBUM_ROOT/destination" --host 127.0.0.1 --port 3000 >"$MULTI_ALBUM_ROOT/web.log" 2>&1 &
 MULTI_ALBUM_SERVER_PID=$!
 ```
+
+The two copies keep their original artists (`AmIEviL`, `The Fat Man`) and track
+numbers (127, 741), so after the album rewrite they resolve to two distinct
+albums and the group's `Multiple albums found:` contract holds.
 
 Run only the conflict group. Its organization requests are dry runs and never
 set `execute`:
@@ -101,6 +113,47 @@ wait "$MULTI_ALBUM_SERVER_PID" || true
 rm "$MULTI_ALBUM_ROOT/source/across.mp3" "$MULTI_ALBUM_ROOT/source/requiem.mp3" "$MULTI_ALBUM_ROOT/web.log"
 rmdir "$MULTI_ALBUM_ROOT/source" "$MULTI_ALBUM_ROOT/destination"
 rmdir "$MULTI_ALBUM_ROOT"
+```
+
+### Multiple-album allowed smoke test
+
+The `multiple-album-allowed` group proves the opposite contract: with
+`allowMultipleAlbums`, one run plans several `Artist/Album` trees. It needs the
+**unmodified** OC ReMix copies — request 4 asserts the source's real tags, one
+album title (`ocremix.org`) held by two artists — so build a second fixture
+without the album rewrite:
+
+```sh
+ALLOW_ROOT="$(mktemp -d)"
+mkdir "$ALLOW_ROOT/source" "$ALLOW_ROOT/destination"
+OCR="etc/albums/1-source-files/OC ReMix Collection - 1 to 4000 [v20201028]"
+cp "$OCR/7th_Guest_AmIEviL_OC_ReMix.mp3"   "$ALLOW_ROOT/source/track-a.mp3"
+cp "$OCR/7th_Guest_Fat_Dance_OC_ReMix.mp3" "$ALLOW_ROOT/source/track-b.mp3"
+npm run build
+npm run web:serve -- --source-dir "$ALLOW_ROOT/source" --dest-dir "$ALLOW_ROOT/destination" --host 127.0.0.1 --port 3000 >"$ALLOW_ROOT/web.log" 2>&1 &
+ALLOW_SERVER_PID=$!
+```
+
+```sh
+cd collections/harmonia-aquila-web
+../../node_modules/.bin/bru run multiple-album-allowed -r --env local --bail
+cd ../..
+```
+
+Requests 1–3 send inline `setMetadata` assigning two distinct albums with **both
+tracks numbered 1**, on REST, GraphQL and MCP: the case that fails with
+`Duplicate track numbers were detected:` without the flag, because disc
+validation is otherwise scoped to the whole run. Request 4 sends no
+`setMetadata` and proves the artist guard is relaxed too. None sets `execute`.
+
+**Stop the previous server before starting the next one.** The two groups need
+different fixtures, and a surviving process keeps port 3000 — the new server then
+fails to bind with `EADDRINUSE` while Bruno silently tests the old fixture:
+
+```sh
+kill "$ALLOW_SERVER_PID"
+wait "$ALLOW_SERVER_PID" || true
+rm -rf "$ALLOW_ROOT"
 ```
 
 ## Hermetic Rules
@@ -139,6 +192,9 @@ __tests__/lib/albums/organize-files-metadata-disc.test.ts
 __tests__/lib/albums/audio-files-album-art.test.ts
 __tests__/lib/albums/organize-files-album-art.test.ts
 __tests__/lib/albums/organize-files-album-art-execution.test.ts
+__tests__/lib/albums/multiple-album-guard.test.ts
+__tests__/lib/albums/allow-multiple-albums.test.ts
+__tests__/web/manage-albums-allow-multiple-albums.test.ts
 __tests__/web/manage-albums-organize-metadata.test.ts
 __tests__/web/mcp.manage-albums-set-metadata.test.ts
 __tests__/web/graphql/album-disc-metadata.test.ts

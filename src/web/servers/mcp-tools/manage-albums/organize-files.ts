@@ -41,6 +41,7 @@ export function createManageAlbumsOrganizeFilesTool(
         ...optionalEntry('albumArtStrategy', input.albumArtStrategy),
         ...optionalEntry('albumArtistsStrategy', input.albumArtistsStrategy),
         ...optionalEntry('albumStrategy', input.albumStrategy),
+        ...optionalEntry('allowMultipleAlbums', input.allowMultipleAlbums),
         ...optionalEntry('artistFilenameStrategy', input.artistFilenameStrategy),
         ...optionalEntry('destinationStrategy', input.destinationStrategy),
         ...optionalEntry('discStrategy', input.discStrategy),
@@ -63,7 +64,7 @@ export function createManageAlbumsOrganizeFilesTool(
       annotations: {
         readOnlyHint: false,
       },
-      description: 'Plan metadata repairs and organize audio plus adjacent album art from manage_albums_list into the configured destination.',
+      description: 'Plan metadata repairs and organize audio plus adjacent album art from manage_albums_list into the configured destination. Set allowMultipleAlbums to organize a source holding more than one album in one call; album art is excluded when several albums resolve.',
       inputSchema: manageAlbumsOrganizeFilesInputSchema,
       title: 'Manage albums organize files',
     },

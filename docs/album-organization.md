@@ -20,13 +20,53 @@ npm run build
 
 Do not supply metadata-repair options during this suitable-candidate pass, and do not use overwrite behavior or manual merges for duplicate destination album folders.
 
-`organize-files` accepts one normalized album directory per run. It fails with
-`Multiple albums found:` when the selected files resolve to multiple albums,
-and it still fails when one normalized album directory resolves for multiple
-normalized artist directories. Album conflicts are checked after missing
-metadata and exact duplicate destinations, but before artist conflicts,
-destination inspection, or copying. Treat either result as a metadata or
-source-selection issue: there is no bypass, split, or automatic selection.
+`organize-files` accepts one normalized album directory per run by default. It
+fails with `Multiple albums found:` when the selected files resolve to multiple
+albums, and it still fails when one normalized album directory resolves for
+multiple normalized artist directories. Both album and artist conflicts are
+checked after disc-metadata validation and missing metadata, but before
+destination inspection, duplicate-destination checks, or copying. Treat either
+result as a metadata or source-selection issue unless the multiplicity is
+intended.
+
+Pass `--allow-multiple-albums` (REST, GraphQL and MCP: `allowMultipleAlbums`)
+when it is intended. One run then produces one `Artist/Album` tree per resolved
+album. The flag turns off **both** guards above, because both encode
+one-album-per-run and neither condition is a destination collision — the artist
+is part of the path, so two artists sharing an album title resolve to two
+separate directories. Consequences worth understanding before using it:
+
+- Disc metadata is validated per destination album rather than across the whole
+  run, so two albums that each start at track 1 organize normally. A repeated
+  track number *within* one album still fails with the usual duplicate-track
+  error. Multi-disc filename prefixes are likewise decided per album: a two-disc
+  album keeps `DTT - Title.ext` while a single-disc album in the same run keeps
+  `TT - Title.ext`.
+- Adjacent album art has no unambiguous album to belong to, so when more than one
+  album resolves every image is reported as `fileType: "albumArt"` with
+  `action: "would exclude"` (or `excluded`) and an empty `destination`, and is
+  never copied. `--ignore-non-audio-files` does **not** drop album art; remove
+  the images from the source, or organize each album separately, if you need them
+  placed. With exactly one album resolved, art placement is unchanged.
+- An album whose tracks disagree on `artist` will now split silently across
+  artist directories instead of erroring. Nothing in the tags distinguishes that
+  from two distinct albums sharing a title, so review the dry run — or run
+  `manage-albums validate`, which keeps both guards unconditionally and has no
+  such flag. A source that `organize-files --allow-multiple-albums` accepts will
+  still be rejected by `validate`; that asymmetry is intentional.
+- The flag requires a single `--source-dir`. Combined with `--source-dirs` it
+  fails with `--allow-multiple-albums requires sourceDir`, because concatenation
+  derives disc numbers from directory order and exists to build exactly one album.
+- `--limit` still truncates the alphabetically ordered file list *before* albums
+  are resolved, so a limited multi-album run can select part of an album. The dry
+  run shows exactly which tracks were chosen.
+- `--reset-track` still numbers per album **title**, so where one title yields two
+  destinations the numbering continues across both.
+
+Execution is sequential and per-file atomic, but a multi-album run is not atomic
+as a whole: if it fails partway, earlier albums are already written and the retry
+fails on the existing directories. Re-run with `--destination-strategy ignore`
+after reviewing the plan.
 
 Direct regular image files beside the album audio are included in the same
 plan when their extensions are `.avif`, `.bmp`, `.gif`, `.jpeg`, `.jpg`,
@@ -38,8 +78,9 @@ explicit. Collision strategy and preflight cover the combined audio-and-art
 plan before execution writes anything.
 
 Run `manage-albums validate` before organization. Validation applies the same
-one-album-per-run and album-to-artist collision rules, so successful validation
-cannot hide a layout conflict that `organize-files` would reject. Rows without
+one-album-per-run and album-to-artist collision rules unconditionally — it has no
+`--allow-multiple-albums` equivalent — so successful validation cannot hide a
+layout conflict that a default `organize-files` run would reject. Rows without
 a computable destination and exact duplicate file destinations remain reported
 as invalid validation rows instead of contributing album identities.
 

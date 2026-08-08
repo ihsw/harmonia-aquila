@@ -85,6 +85,17 @@ variants.
 publishes output to the configured `--dest-dir`. It never accepts a
 client-supplied root path or changes source audio.
 
+`allowMultipleAlbums: true` lets one mutation produce more than one
+`Artist/Album` tree. It relaxes both the `Multiple albums found:` and
+`Multiple artists resolve to the same album directory:` errors, validates disc
+metadata per destination album rather than per run — so two albums that each
+start at track 1 are planned normally — and reports every adjacent image as
+`action: "would exclude"` with an empty `destination`, since art cannot be
+attributed to one album. It requires the configured source root rather than
+`albumDirs`, and `albumValidateSourceDir` has no equivalent input: a source this
+mutation accepts is still rejected by validation. See
+[album organization](./album-organization.md) for the full contract.
+
 For concatenation, pass `albumDirs: ["disc-1", "disc-2"]` with
 `discStrategy: "concatenate"`. The mutation resolves each entry independently
 within the selected source root, requires at least two unique

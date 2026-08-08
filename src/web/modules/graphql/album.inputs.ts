@@ -81,6 +81,9 @@ export class AlbumOrganizeFilesInput {
   @Field(() => String, { nullable: true })
   public albumStrategy?: string
 
+  @Field(() => Boolean, { nullable: true })
+  public allowMultipleAlbums?: boolean
+
   @Field(() => String, { nullable: true })
   public artistFilenameStrategy?: string
 

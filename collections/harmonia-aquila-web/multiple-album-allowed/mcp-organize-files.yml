@@ -1,0 +1,73 @@
+info:
+  name: mcp-allow-multiple-albums
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/mcp"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 203,
+        "method": "tools/call",
+        "params": {
+          "name": "manage_albums_organize_files",
+          "arguments": {
+            "albumDir": "./",
+            "allowMultipleAlbums": true,
+            "setMetadata": [
+              {
+                "filename": "track-a.mp3",
+                "artist": "Artist A",
+                "album": "Album A",
+                "trackNumber": 1,
+                "title": "Title A"
+              },
+              {
+                "filename": "track-b.mp3",
+                "artist": "Artist B",
+                "album": "Album B",
+                "trackNumber": 1,
+                "title": "Title B"
+              }
+            ]
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Accept", "application/json, text/event-stream");
+        req.setHeader("MCP-Protocol-Version", bru.getEnvVar("mcpProtocolVersion"));
+    - type: tests
+      code: |-
+        test("MCP plans two albums that both start at track 1", function () {
+          const body = res.getBody();
+          const json = typeof body === "string" ? JSON.parse(body) : body;
+
+          expect(res.getStatus()).to.eql(200);
+          expect(json).to.have.property("id", 203);
+          expect(json.result).to.not.have.property("isError", true);
+
+          const rows = JSON.parse(json.result.content[0].text);
+          expect(rows.map(row => row.destination)).to.eql([
+            "Artist A/Album A/01 - Title A.mp3",
+            "Artist B/Album B/01 - Title B.mp3"
+          ]);
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

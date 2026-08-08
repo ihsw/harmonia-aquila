@@ -6,6 +6,7 @@ import { throwForDiscSetIssues } from './disc-metadata-error.js'
 import { formatDiscNumber, isMultiDiscSet } from './disc-metadata.js'
 import type { PlannedMetadataFix } from './metadata-fix-types.js'
 import {
+  type ArtistFilenameStrategy,
   assertSingleAlbumDirectory,
   assertSingleArtistPerAlbumDirectory,
   formatTrackNumber,
@@ -20,6 +21,61 @@ import type {
   PlannedOrganizationCopy,
 } from './organize-files-types.js'
 
+function albumDestinationKey(fix: PlannedMetadataFix, artistStrategy: ArtistFilenameStrategy): string {
+  const artistFilename = getArtistFilename(
+    artistStrategy,
+    fix.effective.artist,
+    fix.effective.albumArtist,
+    fix.source.labels,
+    fix.effective.producers,
+  )
+
+  return join(sanitizePathSegment(artistFilename), sanitizePathSegment(fix.effective.album))
+}
+
+function groupFixesByAlbum(
+  fixes: PlannedMetadataFix[],
+  artistStrategy: ArtistFilenameStrategy,
+  allowMultipleAlbums: boolean,
+): PlannedMetadataFix[][] {
+  if (!allowMultipleAlbums) {
+    return [fixes]
+  }
+  const groups = new Map<string, PlannedMetadataFix[]>()
+
+  for (const fix of fixes) {
+    const key = albumDestinationKey(fix, artistStrategy)
+
+    groups.set(key, [...(groups.get(key) ?? []), fix])
+  }
+  return [...groups.values()]
+}
+
+function resolveMultiDiscByFix(
+  selectedFixes: PlannedMetadataFix[],
+  artistStrategy: ArtistFilenameStrategy,
+  allowMultipleAlbums: boolean,
+): Map<PlannedMetadataFix, boolean> {
+  const multiDiscByFix = new Map<PlannedMetadataFix, boolean>()
+
+  for (const group of groupFixesByAlbum(selectedFixes, artistStrategy, allowMultipleAlbums)) {
+    const discRecords = group.map(({ effective, source }) => ({
+      discNumber: effective.discNumber,
+      discTotal: effective.discTotal,
+      filename: source.filename,
+      trackNumber: effective.trackNumber,
+    }))
+
+    throwForDiscSetIssues(discRecords)
+    const multiDisc = isMultiDiscSet(discRecords)
+
+    for (const fix of group) {
+      multiDiscByFix.set(fix, multiDisc)
+    }
+  }
+  return multiDiscByFix
+}
+
 export function planOrganizationCopies(
   fixes: PlannedMetadataFix[],
   options: OrganizeFilesOptions,
@@ -27,19 +83,13 @@ export function planOrganizationCopies(
 ): PlannedOrganizationCopy[] {
   const artistStrategy = parseArtistFilenameStrategy(options.artistFilenameStrategy)
   const titleStrategy = parseTitleFilenameStrategy(options.titleFilenameStrategy)
+  const allowMultipleAlbums = options.allowMultipleAlbums === true
   const selectedFixes = fixes.filter((fix) => {
     return !(fix.effective.trackNumber === null && options.ignoreAudioFilesWithoutTracks === true)
   })
-  const discRecords = selectedFixes.map(({ effective, source }) => ({
-    discNumber: effective.discNumber,
-    discTotal: effective.discTotal,
-    filename: source.filename,
-    trackNumber: effective.trackNumber,
-  }))
-
-  throwForDiscSetIssues(discRecords)
-  const multiDisc = isMultiDiscSet(discRecords)
+  const multiDiscByFix = resolveMultiDiscByFix(selectedFixes, artistStrategy, allowMultipleAlbums)
   const planned = selectedFixes.map((fix): PlannedOrganizationCopy => {
+    const multiDisc = multiDiscByFix.get(fix) ?? false
     const { effective, source } = fix
     const artistFilename = getArtistFilename(
       artistStrategy,
@@ -109,7 +159,9 @@ export function planOrganizationCopies(
     }
   })
 
-  assertSingleAlbumDirectory(albumDirectories)
-  assertSingleArtistPerAlbumDirectory(albumDirectories)
+  if (!allowMultipleAlbums) {
+    assertSingleAlbumDirectory(albumDirectories)
+    assertSingleArtistPerAlbumDirectory(albumDirectories)
+  }
   return planned
 }

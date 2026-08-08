@@ -102,7 +102,7 @@ the source root.
 | `manage_albums_list` | none | `prefix: string` |
 | `manage_albums_summarize_source_dir` | `dirName: string` | `ignoreNonAudioFiles: boolean`, `limit: non-negative integer` |
 | `manage_albums_validate` | `dirName: string` | `artistFilenameStrategy: string`, `titleFilenameStrategy: string`, `ignoreNonAudioFiles: boolean`, `limit: non-negative integer` |
-| `manage_albums_organize_files` | `albumDir: string` ending in `/`, or `albumDirs: string[]` of at least two slash-terminated entries | `albumArtStrategy: string`; `setMetadata`: non-empty metadata-record array; strategy/set fields: strings; `execute`, `ignoreAudioFilesWithoutTracks`, `ignoreNonAudioFiles`, `resetTrack`, `swapArtistAlbumartist`: booleans; `limit`: non-negative integer |
+| `manage_albums_organize_files` | `albumDir: string` ending in `/`, or `albumDirs: string[]` of at least two slash-terminated entries | `albumArtStrategy: string`; `setMetadata`: non-empty metadata-record array; strategy/set fields: strings; `allowMultipleAlbums`, `execute`, `ignoreAudioFilesWithoutTracks`, `ignoreNonAudioFiles`, `resetTrack`, `swapArtistAlbumartist`: booleans; `limit`: non-negative integer |
 
 Strategy values are validated by the shared album operations. Defaults are
 `artist`, `title`, `error`, and `no change`, as applicable. MCP uses native
@@ -114,6 +114,19 @@ Album inspection and validation operate on one flat directory containing
 files case-insensitively. It emits `audio` and `albumArt` `fileType` rows and
 places art at the effective album root. Other sidecars, subdirectories, and
 symlinks cause an error unless `ignoreNonAudioFiles: true` is supplied.
+
+`allowMultipleAlbums: true` lets one call organize a source holding more than one
+album, producing one `Artist/Album` tree per album. It relaxes both the
+`Multiple albums found:` and `Multiple artists resolve to the same album
+directory:` errors, scopes disc-metadata validation to each destination album — so
+two albums that each start at track 1 are planned normally — and reports every
+adjacent image with `action: "would exclude"` and an empty `destination`, because
+art cannot be attributed to one album. It requires `albumDir` and is rejected with
+`albumDirs`. `manage_albums_validate` has no equivalent input and still rejects
+such a source, so do not treat a successful organize plan as validation.
+Pair it with `setMetadata` when the source tags carry one album name for many
+artists — the records' `album` fields decide the resulting trees. See
+[album organization](./album-organization.md) for the full contract.
 
 Concatenation is enabled with `discStrategy: "concatenate"` plus ordered
 `albumDirs`. Each entry is resolved independently within the selected source

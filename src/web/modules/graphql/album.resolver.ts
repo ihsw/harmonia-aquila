@@ -85,6 +85,7 @@ export class AlbumResolver {
       ...optionalEntry('albumArtStrategy', input.albumArtStrategy),
       ...optionalEntry('albumArtistsStrategy', input.albumArtistsStrategy),
       ...optionalEntry('albumStrategy', input.albumStrategy),
+      ...optionalEntry('allowMultipleAlbums', input.allowMultipleAlbums),
       ...optionalEntry('artistFilenameStrategy', input.artistFilenameStrategy),
       ...optionalEntry('destinationStrategy', input.destinationStrategy),
       ...optionalEntry('discStrategy', input.discStrategy),

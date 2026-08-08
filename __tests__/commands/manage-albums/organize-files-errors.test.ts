@@ -36,6 +36,62 @@ describe('manage-albums organize-files errors', () => {
     const command = makeProgram().commands.find(candidate => candidate.name() === 'organize-files')
 
     expect(command?.description()).toContain('one album per run')
+    expect(command?.description()).toContain('--allow-multiple-albums')
+  })
+
+  it('forwards --allow-multiple-albums into the organization operation', async () => {
+    mockOrganizeAlbumFiles.mockResolvedValue([])
+
+    await makeProgram().parseAsync([
+      'node', 's', 'organize-files',
+      '--source-dir', 'source',
+      '--dest-dir', 'destination',
+      '--allow-multiple-albums',
+    ])
+
+    expect(mockOrganizeAlbumFiles).toHaveBeenCalledWith(expect.objectContaining({
+      allowMultipleAlbums: true,
+      destDir: 'destination',
+      sourceDir: 'source',
+    }))
+  })
+
+  it('omits allowMultipleAlbums when the flag is absent', async () => {
+    mockOrganizeAlbumFiles.mockResolvedValue([])
+
+    await makeProgram().parseAsync([
+      'node', 's', 'organize-files',
+      '--source-dir', 'source',
+      '--dest-dir', 'destination',
+    ])
+
+    expect(mockOrganizeAlbumFiles.mock.calls[0]?.[0]).not.toHaveProperty('allowMultipleAlbums')
+  })
+
+  it('reports the --allow-multiple-albums sourceDirs conflict through Commander', async () => {
+    mockOrganizeAlbumFiles.mockRejectedValue(new UserInputError(
+      '--allow-multiple-albums requires sourceDir',
+    ))
+    vi.spyOn(process, 'exit').mockImplementation((): never => {
+      throw new Error('exit')
+    })
+
+    await expect(makeProgram().parseAsync([
+      'node', 's', 'organize-files',
+      '--source-dirs', 'first', 'second',
+      '--dest-dir', 'destination',
+      '--disc-strategy', 'concatenate',
+      '--allow-multiple-albums',
+    ])).rejects.toThrow('exit')
+
+    expect(mockOrganizeAlbumFiles).toHaveBeenCalledWith(expect.objectContaining({
+      allowMultipleAlbums: true,
+      sourceDirs: ['first', 'second'],
+    }))
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('--allow-multiple-albums requires sourceDir'),
+    )
+    expect(infoSpy).not.toHaveBeenCalled()
   })
 
   it('maps metadata repair options into the organization operation', async () => {

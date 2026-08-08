@@ -50,6 +50,7 @@ export type OrganizeFilesSourceOptions
 
 export type OrganizeFilesOptions = MetadataFixOptions & OrganizeFilesSourceOptions & {
   albumArtStrategy?: string
+  allowMultipleAlbums?: boolean
   artistFilenameStrategy?: string
   destDir: string
   execute?: boolean
