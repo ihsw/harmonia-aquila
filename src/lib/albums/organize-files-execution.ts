@@ -1,4 +1,3 @@
-import { parseFile } from 'music-metadata'
 import { randomUUID } from 'node:crypto'
 import { copyFile, mkdir, rename, rm } from 'node:fs/promises'
 import { basename, dirname, extname, join, relative } from 'node:path'
@@ -6,7 +5,8 @@ import { basename, dirname, extname, join, relative } from 'node:path'
 import { pathExists } from '../../command-utils.js'
 import { UserInputError } from '../errors.js'
 
-import { type AudioTagFix, writeAudioTagFix } from './audio-tags.js'
+import { verifyTagFix } from './audio-tag-verification.js'
+import { writeAudioTagFix } from './audio-tags.js'
 import type { DestinationStrategy } from './metadata-fix-types.js'
 import type { PlannedOrganizationCopy } from './organize-files-types.js'
 
@@ -92,41 +92,6 @@ function temporaryPath(destinationPath: string): string {
   const extension = extname(destinationPath)
   const stem = basename(destinationPath, extension)
   return join(dirname(destinationPath), `.${stem}.${randomUUID()}.tmp${extension}`)
-}
-
-function metadataValues(values: string[] | undefined, value: string | undefined): string[] {
-  return values ?? (value === undefined || value === '' ? [] : [value])
-}
-
-function matchesNumericTagFix(value: number | null, kindedValue: AudioTagFix['discNumber']): boolean {
-  return kindedValue === undefined || (
-    kindedValue.kind === 'clear'
-      ? value === null || value === 0
-      : value === kindedValue.value
-  )
-}
-
-async function verifyTagFix(path: string, fix: AudioTagFix): Promise<void> {
-  if (Object.keys(fix).length === 0) {
-    return
-  }
-  const common = (await parseFile(path)).common
-  const matches = [
-    fix.album === undefined || common.album === fix.album,
-    fix.albumArtists === undefined
-    || JSON.stringify(metadataValues(common.albumartists, common.albumartist)) === JSON.stringify(fix.albumArtists),
-    fix.artists === undefined
-    || JSON.stringify(metadataValues(common.artists, common.artist)) === JSON.stringify(fix.artists),
-    matchesNumericTagFix(common.disk.no, fix.discNumber),
-    matchesNumericTagFix(common.disk.of, fix.discTotal),
-    fix.producers === undefined || JSON.stringify(common.producer ?? []) === JSON.stringify(fix.producers),
-    fix.title === undefined || common.title === fix.title,
-    fix.trackNumber === undefined || common.track.no === fix.trackNumber,
-  ]
-
-  if (matches.some(match => !match)) {
-    throw new Error(`Metadata was not persisted: ${JSON.stringify(fix)}`)
-  }
 }
 
 export async function executeOrganizationCopies(plannedCopies: PlannedOrganizationCopy[]): Promise<void> {

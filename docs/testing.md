@@ -156,6 +156,45 @@ wait "$ALLOW_SERVER_PID" || true
 rm -rf "$ALLOW_ROOT"
 ```
 
+## Manual ID3v2.3 Tag Verification Check
+
+The automated suite mocks both `music-metadata` and `node-taglib-sharp`, so it
+cannot prove that a real ID3v2.3 round trip survives verification. Run this by
+hand after changing anything in `src/lib/albums/audio-tag-verification.ts` or
+`audio-tags.ts`. It is the only check here that touches real media, and it is
+deliberately outside the hermetic suite.
+
+Point `--dest-dir` at a scratch path that **does not yet exist**. Under the
+default `--destination-strategy error` an existing album directory aborts the
+run before any tag is written, which will mask whatever you meant to test.
+
+```sh
+npm run build
+node . manage-albums organize-files --limit 5 --format json \
+  --allow-multiple-albums --ignore-non-audio-files \
+  --title-filename-strategy subtitle --album-artists-strategy aggregate \
+  --set-artist "OverClocked ReMix" --album-strategy grouping \
+  --source-dir "etc/albums/1-source-files/OC ReMix Collection - 1 to 4000 [v20201028]" \
+  --dest-dir etc/scratchpad/verify-dest --execute
+```
+
+Expect exit 0 and five `"action": "copied"` rows across three album
+directories under `OverClocked ReMix/`: `7th Guest` (three tracks, aggregated to
+the album artists `AmIEviL`, `Mazedude`, `The Fat Man`), `3D Pinball- Space
+Cadet` (one), and `3-D Ultra Pinball- Creep Night` (one). Re-reading a published
+`7th Guest` track must show the joined `TPE2` value
+`"AmIEviL/Mazedude/The Fat Man"` in `native['ID3v2.3']` — that joined form is
+the pass condition, not a defect.
+
+To exercise the involved-people frame as well, repeat with
+`--producer-strategy copy-from-album-artists` into a second fresh destination.
+The sources carry no producer tags, so `--producer-strategy aggregate` yields an
+empty list and never reaches that code path. A published track should then carry
+`IPLS {"producer":["OverClocked ReMix"]}` while `common.producer` stays
+`undefined`. Any `Metadata was not persisted` failure is a regression.
+
+Remove the scratch destinations afterwards.
+
 ## Hermetic Rules
 
 The test suite is fully hermetic:
@@ -187,6 +226,8 @@ __tests__/commands/manage-albums/organize-files-set-metadata.test.ts
 __tests__/commands/manage-albums/organize-files-disc.test.ts
 __tests__/lib/albums/organize-files-disc-policy.test.ts
 __tests__/lib/albums/organize-files-metadata.test.ts
+__tests__/lib/albums/audio-tag-verification.test.ts
+__tests__/lib/albums/organize-files-tag-verification.test.ts
 __tests__/lib/albums/organize-files-set-metadata-input.test.ts
 __tests__/lib/albums/organize-files-metadata-disc.test.ts
 __tests__/lib/albums/audio-files-album-art.test.ts

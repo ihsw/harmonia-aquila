@@ -45,11 +45,13 @@ export interface FormatOverrides {
   bitrate?: number
   duration?: number
   sampleRate?: number
+  tagTypes?: IFormat['tagTypes']
 }
 
 export function makeAudioMetadata(
   common: CommonTagsOverrides = {},
   format: FormatOverrides = {},
+  native: IAudioMetadata['native'] = {},
 ): IAudioMetadata {
   const commonResult: ICommonTagsResult = {
     disk: { no: null, of: null },
@@ -67,7 +69,7 @@ export function makeAudioMetadata(
   return {
     common: commonResult,
     format: formatResult,
-    native: {},
+    native,
     quality: { warnings: [] },
   }
 }

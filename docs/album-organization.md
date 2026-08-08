@@ -188,6 +188,44 @@ source. Dry-run and execute output include `sourceDirectory` for concatenated
 rows so repeated basenames remain unambiguous, and unselected art appears as
 `would exclude` or `excluded`. Always review the full dry run before `--execute`.
 
+## Tag container limits
+
+`organize-files --execute` re-reads every staged copy and refuses to publish it
+when the tags it reads back differ from the tags it asked for. That check knows
+what each container can actually hold, because a faithful write is not always a
+byte-identical read.
+
+ID3v2.3 text frames are single-valued. A multi-value album-artist list has only
+one representation in `TPE2`: the entries joined with `/`. Writing
+`["AmIEviL", "Mazedude", "The Fat Man"]` to an `.mp3` therefore reads back as the
+single value `"AmIEviL/Mazedude/The Fat Man"`, and verification accepts it. The
+tolerance is deliberately narrow — it applies only when the container is
+ID3v2.3, the requested list has two or more entries, and the read-back is
+exactly one entry equal to the join — so a value that genuinely did not persist
+is still rejected. It carries one unavoidable ambiguity: a single album artist
+literally named `A/B` is indistinguishable from the list `["A", "B"]` after an
+ID3v2.3 round trip, so the former satisfies a fix requesting the latter.
+ID3v2.3 cannot tell them apart either. FLAC/Xiph stores genuine multi-value
+fields and is compared exactly. `--album-artists-strategy aggregate` against an
+MP3 source is the usual way to reach this path.
+
+MP3 producers live in the ID3v2 involved-people frame — `IPLS` on ID3v2.3,
+`TIPL` on ID3v2.4 — which `music-metadata` parses into the native tag list but
+does not surface on `common.producer`. Verification reads that frame directly,
+preferring `common.producer` whenever a container does populate it. Without this
+fallback every non-empty `--producer-strategy` run against an `.mp3` would be
+rejected despite writing correctly.
+
+One gap is known and deliberate: `year` is written but never verified. Adding a
+check risks a new false rejection of exactly the kind described above, so the
+tag is trusted rather than confirmed.
+
+Note that verification is what refuses to publish; it is not what cleans up
+afterwards. A run that fails for any reason still leaves the album directory it
+created behind, and under the default `--destination-strategy error` that empty
+directory blocks the retry with `Destination album directories already exist:`.
+Remove it before re-running.
+
 ## Reconciled suitable-candidate processing spec
 
 - Spec: `specs/2026-07-09/process-reconciled-suitable-source-albums/`
